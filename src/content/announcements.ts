@@ -6,11 +6,11 @@ export const announcements: Announcement[] = [
   {
     id: 'extensible-terrain-generation',
     title: 'Extensible Terrain Generation',
-    body: 'A C++ and Vulkan playground for terrain pipelines that can grow new generators over time. First personal graphics project on the road to Delft.',
+    body: 'A C++ and Vulkan terrain pipeline designed to take new generators without being rebuilt around each one. First personal graphics project on the road to Delft.',
   },
   {
-    id: 'gmtk-2026',
-    title: 'GMTK 2026 with team Kartof',
-    body: 'The team is back for this year’s GMTK Game Jam. Whatever the theme turns out to be, a new game lands here right after the weekend.',
+    id: 'davincis-black-market-bird-dealer',
+    title: "Davinci's Black Market Bird Dealer",
+    body: 'The next university project, in production now for Game Design 1 at TU/e.',
   },
 ]

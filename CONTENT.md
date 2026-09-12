@@ -19,7 +19,7 @@
 ### Education
 
 **BSc Computer Science and Engineering — Eindhoven University of Technology (TU/e)**
-*September 2024 – 2027 (expected) · currently 2nd year, class finishing in 2027*
+*September 2024 – 2027 (expected) · currently 3rd year, class finishing in 2027*
 
 **National Gymnasium of Natural Sciences and Mathematics "Academician Lyubomir Chakalov", Sofia**
 *September 2019 – May 2024 · secondary education*
@@ -111,9 +111,21 @@ Schema per project: `{ year, role, duration, tools/platform, category, team?, li
   enemies in a forest; comic-panel art style; "Opportunity makes a thief, but a thief
   makes his own gallows." No generative AI used. · Team: damianhr, BungerColumbus,
   smarty123, Midas5665, Eyn_Zayan, Davidd · **Role: Scrum Master & Programmer**
-- **GMTK 2026 entry** — *very soon…*
+- **5 More Minutes!** — GMTK Game Jam 2026, theme **"Count Down"** (2026, ~96 h) ·
+  Unity (C#) · [itch.io](https://damianhr.itch.io/5-more-minutes) (Windows download,
+  43 MB) · [repo](https://github.com/DamianLHr/GMTK2026_Kartof) · You wake up one
+  minute before a deadline and have to hand the assignment in: find the final version
+  of the project, recover the forgotten password, survive 2FA, and ignore everything in
+  the room trying to distract you. No generative AI used. · Team: damianhr, Davidd,
+  smarty123 (2D art, rigging, animation), Midas5665 (sound, 3D models), Bunger (pixel
+  art, UI), ssvuet (art posters), Eyn_Zayan · **Role: Scrum Master & Programmer** ·
+  TODO: itch page still reads *In development* — flip it to released
 
 ### University (each a ~2-month course project)
+- **Davinci's Black Market Bird Dealer** — *in production* · **Game Design 1**, TU/e ·
+  [repo](https://github.com/DamianLHr/Davinici-Blackmarket-Bird-Dealer) is **private**, so
+  the site carries no link yet · TODO (Damyan): what the game is, role, team size,
+  engine, timeframe
 - **Digital Twinning Suspension** (a.k.a. Twinning Project 2) — **2026** ·
   [repo](https://github.com/DamianLHr/Digital-Twinning-Suspension) (Unity 6000.4.6f1,
   C# + Python analysis) · Multidisciplinary CBL project: a digital twin of an **active

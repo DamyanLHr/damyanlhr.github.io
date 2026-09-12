@@ -170,7 +170,7 @@ Routes (stable across themes, §3.2): `/` · `/cv` · `/projects` · `/projects/
 
 - **`/` landing** — clearly separated gateways to every subpage; GitHub profile picture
   (`https://github.com/DamianLHr.png`); links to GitHub and all socials.
-- **`/cv`** — Education (BSc Computer Science & Engineering at TU/e, year 2, class of
+- **`/cv`** — Education (BSc Computer Science & Engineering at TU/e, year 3, class of
   2027; secondary: National Gymnasium of Natural Sciences and Mathematics "Acad. L.
   Chakalov", Sofia — Mathematics & Informatics with German); Experience (INDEAVR
   internship, Sofia 2022; 1 year on *Totem*, unreleased game); Plans (MSc in Delft —

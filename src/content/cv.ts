@@ -8,7 +8,7 @@ export const cv: CV = {
       location: 'Eindhoven, the Netherlands',
       start: '2024-09',
       end: '2027 (expected)',
-      details: ['Currently in the 2nd year, class finishing in 2027.'],
+      details: ['Currently in the 3rd year, class finishing in 2027.'],
     },
     {
       school: 'National Gymnasium of Natural Sciences and Mathematics "Academician Lyubomir Chakalov"',
@@ -31,9 +31,9 @@ export const cv: CV = {
       end: '2026-06-30',
       teamSize: 15,
       tools: ['Unity', 'C#', 'Netcode for GameObjects'],
-      summary: 'Worked on an asymmetric multiplayer game, still in beta, in a ~15-person team.',
+      summary: 'An asymmetric multiplayer game, still in beta, built by a team of about 15.',
       highlights: [
-        'Networked pub/sub event bus keeping gameplay systems loosely coupled across the network.',
+        'Networked pub/sub event bus keeping gameplay systems loosely coupled.',
         'Lobby and session flow: Unity Services initialization, session create/join, asymmetric player-role assignment.',
         "2D ⇄ 3D grid-mapping pipeline (tilemap-to-3D conversion with forward and inverse mappers) linking the two players' asymmetric views.",
         'Sub-scene "arcade machine" system: minigames on in-world screens via render textures, with client-authority management.',
@@ -87,7 +87,7 @@ export const cv: CV = {
     expanding: [
       {
         name: 'C++ & Vulkan',
-        evidence: 'Actively learning, aligned with the Delft computer-graphics direction.',
+        evidence: 'Actively learning, for the computer-graphics track in Delft.',
         projectSlugs: ['extensible-terrain-generation'],
       },
     ],
