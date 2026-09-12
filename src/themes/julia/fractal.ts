@@ -33,9 +33,55 @@ export function hashString(s: string): number {
   return Math.abs(h)
 }
 
+/**
+ * MurmurHash3's finalizer.
+ *
+ * `hashString` is `h * 31 + c`, which has almost no avalanche: slugs of similar
+ * length and shape come out with similar bits, so deriving several independent
+ * numbers from one of its results gives several correlated numbers. Running it
+ * through this first is what makes the offsets below actually independent.
+ */
+function mix(x: number): number {
+  let h = x | 0
+  h ^= h >>> 16
+  h = Math.imul(h, 0x85ebca6b)
+  h ^= h >>> 13
+  h = Math.imul(h, 0xc2b2ae35)
+  h ^= h >>> 16
+  return h >>> 0
+}
+
+/** How far a slug may pull its constant away from the curated pool entry. */
+const SPREAD = 0.045
+
+/**
+ * The stable fractal identity for a piece of content.
+ *
+ * A pool index alone does not give one. Eight constants and a weak hash sent
+ * three project slugs to index 6 and two more to index 7, so six of the eight
+ * projects rendered as the same two pictures and the mosaic read as duplicates.
+ *
+ * The pool still picks the neighbourhood, because those constants are curated to
+ * render well. Each slug then pulls its own c a little way off that entry and
+ * turns it, which changes the shape rather than merely rotating the same one.
+ *
+ * MUST STAY DETERMINISTIC: a project's identity is derived, never stored, so the
+ * same slug has to give the same picture on every device and every build.
+ * `fractal.test.ts` holds the roster apart by {@link SPREAD}, so a new project
+ * that lands on top of an existing one fails the build rather than shipping as a
+ * duplicate card.
+ */
 export function paramsFor(slug: string, seed?: number): JuliaParams {
-  const index = (seed ?? hashString(slug)) % C_POOL.length
-  return C_POOL[index]
+  const h = mix(seed ?? hashString(slug))
+  const g = mix(h ^ 0x9e3779b9)
+  const base = C_POOL[h % C_POOL.length]
+  const unit = (x: number) => (x % 4096) / 4096 - 0.5
+  return {
+    ...base,
+    re: base.re + unit(h >>> 8) * SPREAD * 2,
+    im: base.im + unit(g) * SPREAD * 2,
+    angle: (base.angle ?? 0) + ((g >>> 12) % 360) * (Math.PI / 180),
+  }
 }
 
 // Heated ember stops (accent #ff6a00 family)

@@ -3,17 +3,59 @@
 
 .julia {
   --j-bg: #0a0b0d;
+  /* one step of surface above the ground, so a panel can exist without a border */
+  --j-raise: #101216;
   --j-fg: #ece9e4;
   --j-muted: #8a8f98;
   --j-accent: #ff6a00;
   --j-accent-soft: #ffb25c;
-  --j-line: color-mix(in srgb, var(--j-fg) 14%, transparent);
+  /* The accent at full strength is a 100%-saturated orange, which is fine on a
+     word and far too loud on a hairline. These are the strengths a rule, a
+     border and a wash are allowed to use, so the full value stays reserved for
+     things that are actually accents. */
+  --j-accent-rule: color-mix(in srgb, var(--j-accent) 38%, transparent);
+  --j-accent-edge: color-mix(in srgb, var(--j-accent) 22%, transparent);
+  --j-accent-wash: color-mix(in srgb, var(--j-accent) 7%, transparent);
+  --j-line: color-mix(in srgb, var(--j-fg) 12%, transparent);
   --j-ember: linear-gradient(90deg, #460c10, #bc2616, #ff6a00, #ffb25c);
+
+  /* One radius scale: containers take --j-r, anything you press is a pill.
+     There used to be three (6px, 10px, 999px) with no rule behind them. */
+  --j-r: 8px;
 
   min-height: 100dvh;
   background: var(--j-bg);
   color: var(--j-fg);
   font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+/* Metadata is data, so it is set in a mono with lining figures: years, team
+   sizes and tool lists line up down a column instead of drifting. Space Grotesk
+   still carries every voice on the page. */
+.julia .j-meta,
+.julia .j-chip,
+.julia .j-facts dt,
+.julia .j-upnext-tag,
+.julia .j-eyebrow,
+.julia .j-ticker-tag {
+  font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A near-black flat field reads as a rendering, not a surface. A single fixed
+   grain layer at 3.5% gives the page a material without touching the palette. */
+.julia::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .julia::after { display: none; }
 }
 
 /* ---------- navigation ---------- */
@@ -92,13 +134,24 @@
   height: 100%;
 }
 
+/* The scrim's job is to make the copy readable, not to dim the artwork. The old
+   one did both: a left-hand wash AND a radial vignette over the whole canvas,
+   which took the one thing on this site nobody else has and turned it down.
+   This covers the copy column hard, releases by the time it reaches the set, and
+   keeps only a soft edge fade so the canvas does not end on a visible seam. */
 .j-home-scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(10, 11, 13, 0.78) 0%, rgba(10, 11, 13, 0.4) 26%, transparent 52%),
-    radial-gradient(72% 68% at 54% 46%, transparent 46%, var(--j-bg) 96%);
+    linear-gradient(
+      90deg,
+      rgba(10, 11, 13, 0.94) 0%,
+      rgba(10, 11, 13, 0.88) 22%,
+      rgba(10, 11, 13, 0.45) 38%,
+      transparent 54%
+    ),
+    radial-gradient(120% 96% at 62% 48%, transparent 62%, var(--j-bg) 100%);
 }
 
 .j-ticker {
@@ -223,9 +276,11 @@
 .j-out {
   color: var(--j-muted);
   text-decoration: none;
-  border-bottom: 1px solid var(--j-accent);
+  border-bottom: 1px solid var(--j-accent-rule);
   padding-bottom: 2px;
-  transition: color 160ms var(--ease-out-strong);
+  transition:
+    color 160ms var(--ease-out-strong),
+    border-color 160ms var(--ease-out-strong);
 }
 
 .j-out {
@@ -238,6 +293,7 @@
   .j-socials a:hover,
   .j-out:hover {
     color: var(--j-accent-soft);
+    border-bottom-color: var(--j-accent);
   }
 }
 
@@ -265,18 +321,33 @@
 .j-hero {
   width: 100%;
   height: clamp(180px, 32vw, 300px);
-  border-radius: 6px;
+  border-radius: var(--j-r);
   margin-bottom: 1.4rem;
   mask-image: radial-gradient(85% 130% at 50% 50%, black 50%, transparent 98%);
 }
 
+/* Every section head used to be an uppercase letterspaced label, which is the
+   most templated rhythm a page can have. The page keeps exactly two of those
+   (the hero eyebrow and the card chips) and section heads are real headings
+   with a rule under them. */
 .j-h2 {
-  margin: 2.4rem 0 1rem;
-  font-size: 0.85rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  /* A step clear of the h3 entries below it. Dropping the uppercase label lost
+     the size difference that used to carry the level, so the size has to. */
+  margin: 2.8rem 0 1.2rem;
+  font-size: 1.42rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--j-accent);
+  letter-spacing: -0.02em;
+  color: var(--j-fg);
+}
+
+.j-h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--j-accent-rule), transparent);
 }
 
 .j-entry {
@@ -285,8 +356,9 @@
 
 .j-entry h3 {
   margin: 0 0 0.25rem;
-  font-size: 1.12rem;
+  font-size: 1.02rem;
   font-weight: 500;
+  color: color-mix(in srgb, var(--j-fg) 92%, var(--j-accent));
 }
 
 .j-entry ul {
@@ -314,7 +386,7 @@
 .j-meta a {
   color: var(--j-fg);
   text-decoration: none;
-  border-bottom: 1px solid var(--j-accent);
+  border-bottom: 1px solid var(--j-accent-rule);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -335,9 +407,9 @@
 }
 
 .j-upnext {
-  border: 1px solid color-mix(in srgb, var(--j-accent) 34%, transparent);
-  border-radius: 10px;
-  background: linear-gradient(120deg, rgba(255, 106, 0, 0.09), transparent 62%);
+  border: 1px solid var(--j-accent-edge);
+  border-radius: var(--j-r);
+  background: linear-gradient(120deg, var(--j-accent-wash), transparent 62%);
   padding: 1.1rem 1.3rem 1.2rem;
   margin-bottom: 1.6rem;
 }
@@ -381,7 +453,7 @@
   overflow: hidden;
   min-height: 16rem;
   border: 1px solid var(--j-line);
-  border-radius: 10px;
+  border-radius: var(--j-r);
   color: var(--j-fg);
   text-decoration: none;
   transition:
@@ -398,10 +470,20 @@
   transform: scale(0.985);
 }
 
+/* The card art is a live fractal that already morphs toward a nearby constant
+   while the card is hovered (FractalCanvas live="hover"). Lifting the box three
+   pixels on top of that is the stock move and it competes with the only reaction
+   here that is specific to this site. So the box stays put, the scrim lifts to
+   let more of the set through, and the title takes the accent. */
 @media (hover: hover) and (pointer: fine) {
   .j-card:hover {
-    transform: translateY(-3px);
-    border-color: color-mix(in srgb, var(--j-accent) 55%, transparent);
+    border-color: var(--j-accent-rule);
+  }
+  .j-card:hover .j-card-scrim {
+    opacity: 0.72;
+  }
+  .j-card:hover .j-card-title {
+    color: var(--j-accent-soft);
   }
 }
 
@@ -415,7 +497,8 @@
 .j-card-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(10, 11, 13, 0.93) 16%, rgba(10, 11, 13, 0.4) 52%, rgba(10, 11, 13, 0.08) 78%);
+  background: linear-gradient(to top, rgba(10, 11, 13, 0.95) 18%, rgba(10, 11, 13, 0.42) 54%, rgba(10, 11, 13, 0.06) 80%);
+  transition: opacity 240ms var(--ease-out-strong);
 }
 
 .j-card-body {
@@ -429,7 +512,7 @@
 .j-chip {
   width: fit-content;
   color: var(--j-accent);
-  border: 1px solid color-mix(in srgb, var(--j-accent) 45%, transparent);
+  border: 1px solid var(--j-accent-rule);
   border-radius: 999px;
   padding: 0.14rem 0.55rem;
   font-size: 0.64rem;
@@ -441,6 +524,7 @@
   font-size: clamp(1.15rem, 2vw, 1.45rem);
   font-weight: 700;
   letter-spacing: -0.015em;
+  transition: color 240ms var(--ease-out-strong);
 }
 
 .j-card-summary {
@@ -468,20 +552,21 @@
   }
 }
 
+/* A field, not a box. The bordered panel was one more card on a page that had
+   plenty, and the facts read as a group without being fenced in. */
 .j-facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: 0.9rem 1.4rem;
   margin: 0 0 1.4rem;
   padding: 1rem 1.1rem;
-  border: 1px solid var(--j-line);
-  border-radius: 6px;
+  background: var(--j-raise);
+  border-radius: var(--j-r);
 }
 
 .j-facts dt {
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0;
   color: var(--j-muted);
 }
 
@@ -503,7 +588,7 @@
   text-decoration: none;
   font-size: 0.92rem;
   font-weight: 500;
-  border: 1px solid color-mix(in srgb, var(--j-accent) 60%, transparent);
+  border: 1px solid var(--j-accent-rule);
   border-radius: 999px;
   padding: 0.6rem 1.25rem;
   transition:
@@ -547,7 +632,7 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--j-line);
-  border-radius: 6px;
+  border-radius: var(--j-r);
   padding: 1.2rem 1.2rem 1.4rem;
   min-height: 11rem;
 }
@@ -618,7 +703,7 @@
 .j-foot a {
   color: var(--j-muted);
   text-decoration: none;
-  border-bottom: 1px solid var(--j-accent);
+  border-bottom: 1px solid var(--j-accent-rule);
   padding-bottom: 1px;
 }
 
@@ -637,26 +722,19 @@
   border-radius: 2px;
 }
 
-.j-enter > * {
-  opacity: 0;
-  transform: translateY(8px);
-  animation: j-rise 300ms var(--ease-out-strong) forwards;
-}
-
-.j-enter > *:nth-child(2) {
-  animation-delay: 40ms;
-}
-.j-enter > *:nth-child(3) {
-  animation-delay: 80ms;
-}
-.j-enter > *:nth-child(4) {
-  animation-delay: 120ms;
-}
-.j-enter > *:nth-child(n + 5) {
-  animation-delay: 160ms;
+/* One rise for the section, not a staggered cascade down every child.
+   The cascade was motion with nothing to say, and it had a real failure mode:
+   each child sat at opacity 0 waiting for its own delay, so anything that stalls
+   the compositor leaves half the page invisible rather than merely unanimated. */
+.j-enter {
+  animation: j-rise 320ms var(--ease-out-strong) both;
 }
 
 @keyframes j-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
@@ -664,14 +742,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .j-enter > * {
-    animation: j-fade 200ms ease forwards;
-    transform: none;
+  .j-enter {
+    animation: none;
   }
-  @keyframes j-fade {
-    to {
-      opacity: 1;
-    }
+  .j-card-scrim,
+  .j-card-title {
+    transition: none;
   }
   .j-nav-link::after,
   .j-big-links a::after,

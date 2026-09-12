@@ -1,6 +1,8 @@
 import '@fontsource/space-grotesk/400.css'
 import '@fontsource/space-grotesk/500.css'
 import '@fontsource/space-grotesk/700.css'
+// metadata only: years, team sizes and tool lists get lining figures that line up
+import '@fontsource/ibm-plex-mono/400.css'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { routePath } from '../../shared/routes'
 import { Cv, Home, Interests, InternalLink, NotFound, ProjectPage, ProjectsIndex } from './views'

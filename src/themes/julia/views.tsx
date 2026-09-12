@@ -53,7 +53,10 @@ export function Home({ content, navigate }: { content: SiteContent; navigate: Na
         params={
           narrow
             ? { ...ROUTE_C.home, span: 2.7, centerX: 0.5, centerY: 0.22, angle: -0.7 }
-            : { ...ROUTE_C.home, span: 2.3, centerX: 0.54, centerY: 0.46, angle: -0.7 }
+            // Pushed right of centre so the set sits beside the name instead of
+            // behind it. It used to bloom straight through the title, which is
+            // why the scrim had to be heavy enough to dim the whole picture.
+            : { ...ROUTE_C.home, span: 2.25, centerX: 0.66, centerY: 0.46, angle: -0.7 }
         }
         live="hero"
         className="j-home-canvas"
@@ -177,9 +180,13 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
   )
 }
 
+// Mosaic weights, in released order, so every row of the six-column grid fills
+// exactly: (3+3)(6)(4+2)(6). A slug missing here falls back to 3 and leaves a
+// ragged row, so this map has to move whenever a project ships.
 const CARD_SPAN: Record<string, number> = {
   'dont-break-glass': 3,
   'kill-bunny': 3,
+  'five-more-minutes': 6,
   'digital-twinning-suspension': 4,
   'blood-of-hedon': 2,
   'olympian-onslaught': 6,
