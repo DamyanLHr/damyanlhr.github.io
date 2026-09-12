@@ -68,6 +68,33 @@ const CLEARANCE = PLANE * 0.045
 /** The shallowest angle a flight will arrive at, so towns are looked *down* on. */
 const MIN_ARRIVAL_PITCH = 0.34 // radians, ≈19°
 
+/** Arrival polar angle, as OrbitControls measures it: from straight up. */
+const MAX_ARRIVAL_POLAR = Math.PI / 2 - MIN_ARRIVAL_PITCH
+
+/**
+ * The polar angle a long flight climbs to at its apex: steeply overhead, so the
+ * island passes *under* the camera instead of through it. Kept well clear of
+ * `controls.minPolarAngle` so the apex never fights the clamp.
+ */
+const CRUISE_POLAR = 0.42 // radians, ≈24° off vertical
+
+/** How long the camera keeps turning around a place after it lands there. */
+const SETTLE_SPIN = 2.5 // seconds
+
+/** Auto-rotation speeds: the idle drift on the landing, and the arrival pan. */
+const IDLE_SPEED = 0.35
+const SETTLE_SPEED = 0.9
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+
+/** Shortest signed turn from `a` to `b`, so a flight never takes the long way round. */
+const shortestTurn = (a: number, b: number) => {
+  let d = (b - a) % (Math.PI * 2)
+  if (d > Math.PI) d -= Math.PI * 2
+  if (d < -Math.PI) d += Math.PI * 2
+  return d
+}
+
 /** grid coords → world space */
 function toWorld(gx: number, gy: number, h: number, size: number): THREE.Vector3 {
   return new THREE.Vector3(
@@ -797,7 +824,7 @@ export function createScene(
   controls.minPolarAngle = 0.12
   controls.maxPolarAngle = Math.PI * 0.46
   controls.target.set(0, HEIGHT * 0.22, 0)
-  controls.autoRotateSpeed = 0.35
+  controls.autoRotateSpeed = IDLE_SPEED
   controls.update()
 
   const framing = { dx: 0, dy: 0 }
@@ -816,6 +843,16 @@ export function createScene(
   ro.observe(canvas)
 
   // --- flight ----------------------------------------------------------------
+  //
+  // A flight is an orbital transfer, not a walk. The old one interpolated the
+  // target and the distance while keeping whatever direction the camera already
+  // had, which dragged the viewer along the ground and straight through the
+  // island; the terrain clamp below then spent every frame shoving it back out
+  // of the hillsides. This one climbs, turns to face where it is going while it
+  // is still climbing, crosses at altitude, and comes back down onto the place.
+  //
+  // Everything is expressed in spherical coordinates around the (moving) target:
+  // `azim` is the bearing, `polar` the angle from straight up, `d` the radius.
   const flight = {
     active: false,
     t: 0,
@@ -824,8 +861,29 @@ export function createScene(
     toT: new THREE.Vector3(),
     fromD: 0,
     toD: 0,
+    cruiseD: 0,
+    fromPolar: 0,
+    toPolar: 0,
+    cruisePolar: 0,
+    fromAzim: 0,
+    toAzim: 0,
   }
   const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
+
+  /** Where the camera currently sits relative to `p`, in spherical terms. */
+  const orbitOf = (p: THREE.Vector3) => {
+    const d = camera.position.clone().sub(p)
+    const r = d.length() || 1e-6
+    return { azim: Math.atan2(d.x, d.z), polar: Math.acos(clamp(d.y / r, -1, 1)), r }
+  }
+
+  /**
+   * Auto-rotation has two owners: the route (home spins, inner pages do not) and
+   * the brief turn a flight does around the place it just landed on. The route's
+   * wish is remembered here so the settle spin can hand the controls back.
+   */
+  let autoRotateBase = false
+  let settle = 0
 
   // --- loop ------------------------------------------------------------------
   let raf = 0
@@ -843,13 +901,50 @@ export function createScene(
     if (flight.active) {
       flight.t = Math.min(1, flight.t + dt / flight.dur)
       const k = easeInOut(flight.t)
-      controls.target.lerpVectors(flight.fromT, flight.toT, k)
-      const dist = flight.fromD + (flight.toD - flight.fromD) * k
-      const dir = camera.position.clone().sub(controls.target).normalize()
-      camera.position.copy(controls.target).addScaledVector(dir, dist)
-      if (flight.t >= 1) flight.active = false
+
+      // Turn to face the destination early. The aim point is already there by
+      // the time the camera reaches the top of its arc, so the whole descent is
+      // spent looking at the place rather than swinging onto it at the last
+      // moment: rise, look at the next thing, come down onto it.
+      const kLook = easeInOut(Math.min(1, flight.t / 0.45))
+      controls.target.lerpVectors(flight.fromT, flight.toT, kLook)
+
+      // One symmetric bump on raw t: out to cruise altitude at the halfway
+      // point, back down to the arrival orbit by the end.
+      const arc = Math.sin(Math.PI * flight.t)
+      const baseD = flight.fromD + (flight.toD - flight.fromD) * k
+      const basePolar = flight.fromPolar + (flight.toPolar - flight.fromPolar) * k
+      const d = baseD + (flight.cruiseD - baseD) * arc
+      const polar = basePolar + (flight.cruisePolar - basePolar) * arc
+      const azim = flight.fromAzim + shortestTurn(flight.fromAzim, flight.toAzim) * k
+
+      const sinP = Math.sin(polar)
+      camera.position.set(
+        controls.target.x + d * sinP * Math.sin(azim),
+        controls.target.y + d * Math.cos(polar),
+        controls.target.z + d * sinP * Math.cos(azim),
+      )
+
+      if (flight.t >= 1) {
+        flight.active = false
+        controls.enabled = true
+        // Landed: turn around the place for a moment so it is seen in the round.
+        if (!opts.reducedMotion) {
+          settle = SETTLE_SPIN
+          controls.autoRotate = true
+          controls.autoRotateSpeed = SETTLE_SPEED
+        }
+      }
+    } else if (settle > 0) {
+      settle -= dt
+      if (settle <= 0) {
+        controls.autoRotate = autoRotateBase
+        controls.autoRotateSpeed = IDLE_SPEED
+      }
     }
 
+    // `update()` runs last so it does the orienting for us; with no input and no
+    // auto-rotation it writes the flight's own position straight back.
     controls.update()
 
     // Never let the camera end up inside the island.
@@ -1003,21 +1098,53 @@ export function createScene(
         const f = groundAt(camera.position.x, camera.position.z) + CLEARANCE
         if (camera.position.y < f) camera.position.y = f
         flight.active = false
+        controls.enabled = true
+        settle = 0
+        controls.autoRotate = autoRotateBase
+        controls.autoRotateSpeed = IDLE_SPEED
         return
       }
-      // Lift the approach if it is coming in flat. Keeping whatever angle the
-      // camera happened to have meant a town could be approached along the
-      // ground, which both looks like nothing and ends inside the next hill.
-      const dir = arrivalDir(target)
-      camera.position
-        .copy(controls.target)
-        .addScaledVector(dir, camera.position.distanceTo(controls.target))
+
+      const from = orbitOf(controls.target)
+      const hop = controls.target.distanceTo(target)
+
       flight.fromT.copy(controls.target)
       flight.toT.copy(target)
-      flight.fromD = camera.position.distanceTo(controls.target)
+      flight.fromD = from.r
       flight.toD = distance
+      flight.fromPolar = from.polar
+      flight.fromAzim = from.azim
+
+      // Keep the bearing the camera already had. Swinging round the island on
+      // top of everything else is disorienting, and the climb re-frames the view
+      // on its own.
+      flight.toAzim = from.azim
+      // Arrive looking down. A flat approach reads as nothing and ends inside
+      // the next hill; a steeper pitch the visitor chose themselves is left be.
+      flight.toPolar = clamp(from.polar, controls.minPolarAngle, MAX_ARRIVAL_POLAR)
+
+      // How high the arc goes is decided by how far it has to travel: two
+      // neighbouring towns barely leave the ground, crossing the island goes
+      // right up over it.
+      const reach = clamp(hop / (PLANE * 0.5), 0, 1)
+      flight.cruiseD = clamp(
+        Math.max(from.r, distance) * 1.15 + hop * 0.55,
+        PLANE * 0.45,
+        controls.maxDistance,
+      )
+      const basePolar = Math.min(from.polar, flight.toPolar)
+      flight.cruisePolar = Math.max(
+        controls.minPolarAngle,
+        basePolar + (CRUISE_POLAR - basePolar) * reach,
+      )
+      flight.dur = clamp(0.9 + (hop / PLANE) * 1.1, 0.9, 2.2)
       flight.t = 0
       flight.active = true
+      // The visitor cannot fight the camera mid-flight, and auto-rotation must
+      // not add a wobble on top of the arc.
+      controls.enabled = false
+      controls.autoRotate = false
+      settle = 0
     },
     onFrame(cb) {
       frameCbs.push(cb)
@@ -1028,7 +1155,10 @@ export function createScene(
     },
     stats: () => ({ fps: Math.round(fps), tris: quads * 2, detail }),
     setAutoRotate(on) {
-      controls.autoRotate = on && !opts.reducedMotion
+      autoRotateBase = on && !opts.reducedMotion
+      // A flight or a settle spin owns the controls while it runs; it hands them
+      // back to whatever the route asked for when it finishes.
+      if (!flight.active && settle <= 0) controls.autoRotate = autoRotateBase
     },
     setFraming(dx, dy) {
       framing.dx = dx

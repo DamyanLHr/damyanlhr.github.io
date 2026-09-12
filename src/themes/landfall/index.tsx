@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent,
   type ReactNode,
@@ -94,6 +95,8 @@ const KEYS_SEEN = 'lf:keys-seen'
 export function Root({ content, route, navigate }: ThemeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const flatRef = useRef<HTMLCanvasElement>(null)
+  /** where Escape puts the caret, so leaving the map never strands focus */
+  const keysBtnRef = useRef<HTMLButtonElement>(null)
   const sceneRef = useRef<Scene | null>(null)
   const [world, setWorld] = useState<{ world: World; surf: Surface } | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
@@ -105,6 +108,15 @@ export function Root({ content, route, navigate }: ThemeProps) {
   const [cursor, setCursor] = useState(-1)
   const [announce, setAnnounce] = useState('')
   const [showKeys, setShowKeys] = useState(false)
+  // Mirrors of the two pieces of state the window-level key handler needs. It is
+  // bound once for the life of the theme, so reading React state through a
+  // closure would hand it whatever the values were on the first render.
+  const cursorRef = useRef(-1)
+  const showKeysRef = useRef(false)
+  cursorRef.current = cursor
+  showKeysRef.current = showKeys
+  /** true only while `goTo` is moving DOM focus; see the guard inside it */
+  const movingRef = useRef(false)
   const showHud = new URLSearchParams(window.location.search).has('hud')
   const path = routePath(route)
   const home = route.kind === 'home'
@@ -315,7 +327,8 @@ export function Root({ content, route, navigate }: ThemeProps) {
   const places = layout?.places ?? []
   const placeAt = (i: number) => places[((i % places.length) + places.length) % places.length]
 
-  const describe = (p: Place) => {
+  /** Everything there is to say about a place except its name. */
+  const detail = (p: Place) => {
     const kind =
       p.kind === 'school'
         ? 'place of study'
@@ -327,19 +340,31 @@ export function Root({ content, route, navigate }: ThemeProps) {
     const region = layout?.regions.find((r) => r.basin === p.basin)
     const where = region ? ` in ${region.label.toLowerCase()}` : ' on the coast'
     const note = p.note ? `. ${p.note}` : ''
-    return `${p.label}, ${kind}${where}${note}${p.slug ? '. Press Enter to open.' : ''}`
+    return `${kind}${where}${note}${p.slug ? '. Press Enter to open.' : ''}`
   }
 
+  /** For the live region, which has no other context to go on. */
+  const describe = (p: Place) => `${p.label}, ${detail(p)}`
+
   const goTo = (i: number) => {
-    if (!places.length) return
+    if (!places.length || movingRef.current) return
     const next = ((i % places.length) + places.length) % places.length
+    cursorRef.current = next
     setCursor(next)
     const p = places[next]
     setAnnounce(describe(p))
     // A roving tab stop only works if focus actually moves with the cursor,
     // otherwise the arrows shuffle a highlight while the screen reader stays
     // parked on whatever was tabbed to first.
+    //
+    // Moving focus fires the marker's own focus handler synchronously, and that
+    // handler used to compare against a `cursor` captured on the previous
+    // render: still the old index, so it called straight back in here and every
+    // arrow press launched two flights, the second one restarting the first
+    // half-way through. Hold the door while focus moves.
+    movingRef.current = true
     markerRefs.current.get(p.id)?.focus()
+    movingRef.current = false
     const s = sceneRef.current
     if (s) s.flyTo(s.worldPointAt(p.gx, p.gy, p.h), PLANE * 0.34)
   }
@@ -365,8 +390,14 @@ export function Root({ content, route, navigate }: ThemeProps) {
       preventDefault()
       navigate(`/projects/${p.slug}`)
     } else if (k === 'Escape') {
+      preventDefault()
+      cursorRef.current = -1
       setCursor(-1)
       setAnnounce('Left the island map.')
+      // Leaving has to take focus with it. Dropping the cursor while a marker
+      // still held focus stranded the roving tab stop: index 0 got `tabIndex=0`
+      // while a different, untabbable element kept the caret.
+      keysBtnRef.current?.focus()
     } else {
       return false
     }
@@ -384,34 +415,52 @@ export function Root({ content, route, navigate }: ThemeProps) {
 
   // Once you have stepped onto the island the keys keep working wherever focus
   // happens to be. Binding them only to the marker group meant that anything
-  // which dropped focus — closing the key guide, most obviously — silently took
+  // which dropped focus (closing the key guide, most obviously) silently took
   // the controls away with it, and the arrows did nothing at all.
+  //
+  // Bound once, and reading the moving parts through refs. It used to have no
+  // dependency array at all, so it tore down and re-attached the listener on
+  // every render, and `cursor` and `announce` both change on every arrow press.
+  const travelKeyRef = useRef(travelKey)
+  travelKeyRef.current = travelKey
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
-      const t = e.target as HTMLElement | null
+      // A key event raised against the document or the window itself has no
+      // `closest`, and calling it there throws inside the listener.
+      const t = e.target instanceof HTMLElement ? e.target : null
       if (t?.closest('input, textarea, select, [contenteditable="true"]')) return
+      // the group's own handler already dealt with anything raised inside it
+      if (t?.closest('.lf-markers')) return
+      // the guide owns the keyboard while it is open
+      if (showKeysRef.current) return
       if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
         e.preventDefault()
         setShowKeys(true)
         return
       }
-      // the guide owns the keyboard while it is open
-      if (showKeys) return
       // don't steal the arrows from someone reading a panel who never came here
-      if (cursor < 0) return
-      // the group's own handler already dealt with it
-      if (t?.closest('.lf-markers')) return
-      travelKey(e.key, () => e.preventDefault())
+      if (cursorRef.current < 0) return
+      travelKeyRef.current(e.key, () => e.preventDefault())
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  })
+  }, [])
 
-  // The first time someone arrives here by keyboard, say what the keys are —
+  // The first time someone arrives here by keyboard, say what the keys are:
   // controls nobody can discover are the same as no controls.
-  const onMapFocus = () => {
-    if (cursor < 0 && places.length) goTo(0)
+  //
+  // React's onFocus is focusin, which bubbles, so this fires for every marker
+  // and not only for the step onto the island. It used to answer that by flying
+  // to place zero whenever the cursor was unset, which meant that after Escape,
+  // clicking any marker sent the camera to a completely different one.
+  const onMapFocus = (e: ReactFocusEvent<HTMLDivElement>) => {
+    const from = e.relatedTarget as HTMLElement | null
+    if (from && e.currentTarget.contains(from)) return
+    if (cursorRef.current < 0 && places.length) {
+      const landed = places.findIndex((q) => markerRefs.current.get(q.id) === e.target)
+      goTo(landed >= 0 ? landed : 0)
+    }
     try {
       if (!localStorage.getItem(KEYS_SEEN)) {
         setShowKeys(true)
@@ -451,7 +500,7 @@ export function Root({ content, route, navigate }: ThemeProps) {
       <div
         className="lf-markers"
         role="group"
-        aria-label="Places on the island — use the arrow keys to travel between them"
+        aria-label="Places on the island. Use the arrow keys to travel between them."
         onKeyDown={onMapKeyDown}
         onFocus={onMapFocus}
       >
@@ -482,17 +531,27 @@ export function Root({ content, route, navigate }: ThemeProps) {
               else markerRefs.current.delete(p.id)
             }}
             onFocus={() => {
-              if (i !== cursor) goTo(i)
+              if (movingRef.current) return
+              if (i !== cursorRef.current) goTo(i)
             }}
             onClick={() => {
-              setCursor(i)
-              if (p.slug) navigate(`/projects/${p.slug}`)
-              else goTo(i)
+              if (p.slug) {
+                cursorRef.current = i
+                setCursor(i)
+                navigate(`/projects/${p.slug}`)
+                // Enter on a place with no slug falls through to the native
+                // click; without the guard below that fired a second flight to
+                // the place the cursor was already standing on.
+              } else if (i !== cursorRef.current) goTo(i)
             }}
           >
             <i aria-hidden="true" />
             {p.label}
-            <span className="lf-sr">{` — ${describe(p)}`}</span>
+            {/* The label is already this button's visible text, so the
+                accessible name only needs what the label does not say. It used
+                to append describe(), which starts with the label again, and
+                every marker announced its own name twice. */}
+            <span className="lf-sr">{`, ${detail(p)}`}</span>
           </button>
         ))}
       </div>
@@ -525,6 +584,7 @@ export function Root({ content, route, navigate }: ThemeProps) {
           </nav>
           <button
             type="button"
+            ref={keysBtnRef}
             className="lf-keys-open"
             onClick={() => setShowKeys(true)}
             aria-haspopup="dialog"
@@ -556,7 +616,7 @@ export function Root({ content, route, navigate }: ThemeProps) {
             setShowKeys(false)
             // Hand the keyboard back to the island. Closing used to drop focus
             // on the body, which is exactly where the arrow keys go to die.
-            goTo(cursor < 0 ? 0 : cursor)
+            goTo(cursorRef.current < 0 ? 0 : cursorRef.current)
           }}
         />
       )}
@@ -613,7 +673,7 @@ function KeyGuide({ onClose, flat }: { onClose: () => void; flat: boolean }) {
             <dt>
               <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd>
             </dt>
-            <dd>travel to the next place; the camera sails with you</dd>
+            <dd>travel round the island, one place at a time</dd>
           </div>
           <div>
             <dt>
@@ -625,7 +685,7 @@ function KeyGuide({ onClose, flat }: { onClose: () => void; flat: boolean }) {
             <dt>
               <kbd>Home</kbd> <kbd>End</kbd>
             </dt>
-            <dd>first and last place</dd>
+            <dd>first and last stop on the circuit</dd>
           </div>
           <div>
             <dt>
@@ -642,13 +702,13 @@ function KeyGuide({ onClose, flat }: { onClose: () => void; flat: boolean }) {
         </dl>
         {flat && (
           <p className="lf-dim">
-            This device is drawing the island flat, from above — the 3D view needs WebGL 2. Every
-            place, route and page works exactly the same.
+            This device is drawing the island flat, from above, because the 3D view needs WebGL 2.
+            Every place, route and page works exactly the same.
           </p>
         )}
         <p className="lf-dim">
-          Prefer to read rather than travel? The CV, projects and interests pages hold the same
-          content as plain text.
+          The CV, projects and interests pages hold the same content as plain text, if you would
+          rather read than travel.
         </p>
         <button type="button" ref={closeRef} className="lf-keys-close" onClick={onClose}>
           Close
@@ -739,6 +799,16 @@ function layoutContent(world: World, content: SiteContent): Layout {
     places.push({ id: `int:${s.id}`, label: s.title, kind: 'interest', ...site })
   }
 
+  // The sites were chosen by farthest-point sampling precisely so that
+  // consecutive entries land as far apart as possible on the island. Walking
+  // them in build order (schools, then workplaces, then projects, then
+  // interests) therefore threw the camera clean across the island on every
+  // arrow press. Travelling order is a circuit round the coast instead, sorted
+  // by bearing from the middle. The placement itself is untouched, so the
+  // labels stay as spread out as the sampling made them.
+  const mid = (size - 1) / 2
+  places.sort((a, b) => Math.atan2(a.gy - mid, a.gx - mid) - Math.atan2(b.gy - mid, b.gx - mid))
+
   // provinces: the basins that actually hold the career
   const byBasin = new Map<number, Place[]>()
   for (const p of places) {
@@ -824,8 +894,8 @@ function Hero({
         2027.
       </p>
       <p className="lf-note">
-        This island was not drawn. Rain fell on noise, cut {basins} watersheds, and left the valleys
-        you are looking at — drag to orbit, scroll to close in.
+        Rain fell on noise, cut {basins} watersheds, and left the valleys you are looking at.
+        Nothing here was drawn by hand. Drag to orbit, scroll to close in.
       </p>
       <div className="lf-socials">
         {content.profile.socials.map((s) => (
