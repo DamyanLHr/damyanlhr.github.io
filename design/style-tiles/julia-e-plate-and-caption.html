@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Style tile E · Plate and caption</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  /* Direction E : plate and caption.
+     The shipped theme is called "obsidian gallery" and then does the opposite of
+     what a gallery does: it prints text on top of the picture and wraps every
+     picture in a rounded card. A gallery hangs the plate hard-edged and puts the
+     caption beside it, where it can be read.
+
+     The discipline here: the CHROME IS ACHROMATIC. Every colour on the page comes
+     out of a fractal. Nothing else is allowed to be coloured, so the plates carry
+     the whole palette and there is no site accent to go stale. */
+  :root {
+    --ground: #0e0f11;
+    --plate-bg: #000;
+    --ink: #eceae6;
+    --ink-dim: #9a9c9f;
+    --ink-faint: #63666b;
+    --rule: #26282c;
+    --display: "Archivo", system-ui, sans-serif;
+    --body: "Public Sans", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { min-height: 100dvh; }
+  body { background: var(--ground); color: var(--ink); font-family: var(--body); line-height: 1.6; }
+  canvas { display: block; }
+
+  .note {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.05em;
+    color: var(--ink-faint); background: #090a0b;
+    border-bottom: 1px solid var(--rule);
+    padding: 0.7rem clamp(1.2rem, 4vw, 3.5rem);
+  }
+  .note b { color: var(--ink-dim); font-weight: 500; }
+
+  /* one 12-column grid governs the whole page, and content is deliberately
+     off-centre in it rather than sitting in a centred column */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 0 clamp(0.8rem, 2vw, 1.8rem);
+    padding-inline: clamp(1.2rem, 4vw, 3.5rem);
+  }
+
+  nav { padding-block: 1.4rem; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  nav .mark { grid-column: 1 / 3; font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; }
+  nav .links { grid-column: 9 / 13; display: flex; gap: 1.6rem; justify-content: flex-end; font-size: 0.85rem; }
+  nav .links a { color: var(--ink-dim); text-decoration: none; }
+  nav .links a:first-child { color: var(--ink); }
+  nav .links a:hover { color: var(--ink); }
+
+  /* ---------- hero: plate left, the name in the margin ---------- */
+  .hero { padding-block: clamp(2rem, 5vw, 4rem); align-items: end; }
+  .hero-plate { grid-column: 1 / 8; }
+  .hero-plate canvas { width: 100%; aspect-ratio: 4 / 3; background: var(--plate-bg); }
+  .hero-copy { grid-column: 8 / 13; display: flex; flex-direction: column; gap: 1rem; padding-bottom: 0.4rem; }
+  h1 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2rem, 4.2vw, 3.4rem); line-height: 0.95; letter-spacing: -0.04em;
+  }
+  .lede { color: var(--ink-dim); max-width: 30ch; font-size: 0.98rem; }
+  .sections { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.5rem; }
+  .sections a {
+    font-family: var(--display); font-weight: 500; font-size: 1.15rem; letter-spacing: -0.02em;
+    color: var(--ink); text-decoration: none; width: fit-content;
+    border-bottom: 1px solid var(--rule); padding: 0.25rem 0;
+    transition: border-color 180ms ease;
+  }
+  .sections a:hover, .sections a:focus-visible { border-bottom-color: var(--ink); outline: none; }
+
+  /* the plate label, the way a museum prints one: hairline rule, no box */
+  .plate-label {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 1.2rem;
+    font-family: var(--mono); font-size: 0.7rem; color: var(--ink-faint);
+    border-top: 1px solid var(--rule); margin-top: 0.7rem; padding-top: 0.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .plate-label dt { text-transform: uppercase; letter-spacing: 0.1em; }
+  .plate-label dd { color: var(--ink-dim); }
+
+  /* ---------- the hang ---------- */
+  .hang { padding-block: clamp(2rem, 5vw, 3.5rem); row-gap: clamp(2.5rem, 5vw, 4rem); border-top: 1px solid var(--rule); }
+  .hang h2 { grid-column: 1 / 13; font-family: var(--display); font-weight: 700; font-size: 1.5rem; letter-spacing: -0.025em; margin-bottom: 0.4rem; }
+
+  /* works are hung at different widths, the way a real hang varies scale;
+     nothing has a border, a radius or a shadow. Air separates them. */
+  .work { display: contents; }
+  .work-plate canvas { width: 100%; background: var(--plate-bg); }
+  .work-cap { display: flex; flex-direction: column; gap: 0.35rem; }
+  .work-cap h3 { font-family: var(--display); font-weight: 500; font-size: 1.25rem; letter-spacing: -0.02em; }
+  .work-cap .meta { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-faint); letter-spacing: 0.03em; }
+  .work-cap p { color: var(--ink-dim); font-size: 0.92rem; }
+
+  .w-a .work-plate { grid-column: 1 / 7; }
+  .w-a .work-plate canvas { aspect-ratio: 3 / 2; }
+  .w-a .work-cap { grid-column: 7 / 11; align-self: end; }
+
+  .w-b .work-plate { grid-column: 7 / 13; }
+  .w-b .work-plate canvas { aspect-ratio: 1 / 1; }
+  .w-b .work-cap { grid-column: 3 / 7; align-self: end; grid-row: auto; }
+
+  .w-c .work-plate { grid-column: 2 / 10; }
+  .w-c .work-plate canvas { aspect-ratio: 21 / 9; }
+  .w-c .work-cap { grid-column: 10 / 13; align-self: end; }
+
+  /* ---------- a project page: plate, then caption beneath it ---------- */
+  .single { border-top: 1px solid var(--rule); padding-block: clamp(2rem, 5vw, 3.5rem); row-gap: 1.4rem; }
+  .single .plate { grid-column: 1 / 9; }
+  .single .plate canvas { width: 100%; aspect-ratio: 16 / 9; background: var(--plate-bg); }
+  .single .side { grid-column: 9 / 13; display: flex; flex-direction: column; gap: 1rem; }
+  .single h3 { grid-column: 1 / 9; font-family: var(--display); font-weight: 700; font-size: clamp(1.7rem, 3.2vw, 2.4rem); letter-spacing: -0.035em; line-height: 1; }
+  .single .prose { grid-column: 1 / 9; color: var(--ink-dim); max-width: 62ch; }
+  .facts { display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--mono); font-size: 0.74rem; }
+  .facts div { display: flex; flex-direction: column; gap: 0.05rem; border-top: 1px solid var(--rule); padding-top: 0.35rem; }
+  .facts dt { color: var(--ink-faint); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .facts dd { color: var(--ink); }
+  .actions { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.4rem; }
+  .actions a {
+    font-family: var(--mono); font-size: 0.76rem; color: var(--ink); text-decoration: none;
+    border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem;
+    display: flex; justify-content: space-between; gap: 1rem;
+  }
+  .actions a span { color: var(--ink-faint); }
+  .actions a:hover { border-bottom-color: var(--ink); }
+
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: repeat(4, 1fr); }
+    nav .mark { grid-column: 1 / 3; }
+    nav .links { grid-column: 3 / 5; }
+    .hero-plate, .hero-copy,
+    .hang h2, .single .plate, .single .side, .single h3, .single .prose,
+    .w-a .work-plate, .w-a .work-cap, .w-b .work-plate, .w-b .work-cap,
+    .w-c .work-plate, .w-c .work-cap { grid-column: 1 / 5; }
+    .w-b .work-cap, .w-a .work-cap, .w-c .work-cap { margin-top: 0.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<p class="note">
+  Style tile <b>E &middot; Plate and caption</b>. The gallery the theme is already named
+  after. Hard edges, captions beside the work rather than over it, and no colour anywhere except
+  inside the plates.
+</p>
+
+<header class="grid" >
+  <nav class="grid" style="grid-column: 1 / -1; padding-inline: 0;">
+    <span class="mark">DAMYAN HRISTOV</span>
+    <span class="links"><a href="#">Projects</a><a href="#">CV</a><a href="#">Interests</a></span>
+  </nav>
+</header>
+
+<section class="grid hero">
+  <div class="hero-plate">
+    <canvas data-c="home" data-span="2.6" data-iter="170"></canvas>
+    <dl class="plate-label">
+      <dt>Set</dt><dd>Julia, c = -0.7269 + 0.1889i</dd>
+      <dt>Escape</dt><dd>170 iterations, radius 4</dd>
+      <dt>Window</dt><dd>2.60 across the real axis</dd>
+    </dl>
+  </div>
+  <div class="hero-copy">
+    <h1>Damyan<br />Hristov</h1>
+    <p class="lede">Games, engines and experimental graphics. Computer Science and Engineering at TU/e, class of 2027.</p>
+    <div class="sections">
+      <a href="#">Projects</a>
+      <a href="#">CV</a>
+      <a href="#">Interests</a>
+    </div>
+  </div>
+</section>
+
+<section class="grid hang">
+  <h2>Selected work</h2>
+
+  <article class="work w-a">
+    <div class="work-plate"><canvas data-c="digital-twinning-suspension" data-span="2.2" data-iter="150"></canvas></div>
+    <div class="work-cap">
+      <h3>Digital Twinning Suspension</h3>
+      <p class="meta">2026 &middot; Multidisciplinary CBL, TU/e &middot; Scrum Master and Programmer</p>
+      <p>A digital twin of an active predictive suspension, running against a real belt-driven test rig.</p>
+    </div>
+  </article>
+
+  <article class="work w-b">
+    <div class="work-plate"><canvas data-c="blood-of-hedon" data-span="2.4" data-iter="150"></canvas></div>
+    <div class="work-cap">
+      <h3>Blood of Hedon</h3>
+      <p class="meta">2025 &middot; 2IRR00 Software Engineering, TU/e &middot; Scrum Master and Programmer</p>
+      <p>Card-driven gladiator combat on a Java engine written from scratch.</p>
+    </div>
+  </article>
+
+  <article class="work w-c">
+    <div class="work-plate"><canvas data-c="five-more-minutes" data-span="2.8" data-iter="150"></canvas></div>
+    <div class="work-cap">
+      <h3>5 More Minutes!</h3>
+      <p class="meta">2026 &middot; GMTK Game Jam 2026 &middot; Scrum Master and Programmer</p>
+      <p>Ninety-six hours on the theme Count Down.</p>
+    </div>
+  </article>
+</section>
+
+<section class="grid single">
+  <div class="plate">
+    <canvas data-c="olympian-onslaught" data-span="2.1" data-iter="180"></canvas>
+    <dl class="plate-label">
+      <dt>Set</dt><dd>Julia, c = -0.8000 + 0.1560i</dd>
+      <dt>Escape</dt><dd>180 iterations, radius 4</dd>
+    </dl>
+  </div>
+  <div class="side">
+    <dl class="facts">
+      <div><dt>Year</dt><dd>2025</dd></div>
+      <div><dt>Where</dt><dd>Programming course, TU/e</dd></div>
+      <div><dt>Role</dt><dd>Team Leader and Programmer</dd></div>
+      <div><dt>Team</dt><dd>2 people</dd></div>
+      <div><dt>Tools</dt><dd>Java 21, Swing</dd></div>
+    </dl>
+    <div class="actions">
+      <a href="#">Repository <span>github.com</span></a>
+      <a href="#">Download the JAR <span>releases</span></a>
+    </div>
+  </div>
+  <h3>Olympian Onslaught</h3>
+  <p class="prose">
+    A top-down roguelite set in Greek myth. You play Achilles, holding out for five minutes against
+    waves of monsters with auto-firing weapons, and a maxed weapon paired with a maxed ability fuses
+    into something new, like the Exploding Bow or the Lightning Axe. Built on a Java and Swing engine
+    written from scratch.
+  </p>
+</section>
+
+<p class="note" style="border-top: 1px solid var(--rule); border-bottom: 0;">
+  No card has a border, a radius or a shadow. Separation comes from the grid and from the hard edge
+  of each plate, which is what keeps the fractals reading as pictures rather than as textures behind
+  a panel.
+</p>
+
+<script>
+(() => {
+  'use strict';
+  const POOL = [
+    [-0.7269, 0.1889], [-0.8, 0.156], [0.285, 0.01], [-0.4, 0.6],
+    [-0.70176, -0.3842], [-0.835, -0.2321], [0.35, 0.35], [-0.54, 0.54],
+  ];
+  const hashString = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
+  const paramsFor = (slug) => POOL[hashString(slug) % POOL.length];
+
+  // A cooler, wider ramp than the shipped ember: a gallery lights work neutrally
+  // and lets the work be the colour. Stops run smoke -> steel -> bone -> warm white.
+  const STOPS = [[8,9,11],[26,34,46],[58,78,96],[124,140,148],[196,196,188],[246,240,228]];
+  const ramp = (v) => {
+    const t = Math.min(0.999, Math.max(0, v)) * (STOPS.length - 1);
+    const i = Math.floor(t), f = t - i, a = STOPS[i], b = STOPS[i + 1];
+    return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+  };
+
+  function render(canvas) {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+    const w = canvas.width = Math.max(2, Math.round(rect.width * dpr));
+    const h = canvas.height = Math.max(2, Math.round(rect.height * dpr));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const [re, im] = paramsFor(canvas.dataset.c);
+    const max = Number(canvas.dataset.iter) || 150;
+    const scale = (Number(canvas.dataset.span) || 3) / Math.min(w, h);
+    const cx = w / 2, cy = h / 2;
+    const img = ctx.createImageData(w, h);
+    let p = 0;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let zr = (x - cx) * scale, zi = (y - cy) * scale, i = 0;
+        while (i < max && zr * zr + zi * zi < 16) { const t = zr * zr - zi * zi + re; zi = 2 * zr * zi + im; zr = t; i++; }
+        let c;
+        if (i === max) { const v2 = Math.min(4, zr * zr + zi * zi); c = [6 + v2 * 3, 7 + v2 * 3, 9 + v2 * 3]; }
+        else c = ramp(((i - Math.log2(Math.log2(zr * zr + zi * zi))) / max) * 2.2);
+        img.data[p++] = c[0]; img.data[p++] = c[1]; img.data[p++] = c[2]; img.data[p++] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  const all = () => document.querySelectorAll('canvas[data-c]').forEach(render);
+  all();
+  let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 160); });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Style tile D · Parameter space</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* Direction D : parameter space.
+     The premise: every project on this site already HAS a mathematical identity,
+     a complex constant c, and the shipped theme hides it behind a scrim and uses
+     it as wallpaper. Here the constant is the content. It is printed, it decides
+     the accent colour, and it decides where the project sits on the page. */
+  :root {
+    --ground: #0b0c10;      /* blue-biased charcoal, not the neutral near-black */
+    --raised: #121419;
+    --ink: #e9ecf2;
+    --ink-dim: #8d95a4;
+    --ink-faint: #565e6d;
+    --rule: #212632;
+    /* no single site accent: each route samples its own fractal's ramp.
+       These are the defaults the chrome falls back to. */
+    --accent: #e8b04b;
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+    --body: "Public Sans", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { min-height: 100dvh; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    line-height: 1.55;
+  }
+  canvas { display: block; }
+  .note {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--rule);
+    padding: 0.7rem clamp(1.2rem, 4vw, 3.5rem);
+    background: #08090c;
+  }
+  .note b { color: var(--accent); font-weight: 500; }
+
+  /* ---------- chrome ---------- */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem clamp(1.2rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--rule);
+  }
+  .mark { font-family: var(--display); font-weight: 800; letter-spacing: -0.03em; font-size: 1.1rem; }
+  .navlinks { display: flex; gap: 1.6rem; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-dim); }
+  .navlinks span:first-child { color: var(--ink); }
+  /* the readout replaces a decorative eyebrow: it says where you are, in the
+     site's own coordinate system */
+  .readout { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+  /* ---------- hero: the fractal owns half, nothing is scrimmed ---------- */
+  .hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 68vh; border-bottom: 1px solid var(--rule); }
+  .hero-copy { display: grid; align-content: center; gap: 1.2rem; padding: clamp(1.5rem, 4vw, 3.5rem); }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(2.4rem, 5.4vw, 4.2rem);
+    font-weight: 800; letter-spacing: -0.045em; line-height: 0.94;
+  }
+  .lede { color: var(--ink-dim); max-width: 36ch; }
+  .constant {
+    font-family: var(--mono); font-size: 0.92rem; color: var(--accent);
+    font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+  }
+  .sections { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.4rem; }
+  .sections a {
+    font-family: var(--display); font-size: clamp(1.2rem, 2.2vw, 1.7rem); font-weight: 600;
+    color: var(--ink); text-decoration: none; width: fit-content;
+    letter-spacing: -0.02em; padding: 0.1rem 0;
+    border-bottom: 2px solid transparent; transition: border-color 180ms ease, color 180ms ease;
+  }
+  .sections a:hover, .sections a:focus-visible { color: var(--accent); border-bottom-color: var(--accent); outline: none; }
+  .hero-art { position: relative; }
+  .hero-art canvas { width: 100%; height: 100%; }
+
+  /* ---------- the complex plane ---------- */
+  .plane-wrap { padding: clamp(1.6rem, 4vw, 3.5rem); display: flex; flex-direction: column; gap: 1.4rem; }
+  .plane-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.6rem 1.5rem; }
+  h2 { font-family: var(--display); font-weight: 600; font-size: 1.6rem; letter-spacing: -0.025em; }
+  .plane-head p { font-family: var(--mono); font-size: 0.74rem; color: var(--ink-faint); max-width: 52ch; line-height: 1.5; }
+
+  .plane {
+    position: relative;
+    aspect-ratio: 3 / 2;
+    min-height: 26rem;
+    border: 1px solid var(--rule);
+    /* deliberately NOT overflow:hidden: the hover zoom grows a plate to 1.85x and
+       the pins at the top and bottom of the cardioid sit right against the frame */
+  }
+  /* The backdrop is the Mandelbrot set itself, which is what makes the layout
+     legible: every project sits on the boundary of the main cardioid, because
+     that is where Julia sets stop being boring. The map is the explanation. */
+  .plane > canvas.map { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .axis {
+    position: absolute; font-family: var(--mono); font-size: 0.66rem; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  /* a project sits at its own (re, im). Position IS the data. */
+  .pin {
+    position: absolute; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+    text-decoration: none; color: inherit; padding: 0.3rem;
+  }
+  .pin canvas {
+    width: 76px; height: 76px;
+    border: 1px solid var(--rule);
+    transition: transform 260ms cubic-bezier(0.23,1,0.32,1), border-color 200ms ease;
+  }
+  /* hover zooms the set rather than lifting a card: the only interaction this
+     site could have that another portfolio could not */
+  .pin:hover canvas, .pin:focus-visible canvas { transform: scale(1.85); }
+  .pin:hover, .pin:focus-visible { z-index: 5; outline: none; }
+  .pin:hover canvas { border-color: currentColor; }
+  .pin-label {
+    font-family: var(--display); font-weight: 600; font-size: 0.82rem; letter-spacing: -0.01em;
+    white-space: nowrap; text-shadow: 0 1px 6px var(--ground), 0 0 12px var(--ground);
+  }
+  .pin-c {
+    font-family: var(--mono); font-size: 0.62rem; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    opacity: 0; transition: opacity 200ms ease;
+  }
+  .pin:hover .pin-c, .pin:focus-visible .pin-c { opacity: 1; }
+  /* The cardioid puts two pins hard against the top of the frame and two hard
+     against the bottom, so the label always hangs on the inward side: below the
+     plate up top, above it down below. Otherwise half the names fall off. */
+  .pin.up { flex-direction: column-reverse; }
+
+  /* ---------- a project page ---------- */
+  .project { border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr; }
+  .project-art canvas { width: 100%; height: 100%; min-height: 24rem; }
+  .project-copy { padding: clamp(1.5rem, 4vw, 3.5rem); display: flex; flex-direction: column; gap: 1.1rem; }
+  .project-copy h3 { font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 3.4vw, 2.6rem); letter-spacing: -0.035em; line-height: 1; }
+  .facts { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.7rem 1.6rem; font-family: var(--mono); font-size: 0.76rem; }
+  .facts dt { color: var(--ink-faint); font-size: 0.66rem; letter-spacing: 0.09em; text-transform: uppercase; }
+  .facts dd { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .project-copy p { color: var(--ink-dim); max-width: 58ch; }
+  .actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.3rem; }
+  .btn {
+    font-family: var(--mono); font-size: 0.78rem; text-decoration: none;
+    padding: 0.55rem 1rem; border: 1px solid var(--accent); color: var(--accent);
+  }
+  .btn-solid { background: var(--accent); color: #12100a; font-weight: 500; }
+
+  @media (max-width: 900px) {
+    .hero, .project { grid-template-columns: 1fr; }
+    .hero-art canvas, .project-art canvas { min-height: 18rem; }
+    /* the window this maps is 3:2, so the frame stays 3:2 and simply shrinks;
+       squashing it to portrait stretched the set */
+    .pin canvas { width: 54px; height: 54px; }
+  }
+</style>
+</head>
+<body>
+
+<p class="note">
+  Style tile <b>D · Parameter space</b>. The fractal stops being wallpaper and becomes the
+  index. Constants are real, taken from the shipped <code>paramsFor()</code> logic, except that the
+  colliding pool is replaced (see the note at the foot).
+</p>
+
+<nav>
+  <span class="mark">DH</span>
+  <span class="navlinks"><span>Projects</span><span>CV</span><span>Interests</span></span>
+  <span class="readout" id="readout">c = -0.7269 + 0.1889i &middot; span 2.30 &middot; 150 iter</span>
+</nav>
+
+<section class="hero">
+  <div class="hero-copy">
+    <p class="constant" id="hero-c">home &nbsp;c = -0.7269 + 0.1889i</p>
+    <h1>Damyan<br />Hristov</h1>
+    <p class="lede">Games, engines and experimental graphics. Computer Science and Engineering at TU/e, class of 2027.</p>
+    <div class="sections">
+      <a href="#">Projects</a>
+      <a href="#">CV</a>
+      <a href="#">Interests</a>
+    </div>
+  </div>
+  <div class="hero-art"><canvas id="hero"></canvas></div>
+</section>
+
+<section class="plane-wrap">
+  <div class="plane-head">
+    <h2>Projects</h2>
+    <p>
+      Every project is a point in the complex plane, sitting on the edge of the Mandelbrot set
+      drawn behind it. Its position on this page is its own constant, not a grid slot, so the
+      layout is the data. Hover to zoom into a set.
+    </p>
+  </div>
+
+  <div class="plane" id="plane">
+    <span class="axis" style="left: 0.6rem; bottom: 0.6rem">Re -1.50</span>
+    <span class="axis" style="right: 0.6rem; bottom: 0.6rem">Re +0.60</span>
+    <span class="axis" style="right: 0.6rem; top: 0.6rem">Im +0.70</span>
+  </div>
+</section>
+
+<section class="project">
+  <div class="project-art"><canvas id="proj"></canvas></div>
+  <div class="project-copy">
+    <p class="constant" id="proj-c"></p>
+    <h3>Digital Twinning Suspension</h3>
+    <dl class="facts">
+      <div><dt>Year</dt><dd>2026</dd></div>
+      <div><dt>Role</dt><dd>Scrum Master &amp; Programmer</dd></div>
+      <div><dt>Where</dt><dd>Multidisciplinary CBL, TU/e</dd></div>
+      <div><dt>Tools</dt><dd>Unity, C#, Python</dd></div>
+    </dl>
+    <p>
+      A digital twin of an active predictive suspension, running against a real belt-driven test
+      rig. Against a constant damper, the predictive policy cut RMS sprung acceleration by 4.46%
+      and mean peak acceleration by 16.03% on the best-case despiked segment, and placed jolts
+      within about 2 cm of belt travel.
+    </p>
+    <div class="actions">
+      <a class="btn btn-solid" href="#">Repository</a>
+      <a class="btn" href="#">Windows build</a>
+    </div>
+  </div>
+</section>
+
+<p class="note">
+  <b>The collision this direction fixes.</b> The shipped <code>paramsFor()</code> hashes a slug into
+  a pool of eight constants, and the hash collides badly: Extensible Terrain Generation, Don't Break
+  Glass and 5 More Minutes all render as <code>c = 0.35 + 0.35i</code>, and Kill Bunny and Digital
+  Twinning Suspension share <code>-0.54 + 0.54i</code>. Six of eight projects are two pictures.
+  Here the constants are spaced evenly by arc length around the boundary of the main cardioid,
+  where Julia sets are interesting by construction, so every project gets its own and no two can
+  overlap. The cost, stated rather than hidden: adding a project re-spaces the ring.
+</p>
+
+<script>
+(() => {
+  'use strict';
+
+  // --- the fix: a continuous constant per slug, on the cardioid boundary ------
+  // c = e^(i0)/2 - e^(2i0)/4 traces the edge of the Mandelbrot main cardioid.
+  // Sets sampled just outside it are the dendritic ones worth looking at, and
+  // theta is continuous, so no two slugs have to share.
+  const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); };
+  /** A point at arc-length fraction `u` around the cardioid, nudged just outside. */
+  const onCardioid = (u, push) => {
+    // Spacing evenly in theta is the obvious move and it is wrong: the curve is
+    // traced at speed |sin(theta/2)|, which goes to zero at the cusp, so even
+    // theta piles half the projects onto c = 0.25. Invert the arc length
+    // (s = 2 - 2cos(theta/2)) and the points spread along the boundary instead.
+    const theta = 2 * Math.acos(1 - 2 * Math.min(0.999999, Math.max(0, u)));
+    return {
+      re: (Math.cos(theta) / 2 - Math.cos(2 * theta) / 4) * push,
+      im: (Math.sin(theta) / 2 - Math.sin(2 * theta) / 4) * push,
+    };
+  };
+
+  /**
+   * Constants for a whole roster at once.
+   *
+   * Deriving each slug's position from its own hash alone is the tidier idea and
+   * it does not survive contact with eight real slugs: the sample clumped, and
+   * Blood of Hedon and Olympian Onslaught landed 0.3% of the canvas apart, which
+   * is two projects drawn on top of each other. A layout that relies on luck for
+   * legibility is not a layout. So the hash decides the ORDER around the ring and
+   * the ring is divided evenly.
+   *
+   * TRADEOFF: a project's constant is stable for a given roster, not forever.
+   * Shipping a new project re-spaces the others. That is the price of never
+   * overlapping, and it is the right way round for a page whose whole premise is
+   * that position carries meaning.
+   */
+  const ringFor = (slugs) => {
+    const order = [...slugs].sort((a, b) => hash(a) - hash(b));
+    const n = order.length;
+    const out = new Map();
+    order.forEach((slug, i) => {
+      const push = 1 + 0.008 + (hash(slug) % 1000) / 1000 * 0.016;
+      out.set(slug, onCardioid((i + 0.5) / n, push));
+    });
+    return out;
+  };
+  // the landing page is not a project, so it sits inside the ring on its own
+  const constantFor = (slug) => onCardioid(((hash(slug) % 1000) / 1000), 1.02);
+  const fmt = (c) => `c = ${c.re >= 0 ? '' : '-'}${Math.abs(c.re).toFixed(4)} ${c.im >= 0 ? '+' : '-'} ${Math.abs(c.im).toFixed(4)}i`;
+
+  // --- palette -------------------------------------------------------------
+  // Not one hardcoded orange. The ramp is rotated by the constant's argument, so
+  // each project's accent is derived from its own position in parameter space.
+  const ramp = (v, hueShift) => {
+    const t = Math.min(0.999, Math.max(0, v));
+    const h = (hueShift + t * 52) % 360;
+    const s = 0.66 - t * 0.40;
+    // A floor on lightness, because the same curve has to work at 76px and at
+    // full bleed. The shipped ramp bottoms out at near-black, which reads as a
+    // smudge once the plate is thumbnail-sized.
+    const l = 0.05 + Math.pow(t, 0.62) * 0.82;
+    // hsl -> rgb
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1))); };
+    return [f(0) * 255, f(8) * 255, f(4) * 255];
+  };
+  // Taken at a fixed saturation and lightness rather than sampled off the ramp:
+  // sampling gave a washed-out grey that failed contrast against the ground.
+  const accentOf = (hue) => `hsl(${hue.toFixed(1)} 62% 58%)`;
+
+  function render(canvas, c, opts) {
+    opts = opts || {};
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.25) * (opts.quality || 1);
+    const w = canvas.width = Math.max(2, Math.round(rect.width * dpr));
+    const h = canvas.height = Math.max(2, Math.round(rect.height * dpr));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const img = ctx.createImageData(w, h);
+    const max = opts.maxIter || 150;
+    const scale = (opts.span || 3.0) / Math.min(w, h);
+    const cx = w * (opts.centerX ?? 0.5), cy = h * (opts.centerY ?? 0.5);
+    const cosA = Math.cos(opts.angle || 0), sinA = Math.sin(opts.angle || 0);
+    const hueShift = opts.hue ?? 20;
+    let p = 0;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const dx = (x - cx) * scale, dy = (y - cy) * scale;
+        let zr = dx * cosA - dy * sinA, zi = dx * sinA + dy * cosA, i = 0;
+        while (i < max && zr * zr + zi * zi < 16) { const t = zr * zr - zi * zi + c.re; zi = 2 * zr * zi + c.im; zr = t; i++; }
+        let col;
+        if (i === max) { const v2 = Math.min(4, zr * zr + zi * zi); col = [11 + v2 * 5, 12 + v2 * 4, 16 + v2 * 4]; }
+        else col = ramp(((i - Math.log2(Math.log2(zr * zr + zi * zi))) / max) * 2.2, hueShift);
+        img.data[p++] = col[0]; img.data[p++] = col[1]; img.data[p++] = col[2]; img.data[p++] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  // Derive the hue from arg(c), but only across a band that excludes violet and
+  // magenta. Letting it run the full wheel is how the page ended up rendering
+  // purple-on-black, which is the single most recognisable AI-design tell there
+  // is. 16 to 190 degrees gives ember, amber, brass, moss and teal: real variety
+  // between projects, no wavelength that reads as a default.
+  const HUE_LO = 16, HUE_HI = 190;
+  const hueOf = (c) => HUE_LO + ((Math.atan2(c.im, c.re) + Math.PI) / (Math.PI * 2)) * (HUE_HI - HUE_LO);
+
+  // --- hero ----------------------------------------------------------------
+  const heroC = constantFor('home');
+  const heroHue = hueOf(heroC);
+  document.documentElement.style.setProperty('--accent', accentOf(heroHue));
+  document.getElementById('hero-c').textContent = 'home  ' + fmt(heroC);
+  document.getElementById('readout').textContent = fmt(heroC) + ' · span 2.30 · 150 iter';
+  render(document.getElementById('hero'), heroC, { span: 2.3, centerX: 0.52, centerY: 0.46, angle: -0.7, hue: heroHue });
+
+  // --- the plane -----------------------------------------------------------
+  const projects = [
+    { slug: 'digital-twinning-suspension', label: 'Digital Twinning Suspension' },
+    { slug: 'blood-of-hedon', label: 'Blood of Hedon' },
+    { slug: 'olympian-onslaught', label: 'Olympian Onslaught' },
+    { slug: 'dont-break-glass', label: "Don't Break Glass" },
+    { slug: 'kill-bunny', label: 'Kill Bunny' },
+    { slug: 'five-more-minutes', label: '5 More Minutes!' },
+    { slug: 'extensible-terrain-generation', label: 'Extensible Terrain Generation' },
+    { slug: 'davincis-black-market-bird-dealer', label: "Davinci's Black Market Bird Dealer" },
+  ];
+  const plane = document.getElementById('plane');
+  // the window on parameter space the pins are laid out in: the whole set, at 16:9
+  const RE0 = -1.5, RE1 = 0.6, IM0 = -0.7, IM1 = 0.7;
+
+  // the Mandelbrot backdrop
+  const mapCanvas = document.createElement('canvas');
+  mapCanvas.className = 'map';
+  plane.appendChild(mapCanvas);
+  function renderMap() {
+    const rect = mapCanvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.1);
+    const w = mapCanvas.width = Math.max(2, Math.round(rect.width * dpr));
+    const h = mapCanvas.height = Math.max(2, Math.round(rect.height * dpr));
+    const ctx = mapCanvas.getContext('2d');
+    if (!ctx) return;
+    const img = ctx.createImageData(w, h);
+    const max = 90;
+    let p = 0;
+    for (let y = 0; y < h; y++) {
+      const ci = IM1 - (y / h) * (IM1 - IM0);
+      for (let x = 0; x < w; x++) {
+        const cr = RE0 + (x / w) * (RE1 - RE0);
+        let zr = 0, zi = 0, i = 0;
+        while (i < max && zr * zr + zi * zi < 16) { const t = zr * zr - zi * zi + cr; zi = 2 * zr * zi + ci; zr = t; i++; }
+        let col;
+        if (i === max) col = [22, 25, 33];                       // inside the set
+        else { const v = Math.pow(i / max, 0.42); col = [13 + v * 52, 15 + v * 58, 20 + v * 74]; }
+        img.data[p++] = col[0]; img.data[p++] = col[1]; img.data[p++] = col[2]; img.data[p++] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  const ring = ringFor(projects.map((p) => p.slug));
+  const pins = [];
+  for (const p of projects) {
+    const c = ring.get(p.slug);
+    const hue = hueOf(c);
+    const a = document.createElement('a');
+    a.className = 'pin';
+    a.href = '#';
+    a.style.left = (((c.re - RE0) / (RE1 - RE0)) * 100).toFixed(2) + '%';
+    a.style.top = ((1 - (c.im - IM0) / (IM1 - IM0)) * 100).toFixed(2) + '%';
+    if (c.im < 0) a.classList.add('up');   // lower half: label above the plate
+    a.style.color = accentOf(hue);
+    const cv = document.createElement('canvas');
+    const label = document.createElement('span');
+    label.className = 'pin-label'; label.textContent = p.label;
+    const cc = document.createElement('span');
+    cc.className = 'pin-c'; cc.textContent = fmt(c);
+    a.append(cv, label, cc);
+    plane.appendChild(a);
+    pins.push({ cv, c, hue });
+  }
+
+  // --- a project page ------------------------------------------------------
+  const projC = ring.get('digital-twinning-suspension');
+  const projHue = hueOf(projC);
+  document.getElementById('proj-c').textContent = fmt(projC);
+  document.getElementById('proj-c').style.color = accentOf(projHue);
+
+  const paint = () => {
+    renderMap();
+    for (const p of pins) render(p.cv, p.c, { span: 3.1, maxIter: 90, hue: p.hue });
+    render(document.getElementById('proj'), projC, { span: 2.1, maxIter: 150, hue: projHue });
+  };
+  paint();
+  let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { render(document.getElementById('hero'), heroC, { span: 2.3, centerX: 0.52, centerY: 0.46, angle: -0.7, hue: heroHue }); paint(); }, 160); });
+})();
+</script>
+
+</body>
+</html>

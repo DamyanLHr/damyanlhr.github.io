@@ -339,6 +339,127 @@ still stashed.*
       does not rise; real meanders want flatter floodplains than this island has)
 - **GATE — "watershed approved":** live review on Damyan's hardware.
 
+### Phase 5c — content refresh, copy pass, landfall navigation *(2026-09-12)*
+- [x] **Content.** Third year of the BSc across `cv.ts`, `CONTENT.md` and
+      `TECHNOLOGY.md`. The `gmtk-2026` placeholder became the shipped
+      **5 More Minutes!** (slug `five-more-minutes`, GMTK 2026, theme "Count
+      Down"), sourced from the itch.io page and the now-public repo.
+      **Davinci's Black Market Bird Dealer** added as `coming-soon` for Game
+      Design 1; its repo is private, so it carries no link and lives in the Up
+      next feed until it ships. Julia's `CARD_SPAN` rebalanced to 3/3/6/4/2/6 so
+      six released projects fill four clean rows.
+- [x] **Copy pass.** `/no-ai-slop` (petergyang, MIT) installed globally and every
+      Claude-written visible string put through it, plus Damyan's standing
+      no-dash rule. 56 strings audited, 16 rewrites proposed, published as an
+      artifact for review. The dominant pattern was not the em dash but the
+      **colon reveal**: four of seven shipped project summaries opened a noun
+      phrase, a colon and a dramatic completion, which is why they all read with
+      the same rhythm. **No rewrite has landed yet** — waiting on Damyan's marks.
+- [x] **Landfall camera.** `flyTo` was interpolating the orbit target and the
+      distance while keeping whatever direction the camera already had, so it
+      dragged along the ground and through the island, and the terrain clamp
+      spent every frame shoving it back out of hillsides. Replaced with an
+      orbital transfer in spherical coordinates: climbs, turns to face the
+      destination by 45% of the flight, crosses at a cruise altitude scaled to
+      how far it has to go, and descends onto the place, then turns around it for
+      2.5 s. Controls are disabled and auto-rotation suppressed for the duration.
+- [x] **Landfall keyboard.** Four real bugs, all verified fixed by driving the
+      page: (a) every arrow press launched **two** flights, because `goTo`
+      moved focus and the marker's focus handler compared against a `cursor`
+      captured on the previous render and called straight back in; (b) the group's
+      `onFocus` is a bubbling `focusin`, so after Escape, clicking any marker flew
+      to place **zero** instead; (c) Escape cleared the cursor but left focus on a
+      marker, stranding the roving tab stop; (d) the window key listener had no
+      dependency array and re-attached on every render, which is every arrow
+      press. Also hardened against a key event targeting the window itself, which
+      threw inside the listener.
+- [x] **Landfall travelling order.** Sites are chosen by farthest-point sampling,
+      so consecutive entries are deliberately as far apart as possible; walking
+      them in build order made every arrow press a maximum-distance hop. The
+      roving order is now a circuit by bearing from the island centre. Measured
+      over the full 14-stop tour: hops 14.1 to 30.5 world units, median 23.1, and
+      the circuit closes. Placement itself is untouched.
+- [ ] Open: the itch.io page for 5 More Minutes still reads *In development*.
+- **GATE — "landfall navigation approved":** live review on Damyan's hardware.
+      The preview pane does not composite reliably, so the camera arc was verified
+      by pumping frames through `__wsStep` and reading the transform, not by eye.
+
+### Phase 5d — `julia` as the main theme *(2026-09-12)*
+**Damyan rejected all three style tiles** ("too many numbers, I like the original
+way better"). All three leaned on printing constants, render times or iteration
+counts on screen, which is not what the obsidian gallery is. The direction is
+therefore **improve in place, do not redesign**, and no readout of any kind goes
+on the page. The tiles stay in `design/style-tiles/` as a record of what was
+turned down.
+
+- [x] **Every project has its own fractal again.** `paramsFor()` indexed a pool of
+      eight constants with `hashString`, which is `h * 31 + c` and has almost no
+      avalanche: three project slugs hashed to index 6 and two more to index 7, so
+      six of eight projects rendered as the same two pictures and the mosaic read
+      as duplicate cards. The pool still picks the neighbourhood; each slug now
+      pulls its own c off that entry through a MurmurHash3 finalizer and turns it.
+      A first attempt with the unmixed hash still put Extensible Terrain
+      Generation and 5 More Minutes 0.005 apart, which is the same picture.
+      `src/themes/julia/fractal.test.ts` holds the roster apart, so a future
+      project that lands on an existing one **fails the build**.
+- [x] **The hero stops dimming its own artwork.** The scrim was a left-hand wash
+      *and* a radial vignette over the whole canvas, so the one asset nobody else
+      has was turned down everywhere. The set moved right of centre (0.54 → 0.66),
+      the wash now covers the copy column and releases before it reaches the set,
+      and only a soft edge fade remains.
+- [x] **Accent used with restraint.** `#ff6a00` is unchanged, but full strength is
+      now reserved for actual accents; rules, borders and washes take
+      `--j-accent-rule/-edge/-wash`. A 100%-saturated orange hairline was the loud
+      part, not the hue.
+- [x] **A second face, for data only.** IBM Plex Mono with tabular figures on
+      `.j-meta`, `.j-chip`, `.j-facts dt` and the two remaining eyebrows, so years,
+      team sizes and tool lists line up. Space Grotesk still carries every voice.
+- [x] **Fewer eyebrows, real headings.** Section heads were uppercase letterspaced
+      labels, the most templated rhythm a page can have. `.j-h2` is now a 1.42rem
+      heading with a fading ember rule, and `.j-facts dt` is lowercase mono. Two
+      uppercase labels remain on the whole site. Caught on review: dropping the
+      uppercase treatment briefly left `.j-h2` and `.j-entry h3` the same size, so
+      the level was carried by nothing; sizes now step 51 / 23 / 16 / 14 px.
+- [x] **One radius scale** (`--j-r`, plus pills for anything pressable) instead of
+      6px, 10px and 999px with no rule behind them. The facts panel became a
+      raised field rather than one more bordered card.
+- [x] **Motion that is not a cascade.** The blanket `nth-child` stagger is one rise
+      on the section. It was motion with nothing to say and it had a real failure
+      mode: every child sat at `opacity: 0` waiting for its own delay, so anything
+      that stalls the compositor left half the page invisible rather than merely
+      unanimated. Verified that under reduced motion all 15 CV children render at
+      opacity 1.
+- [x] **Card hover.** Dropped `translateY(-3px)`; the card art is a live fractal
+      that already morphs toward a nearby constant on hover, and the box lift
+      competed with the only reaction on the page specific to this site. The scrim
+      lifts and the title takes the accent instead.
+- [x] **Grain.** One fixed 3.5% noise layer, off under
+      `prefers-reduced-transparency`. A near-black flat field reads as a rendering.
+- [ ] Open: `?cpufractal` is the only reliable way to review this theme in the
+      Browser pane. The WebGL path composites as a white blob there, and the
+      shader mirrors the CPU ember palette exactly, so it is the pane and not the
+      theme. Needs one look on real hardware to confirm.
+- **GATE 5d — live review on Damyan's hardware.**
+
+### Phase 5d — style tiles, rejected *(2026-09-12)*
+Julia is already what everyone gets: weight 20 and no requirements, so the
+resolver picks it for anyone who has not chosen otherwise, and it is the
+crash-fallback. What it needed was design investment, not promotion.
+- [x] Audit against the vendored `taste-skill` and `redesign-skill`: one fully
+      saturated orange hardcoded site-wide, one typeface doing every job, an
+      uppercase letterspaced eyebrow above effectively every section, rounded
+      cards with a bottom scrim and a `translateY(-3px)` hover, a blanket
+      `nth-child` fade-up, three corner radii in one page, and a two-layer scrim
+      deliberately washing out the only asset nobody else has.
+- [x] **Found on the way:** `paramsFor()` collides badly. Extensible Terrain
+      Generation, Don't Break Glass and 5 More Minutes all render as
+      `c = 0.35 + 0.35i`; Kill Bunny and Digital Twinning Suspension share
+      `-0.54 + 0.54i`. Six of eight projects are two pictures. The "stable
+      fractal identity per project" is not currently delivering one.
+- [x] Style tiles built: `julia-d-parameter-space`, `julia-e-plate-and-caption`,
+      `julia-f-instrument-panel` in `design/style-tiles/`.
+- **GATE 5d — pick a tile.** No `src/themes/julia/` code changes until then.
+
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*
 - [ ] Style tile: 2–3 industrial treatments (teenage.engineering register: spec grids,
       safety-orange/black, monospace; where the gaming twist lives — e.g. konami-style
