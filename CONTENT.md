@@ -34,20 +34,30 @@ Baccalaureate Examination, 20.05.2024.
 Worked on an asymmetric multiplayer game, still in beta. Contributions (systems in
 `TotemPT_Project2025/Assets/Scripts`):
 
-- **Networked event bus** — pub/sub backbone (global gameplay events over Netcode) that
-  keeps game systems loosely coupled across the network.
-- **Lobby & session flow** — Unity Services initialization, session create/join, and the
-  asymmetric **player-role assignment** UI/logic.
-- **2D ⇄ 3D grid-mapping pipeline** — tilemap-to-3D world conversion with forward and
-  inverse mappers, linking the two players' asymmetric views of the same space.
-- **Sub-scene "arcade machine" system** — minigames running on in-world arcade screens
-  via render textures, with sub-scene lifecycle, validation, and client-authority
-  management.
-- **Arcade minigames** — Pac-Man (five distinct ghost-AI personalities: chaser, ambusher,
-  flanker, patroller, switcher), Tetris (including a bot and SRS wall-kick data),
-  pinball, 3D fruit-ninja, basketball.
-- **Asymmetric audio** (role-dependent emitters/BGM) and the **3D interaction & item
-  systems** (inspection, held-in-hand, highlighting).
+*Corrected 2026-09-13 against the repository. Damyan flagged three bullets as not his,
+and `git log --author=DamianLHr` plus the file list confirms it: no grid-mapping, minigame,
+audio or item-system files appear in his authorship at all. The grid manager arrived in his
+history only as a merge of David's work. Keep this list to what the repo can evidence.*
+
+- **Networked event bus** — pub/sub backbone over Netcode (`NetworkedEventBus`, `EventData`),
+  with JSON serialization, routed per arcade machine to the sub-scene that owns it.
+- **Lobby & session flow** — Unity Services initialization, relay integration, session
+  create/join, the session player list, and the asymmetric **player-role assignment**
+  UI/logic (`UI/Lobby/*`, `NetworkUIController`).
+- **Sub-scene "arcade machine" system** — minigames running on in-world arcade screens via
+  render textures, with sub-scene lifecycle, validation, client-authority management, and
+  runner/proxy object culling (`SubSceneController`, `ArcadeMachineController`,
+  `ClientAuthorityManager`, `ScreenController`, `RenderTextureSettings`).
+- **Arcade transport** — carrying the player from the 3D world into a machine's 2D sub-scene
+  and back (`ArcadeTransport`, `JumpIntoApp`, `DraggableIcon`).
+- **2D player controller** — kinematic collision handler, the movement controller built on
+  it, and camera follow (`CollisionHandler2D`, `MovementController2D`, `PlayerController2D`,
+  `CameraFollowHandler`).
+- **3D player controller** — movement and the interact action (`Movement3D`, `Interact3D`).
+
+*NOT his, and previously claimed here in error: the 2D ⇄ 3D grid-mapping pipeline (David's),
+the arcade minigames themselves (he debugged Pac-Man networking and made it sub-scene
+validation compliant, nothing more), asymmetric audio, and the 3D interaction & item systems.*
 
 Team: ~15 people total. Repo `TotemPT_Project2025` = "Totem Game Dev Project Team 2025".
 
@@ -81,7 +91,9 @@ development.
     [Digital Twinning Suspension](https://github.com/DamianLHr/Digital-Twinning-Suspension),
     [Kill Bunny](https://github.com/DamianLHr/TGJ2026_Kartof), Don't Break Glass
   - **Python** — stochastic simulations, plotting / data analysis → Digital Twinning
-    Suspension analysis, stochastic modelling coursework
+    Suspension analysis, plus **two further university projects** (Stochastic Modelling
+    assignments 1 and 2, groups 12 and 15) that the course did not allow us to publish, so
+    they carry no links
 - **Actively expanding:** C++ · Vulkan (graphics API) — aligned with the Delft
   computer-graphics direction; first vehicle: Extensible Terrain Generation (below)
 

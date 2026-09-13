@@ -33,12 +33,12 @@ export const cv: CV = {
       tools: ['Unity', 'C#', 'Netcode for GameObjects'],
       summary: 'An asymmetric multiplayer game, still in beta, built by a team of about 15.',
       highlights: [
-        'Networked pub/sub event bus keeping gameplay systems loosely coupled.',
-        'Lobby and session flow: Unity Services initialization, session create/join, asymmetric player-role assignment.',
-        "2D ⇄ 3D grid-mapping pipeline (tilemap-to-3D conversion with forward and inverse mappers) linking the two players' asymmetric views.",
-        'Sub-scene "arcade machine" system: minigames on in-world screens via render textures, with client-authority management.',
-        'Arcade minigames: Pac-Man with five distinct ghost-AI personalities, Tetris with a bot and SRS wall kicks, pinball, 3D fruit-ninja, basketball.',
-        'Asymmetric audio (role-dependent emitters/BGM) and the 3D interaction & item systems.',
+        'Networked pub/sub event bus, with JSON event serialization, routed per arcade machine to the sub-scene that owns it.',
+        'Lobby and session flow: Unity Services initialization, relay integration, session create and join, player list, and asymmetric player-role assignment.',
+        'Sub-scene "arcade machine" system: minigames running on in-world screens via render textures, with sub-scene lifecycle and validation, client-authority management, and runner and proxy object culling.',
+        'Arcade transport: carrying a player from the 3D world into a machine\u2019s 2D sub-scene and back out again.',
+        'The 2D player controller: a kinematic collision handler, the movement controller built on top of it, and camera follow.',
+        'The 3D player controller: movement and the interact action.',
       ],
       links: [{ label: 'Totem on LinkedIn', url: 'https://nl.linkedin.com/company/totem-game-dev' }],
     },
@@ -80,7 +80,8 @@ export const cv: CV = {
       },
       {
         name: 'Python',
-        evidence: 'Stochastic simulations, plotting and data analysis.',
+        evidence:
+          'Stochastic simulations, plotting and data analysis, plus two further university projects in Python that the course did not allow us to publish.',
         projectSlugs: ['digital-twinning-suspension'],
       },
     ],
