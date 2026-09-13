@@ -90,6 +90,14 @@ development.
 Schema per project: `{ year, role, duration, tools/platform, category, team?, links, art }`
 
 ### Personal
+- **This Portfolio Site** — *released* · **TypeScript, React, Three.js, WebGL 2, Vite** ·
+  [repo](https://github.com/DamianLHr/damianlhr.github.io) ·
+  [live](https://damianlhr.github.io/) · **Built with AI**, and says so on the card and on its
+  own page. Carries the long-form disclosure in the project `body` field: scope, the languages
+  Damyan does not have (TypeScript, React, the web stack; GLSL is the stated exception), the
+  method, the implementation, the attribution of every theme concept to Damyan, and how this
+  project relates to the rest of the portfolio. **Role: direction, art direction and review.**
+  The only first-person page on the site, deliberately.
 - **Extensible Terrain Generation** — *coming soon* · **C++ + Vulkan** · not started yet;
   announced alongside the GMTK 2026 entry
 

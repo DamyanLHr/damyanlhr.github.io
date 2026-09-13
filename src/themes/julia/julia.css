@@ -509,6 +509,12 @@
   padding: 1rem 1.15rem 1.05rem;
 }
 
+.j-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .j-chip {
   width: fit-content;
   color: var(--j-accent);
@@ -518,6 +524,67 @@
   font-size: 0.64rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+/* The AI disclosure reads as a statement of fact, not a warning. It borrows the
+   muted ink rather than the accent so it sits beside the category chip as a peer
+   instead of shouting over the project's own name. */
+.j-chip-ai {
+  color: var(--j-fg);
+  border-color: var(--j-line);
+  background: color-mix(in srgb, var(--j-fg) 8%, transparent);
+}
+
+.j-ai-flag {
+  margin: 0;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  color: var(--j-fg);
+  border-left: 2px solid var(--j-accent);
+  padding-left: 0.6rem;
+}
+
+/* The long-form project body. Only one project has one so far, and it is a
+   disclosure, so it is set to be read rather than skimmed. */
+.j-body {
+  max-width: 68ch;
+  margin-top: 1.6rem;
+  color: color-mix(in srgb, var(--j-fg) 86%, var(--j-muted));
+  line-height: 1.68;
+}
+
+.j-body h2 {
+  margin: 2.2rem 0 0.8rem;
+  font-size: 1.28rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--j-fg);
+}
+
+.j-body h2:first-child {
+  margin-top: 0;
+}
+
+.j-body p {
+  margin: 0 0 1rem;
+}
+
+.j-body ul {
+  margin: 0 0 1.2rem;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.j-body strong {
+  color: var(--j-fg);
+  font-weight: 500;
+}
+
+.j-body code {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.88em;
+  color: var(--j-accent-soft);
 }
 
 .j-card-title {

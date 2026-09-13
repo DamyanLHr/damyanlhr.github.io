@@ -12,6 +12,124 @@ export const projects: Project[] = [
     links: [],
   },
   {
+    slug: 'this-site',
+    title: 'This Portfolio Site',
+    category: 'personal',
+    status: 'released',
+    year: 2026,
+    duration: '~2 months, ongoing',
+    role: 'Direction, art direction and review',
+    tools: ['TypeScript', 'React', 'Three.js', 'WebGL 2', 'Vite'],
+    builtWithAI: true,
+    summary:
+      'This site, built with an AI agent over roughly two months as a deliberate learning exercise. The direction, the theme concepts and every visual decision are mine; the implementation is not. Listed here so that the rest of this portfolio is read correctly.',
+    body: `## Scope
+
+This site was built with an AI agent over roughly two months, as a deliberate
+learning exercise. The implementation is not my own work. It is listed here so
+that the rest of this portfolio is read correctly.
+
+My contribution was direction: the concept behind each theme, the visual
+decisions, the constraints the work ran under, and the review at every stage.
+
+## Languages and proficiency
+
+I have no working proficiency in TypeScript or React, nor in the web stack this
+site is built on. The rendering code, the erosion simulation and the application
+architecture are not mine, and I could not maintain this repository unaided.
+
+GLSL is the exception. Shader code falls inside my area of study.
+
+## Method
+
+Three documents in the repository carried the work. \`TECHNOLOGY.md\` records the
+stack, the capability facts for WebGPU and WebGL 2, the architecture and a
+reference library. \`PLAN.md\` is the execution contract: eight phases, each
+closing on a named gate, with status markers updated as work landed and failures
+recorded alongside the successes. \`CONTENT.md\` holds the copy in draft and
+remains the source from which the typed content files are transcribed.
+
+Four rules governed the process throughout.
+
+- **Gates.** A phase closes only on my explicit approval, and nothing is built on
+  top of an unapproved gate.
+- **Options rather than proposals.** Every subjective decision is presented as
+  two or three rendered alternatives, as screenshots or live URLs. Where all of
+  them miss, the options are redone rather than refined. Three complete design
+  directions were rejected on this basis in September 2026.
+- **Continuous deployability.** \`main\` builds and deploys at all times. Each
+  theme ships behind \`?theme=<id>\` before it is permitted to win resolution, so
+  that review happens on real hardware.
+- **Review before presentation.** Console errors, layout faults and motion
+  problems are resolved before any work is submitted for approval.
+
+Design decisions went through style tiles: static HTML mockups of a direction,
+rendered with real content and reviewed before theme code is written. A set of
+design references is vendored into the repository and consulted before any
+visible element is built. An editing pass was later run over every string on the
+site written by the agent rather than by me.
+
+## Implementation
+
+**Architecture.** Content and presentation are separated at the type level. A
+single typed model describes the CV, projects and interests; each theme
+implements a contract against it and owns its presentation entirely. A boot shell
+probes device capability, resolves a theme by weight, code-splits and lazy-loads
+it, and falls back to the floor theme on a crash while preserving the route.
+Import boundaries are enforced by a linter as a build failure.
+
+**Julia**, the default theme, renders Julia sets live as a WebGL 2 fragment
+shader, with a CPU canvas fallback behind a pixel-readback capability probe.
+
+**Watershed** and **Landfall** present the CV as an eroded island. A particle
+hydraulic erosion simulation runs at build time, following Nick McDonald's
+SimpleHydrology work: water descends a noise heightmap exchanging sediment with
+the ground, and meanders arise from discharge and momentum maps that couple
+otherwise independent particles. Three sediment grades sort themselves along the
+flow. The result is baked to PNG and read back at runtime, drawn as a displaced
+heightmap with colour, sun and occlusion baked into vertex colours, so no
+lighting pass is required. The drainage basins the simulation produced define the
+regions the CV is laid out across. Landfall adds settlement on top: roads worn
+between the towns, coastal traffic, and town sizes derived from terrain quality.
+
+**Atlas** presents the same content as a 17th-century chart with procedurally
+engraved coastlines.
+
+**Accessibility** was treated as a gate rather than a final pass. The island
+carries a roving tab stop, a live region announcing each location as the camera
+travels to it, a flat non-WebGL fallback drawn from the same baked data, recovery
+from GL context loss, and reduced-motion paths throughout.
+
+Deployment is by GitHub Actions to GitHub Pages, with a 404 fallback so that deep
+links survive on a static host.
+
+## Attribution of design
+
+Every theme concept originates with me: the fractal gallery, the CV as an eroded
+island, the engraved chart, and the descent through a fold bulb. The selection
+between them and the rejections were mine, as were the constraints the work ran
+under, including the requirement that no theme be a generic surface over
+decoupled content.
+
+## Relation to the rest of this portfolio
+
+This project is not representative of how I work.
+
+The other projects listed here are written in languages I am proficient in, Java
+and C# in particular, and I was responsible for their architecture. Where AI was
+used on them it was used sparingly and from a specification: the design and the
+required behaviour were already settled, and the tool completed work I had
+already specified.
+
+I do not use AI as a substitute for learning within my areas of focus. C++ and
+Vulkan are the current case and are being learned directly.
+`,
+    links: [
+      { label: 'Repository', url: 'https://github.com/DamianLHr/damianlhr.github.io' },
+      { label: 'The site itself', url: 'https://damianlhr.github.io/' },
+    ],
+  },
+  {
     slug: 'dont-break-glass',
     title: "Don't Break Glass",
     category: 'jam',

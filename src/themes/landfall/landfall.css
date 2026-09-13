@@ -607,6 +607,68 @@
   transform: scale(0.985);
 }
 
+.lf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+/* Reads as a statement of fact beside the category, not as a warning over it. */
+.lf-chip-ai {
+  color: var(--lf-fg);
+  border-color: color-mix(in srgb, var(--lf-fg) 26%, transparent);
+  background: color-mix(in srgb, var(--lf-fg) 8%, transparent);
+}
+
+.lf-ai-flag {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  color: var(--lf-fg);
+  border-left: 2px solid var(--lf-accent-warm);
+  padding-left: 0.6rem;
+}
+
+/* Long-form project body. One project has one, and it is a disclosure. */
+.lf-body {
+  max-width: 62ch;
+  margin-top: 1.2rem;
+  color: var(--lf-muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.lf-body h2 {
+  margin: 1.6rem 0 0.6rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--lf-fg);
+}
+
+.lf-body h2:first-child {
+  margin-top: 0;
+}
+
+.lf-body p {
+  margin: 0 0 0.8rem;
+}
+
+.lf-body ul {
+  margin: 0 0 1rem;
+  padding-left: 1.05rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.lf-body strong {
+  color: var(--lf-fg);
+}
+
+.lf-body code {
+  font-size: 0.9em;
+  color: var(--lf-accent-warm);
+}
+
 .lf-chip {
   width: fit-content;
   color: var(--lf-accent-warm);

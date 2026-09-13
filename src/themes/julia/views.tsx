@@ -1,4 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react'
+import Markdown from 'react-markdown'
 import type { InterestSection, Project, SiteContent } from '../../content/types'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { FractalCanvas } from './FractalCanvas'
@@ -184,6 +185,7 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
 // exactly: (3+3)(6)(4+2)(6). A slug missing here falls back to 3 and leaves a
 // ragged row, so this map has to move whenever a project ships.
 const CARD_SPAN: Record<string, number> = {
+  'this-site': 6,
   'dont-break-glass': 3,
   'kill-bunny': 3,
   'five-more-minutes': 6,
@@ -234,7 +236,12 @@ export function ProjectsIndex({ content, navigate }: { content: SiteContent; nav
             />
             <span className="j-card-scrim" aria-hidden="true" />
             <span className="j-card-body">
-              <span className="j-chip">{CHIP[p.category]}</span>
+              <span className="j-chips">
+                <span className="j-chip">{CHIP[p.category]}</span>
+                {/* The disclosure travels with the card, not just the page it
+                    links to: a reader who never opens the project still sees it. */}
+                {p.builtWithAI && <span className="j-chip j-chip-ai">built with AI</span>}
+              </span>
               <span className="j-card-title">{p.title}</span>
               <span className="j-meta">
                 {[p.year, p.event, p.role].filter(Boolean).join(' · ')}
@@ -273,6 +280,7 @@ export function ProjectPage({
       </InternalLink>
       <header className="j-page-head">
         <h1>{project.title}</h1>
+        {project.builtWithAI && <p className="j-ai-flag">Built with AI</p>}
       </header>
       <FractalCanvas params={{ ...projectC(project), span: 2.1 }} live="bloom" className="j-hero" />
       <dl className="j-facts">
@@ -284,6 +292,11 @@ export function ProjectPage({
         ))}
       </dl>
       <p className="j-prose">{project.summary}</p>
+      {project.body && (
+        <div className="j-body">
+          <Markdown>{project.body}</Markdown>
+        </div>
+      )}
       {project.team?.members && (
         <p className="j-meta">with {project.team.members.join(', ')}</p>
       )}

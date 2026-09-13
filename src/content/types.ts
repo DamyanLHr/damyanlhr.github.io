@@ -89,6 +89,13 @@ export interface Project {
   team?: { name?: string; size?: number; members?: string[] }
   tools: string[]
   summary: string
+  /**
+   * Set when the project was built with generative AI, which every theme has to
+   * say on the card and on the page. Absent is not a claim either way: the
+   * projects that were built without it say so in their own summary, the way
+   * their itch.io pages do.
+   */
+  builtWithAI?: boolean
   /** Markdown body for the project subpage (rendered by each theme's own renderer). */
   body?: string
   links: LinkRef[]

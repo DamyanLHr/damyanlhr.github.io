@@ -11,6 +11,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react'
+import Markdown from 'react-markdown'
 import * as THREE from 'three'
 import type { ThemeProps } from '../../shared/theme-contract'
 import type { Project, SiteContent } from '../../content/types'
@@ -1014,7 +1015,10 @@ function Projects({
       <div className="lf-list">
         {released.map((p) => (
           <Link key={p.slug} to={`/projects/${p.slug}`} navigate={navigate} className="lf-card">
-            <span className="lf-chip">{CHIP[p.category]}</span>
+            <span className="lf-chips">
+              <span className="lf-chip">{CHIP[p.category]}</span>
+              {p.builtWithAI && <span className="lf-chip lf-chip-ai">built with AI</span>}
+            </span>
             <span className="lf-card-title">{p.title}</span>
             <span className="lf-meta">{[p.year, p.event, p.role].filter(Boolean).join(' · ')}</span>
             <span className="lf-card-sum">{p.summary}</span>
@@ -1049,6 +1053,7 @@ function ProjectSheet({
         ← all projects
       </Link>
       <h1>{project.title}</h1>
+      {project.builtWithAI && <p className="lf-ai-flag">Built with AI</p>}
       <dl className="lf-facts">
         {facts.map(([k, v]) => (
           <div key={k}>
@@ -1058,6 +1063,11 @@ function ProjectSheet({
         ))}
       </dl>
       <p className="lf-prose">{project.summary}</p>
+      {project.body && (
+        <div className="lf-body">
+          <Markdown>{project.body}</Markdown>
+        </div>
+      )}
       {project.team?.members && <p className="lf-meta">with {project.team.members.join(', ')}</p>}
       <div className="lf-actions">
         {project.links.map((l, i) => (
