@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { content } from './index'
+import { interests } from './interests'
 
 // Content integrity — bad content fails CI before it can render as a blank section
 // (PLAN §2: the verification machine).
@@ -78,11 +79,7 @@ describe('content integrity', () => {
   })
 
   it('interests cover the four sections', () => {
-    expect(content.interests.map((i) => i.id).sort()).toEqual([
-      'books',
-      'gaming',
-      'music',
-      'skiing',
-    ])
+    // checked on the source, so the content stays valid while the section is switched off
+    expect(interests.map((i) => i.id).sort()).toEqual(['books', 'gaming', 'music', 'skiing'])
   })
 })

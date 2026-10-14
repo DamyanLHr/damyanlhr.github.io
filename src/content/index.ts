@@ -1,11 +1,12 @@
 import type { SiteContent } from './types'
-import { SITE } from './meta'
+import { FEATURES, SITE } from './meta'
 import { cv } from './cv'
 import { projects } from './projects'
 import { interests } from './interests'
 import { announcements } from './announcements'
 
 export type * from './types'
+export { FEATURES } from './meta'
 
 export const content: SiteContent = {
   profile: {
@@ -26,7 +27,7 @@ export const content: SiteContent = {
   },
   cv,
   projects,
-  interests,
+  interests: FEATURES.interests ? interests : [],
   announcements,
   // Art DNA gets authored at design time (Phase 4); facets are optional until then.
   routeArt: {},

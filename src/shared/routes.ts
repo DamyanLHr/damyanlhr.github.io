@@ -1,6 +1,8 @@
 // Routes are content, not theme (TECHNOLOGY.md §3.2): stable across every theme,
 // so URLs remain shareable no matter which world the visitor lands in.
 
+import { FEATURES } from '../content/meta'
+
 export type Route =
   | { kind: 'home' }
   | { kind: 'cv' }
@@ -14,7 +16,7 @@ export function parseRoute(pathname: string): Route {
   if (clean === '/') return { kind: 'home' }
   if (clean === '/cv') return { kind: 'cv' }
   if (clean === '/projects') return { kind: 'projects' }
-  if (clean === '/interests') return { kind: 'interests' }
+  if (clean === '/interests' && FEATURES.interests) return { kind: 'interests' }
   const project = /^\/projects\/([a-z0-9-]+)$/.exec(clean)
   if (project) return { kind: 'project', slug: project[1] }
   return { kind: 'notFound', path: pathname }
@@ -43,4 +45,4 @@ export const TOP_LEVEL_ROUTES: { path: string; label: string }[] = [
   { path: '/cv', label: 'CV' },
   { path: '/projects', label: 'Projects' },
   { path: '/interests', label: 'Interests' },
-]
+].filter((r) => r.path !== '/interests' || FEATURES.interests)

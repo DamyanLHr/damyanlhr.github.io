@@ -1,5 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react'
 import Markdown from 'react-markdown'
+import { FEATURES } from '../../content/meta'
 import type { InterestSection, Project, SiteContent } from '../../content/types'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { FractalCanvas } from './FractalCanvas'
@@ -54,10 +55,10 @@ export function Home({ content, navigate }: { content: SiteContent; navigate: Na
         params={
           narrow
             ? { ...ROUTE_C.home, span: 2.7, centerX: 0.5, centerY: 0.22, angle: -0.7 }
-            // Pushed right of centre so the set sits beside the name instead of
-            // behind it. It used to bloom straight through the title, which is
-            // why the scrim had to be heavy enough to dim the whole picture.
-            : { ...ROUTE_C.home, span: 2.25, centerX: 0.66, centerY: 0.46, angle: -0.7 }
+            : // Pushed right of centre so the set sits beside the name instead of
+              // behind it. It used to bloom straight through the title, which is
+              // why the scrim had to be heavy enough to dim the whole picture.
+              { ...ROUTE_C.home, span: 2.25, centerX: 0.66, centerY: 0.46, angle: -0.7 }
         }
         live="hero"
         className="j-home-canvas"
@@ -71,8 +72,8 @@ export function Home({ content, navigate }: { content: SiteContent; navigate: Na
           Hristov
         </h1>
         <p className="j-sub">
-          Games, engines and experimental graphics. Computer Science and Engineering at TU/e,
-          class of 2027.
+          Games, engines and experimental graphics. Computer Science and Engineering at TU/e, class
+          of 2027.
         </p>
         <nav className="j-big-links" aria-label="Sections">
           <InternalLink to="/cv" navigate={navigate}>
@@ -81,9 +82,11 @@ export function Home({ content, navigate }: { content: SiteContent; navigate: Na
           <InternalLink to="/projects" navigate={navigate}>
             Projects
           </InternalLink>
-          <InternalLink to="/interests" navigate={navigate}>
-            Interests
-          </InternalLink>
+          {FEATURES.interests && (
+            <InternalLink to="/interests" navigate={navigate}>
+              Interests
+            </InternalLink>
+          )}
         </nav>
         <div className="j-socials">
           {content.profile.socials.map((s) => (
@@ -297,9 +300,7 @@ export function ProjectPage({
           <Markdown>{project.body}</Markdown>
         </div>
       )}
-      {project.team?.members && (
-        <p className="j-meta">with {project.team.members.join(', ')}</p>
-      )}
+      {project.team?.members && <p className="j-meta">with {project.team.members.join(', ')}</p>}
       <div className="j-actions">
         {project.links.map((l, i) => (
           <a key={l.url} href={l.url} className={i === 0 ? 'j-btn j-btn-primary' : 'j-btn'}>

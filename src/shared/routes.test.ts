@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { FEATURES } from '../content/meta'
 import { parseRoute, routePath, TOP_LEVEL_ROUTES } from './routes'
 
 describe('parseRoute', () => {
@@ -6,7 +7,11 @@ describe('parseRoute', () => {
     expect(parseRoute('/')).toEqual({ kind: 'home' })
     expect(parseRoute('/cv')).toEqual({ kind: 'cv' })
     expect(parseRoute('/projects')).toEqual({ kind: 'projects' })
-    expect(parseRoute('/interests')).toEqual({ kind: 'interests' })
+  })
+
+  it('serves /interests only while the section is enabled', () => {
+    expect(parseRoute('/interests').kind).toBe(FEATURES.interests ? 'interests' : 'notFound')
+    expect(TOP_LEVEL_ROUTES.some((r) => r.path === '/interests')).toBe(FEATURES.interests)
   })
 
   it('parses project slugs', () => {
@@ -27,6 +32,7 @@ describe('parseRoute', () => {
 describe('routePath', () => {
   it('round-trips every parseable path', () => {
     for (const path of ['/', '/cv', '/projects', '/projects/kill-bunny', '/interests']) {
+      // a disabled section's path still round-trips, as a notFound route
       expect(routePath(parseRoute(path))).toBe(path)
     }
   })

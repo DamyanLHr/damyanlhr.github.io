@@ -5,6 +5,7 @@ import '@fontsource/space-grotesk/700.css'
 import '@fontsource/ibm-plex-mono/400.css'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { routePath } from '../../shared/routes'
+import { FEATURES } from '../../content/meta'
 import { Cv, Home, Interests, InternalLink, NotFound, ProjectPage, ProjectsIndex } from './views'
 import './julia.css'
 
@@ -16,7 +17,7 @@ const NAV = [
   { to: '/cv', label: 'CV' },
   { to: '/projects', label: 'Projects' },
   { to: '/interests', label: 'Interests' },
-]
+].filter((n) => n.to !== '/interests' || FEATURES.interests)
 
 export function Root({ content, route, navigate }: ThemeProps) {
   const path = routePath(route)
