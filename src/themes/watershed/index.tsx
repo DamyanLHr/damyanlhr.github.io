@@ -12,6 +12,7 @@ import {
 } from 'react'
 import * as THREE from 'three'
 import type { ThemeProps } from '../../shared/theme-contract'
+import { FEATURES } from '../../content/meta'
 import type { Project, SiteContent } from '../../content/types'
 import { routePath, TOP_LEVEL_ROUTES } from '../../shared/routes'
 import { bakeSurface, loadWorld, type Surface, type World } from './world'
@@ -539,8 +540,9 @@ function KeyGuide({ onClose, flat }: { onClose: () => void; flat: boolean }) {
       >
         <h2 id="ws-keys-title">Travelling the island</h2>
         <p className="ws-dim">
-          The island is a map of the CV: schools, workplaces, projects and interests each sit in a
-          real place on it. Everything here is reachable without a mouse.
+          The island is a map of the CV: schools, workplaces
+          {FEATURES.interests ? ', projects and interests' : ' and projects'} each sit in a real
+          place on it. Everything here is reachable without a mouse.
         </p>
         <dl className="ws-keys-list">
           <div>
@@ -587,7 +589,8 @@ function KeyGuide({ onClose, flat }: { onClose: () => void; flat: boolean }) {
           </p>
         )}
         <p className="ws-dim">
-          Prefer to read rather than travel? The CV, projects and interests pages hold the same
+          Prefer to read rather than travel? The CV
+          {FEATURES.interests ? ', projects and interests' : ' and projects'} pages hold the same
           content as plain text.
         </p>
         <button type="button" ref={closeRef} className="ws-keys-close" onClick={onClose}>
