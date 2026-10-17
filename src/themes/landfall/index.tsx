@@ -1,6 +1,8 @@
 import '@fontsource/space-grotesk/400.css'
 import '@fontsource/space-grotesk/500.css'
 import '@fontsource/space-grotesk/700.css'
+// data face: years, team sizes and tool lists get lining figures
+import '@fontsource/ibm-plex-mono/400.css'
 import {
   useEffect,
   useMemo,
@@ -21,18 +23,18 @@ import { bakeSurface, loadWorld, type Surface, type World } from './world'
 import { createScene, HEIGHT, PLANE, type Scene } from './scene'
 import { drawRelief, reliefPoint } from './relief2d'
 import './landfall.css'
+import { ThemeMenu } from './ThemeMenu'
 
 // landfall — the eroded island, settled.
 //
-// Forked from `watershed` on 2026-08-07, which stays exactly as it is: that one
-// is approved-looking and reachable at ?theme=watershed, and nothing here is
-// allowed to regress it. This is where the island gains the things people bring
-// — roads worn between the towns, boats working the coast and the navigable
-// reaches, settlements sized by how good their ground actually is, and a turning
-// year. Both themes read the same baked world, so the simulation stays the one
-// source of truth and this one simply asks more questions of it.
+// Forked from `watershed` on 2026-08-07. Watershed itself was retired on
+// 2026-10-17 and this is now the only island; its bake (scripts/watershed,
+// public/watershed) lives on because this theme reads it. This is where the
+// island gains the things people bring: roads worn between the towns, boats
+// working the coast and the navigable reaches, settlements sized by how good
+// their ground actually is, and a turning year.
 //
-// (Original header follows.)
+// (Watershed's original header follows.)
 // watershed — the CV as an eroded island (PLAN Phase 6).
 //
 // The land is not decoration: a particle hydraulic-erosion simulation runs at
@@ -94,7 +96,7 @@ function Link({
 
 const KEYS_SEEN = 'lf:keys-seen'
 
-export function Root({ content, route, navigate }: ThemeProps) {
+export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const flatRef = useRef<HTMLCanvasElement>(null)
   /** where Escape puts the caret, so leaving the map never strands focus */
@@ -495,7 +497,7 @@ export function Root({ content, route, navigate }: ThemeProps) {
       {failed && (
         <div className="lf-boot lf-fail">
           <p>{failed}</p>
-          <p className="lf-dim">The Julia theme has you covered via the switcher.</p>
+          <p className="lf-dim">Pick another world from the Theme button above.</p>
         </div>
       )}
 
@@ -594,6 +596,7 @@ export function Root({ content, route, navigate }: ThemeProps) {
             <kbd aria-hidden="true">?</kbd>
             <span>Travel by keyboard</span>
           </button>
+          <ThemeMenu menu={themeMenu} />
         </div>
       </header>
 

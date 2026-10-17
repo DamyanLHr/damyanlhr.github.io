@@ -182,13 +182,19 @@
 
 .a-index {
   position: absolute;
-  z-index: 5;
+  z-index: 6;
   top: 4.4%;
   right: 5%;
   display: grid;
-  gap: 0.2rem;
+  gap: 1.1rem;
   justify-items: end;
   text-align: right;
+}
+
+.a-index-nav {
+  display: grid;
+  gap: 0.2rem;
+  justify-items: end;
 }
 
 .a-index-tag {
@@ -215,6 +221,222 @@
 .a-index a[aria-current='page'] {
   color: var(--a-ink);
   border-bottom-color: var(--a-rubric);
+}
+
+/* ---------- the plate catalogue (theme menu) ---------- */
+
+.a-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.a-theme {
+  position: relative;
+  display: grid;
+  justify-items: end;
+}
+
+/* An index entry like the charts above it, set so it reads as one. It takes
+   the rubric rule while its catalogue is open, the way a current chart does. */
+.a-theme-trigger {
+  touch-action: manipulation;
+  font-family: 'IM Fell English SC', serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.17em;
+  color: var(--a-ink);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--a-rule);
+  padding: 0.12rem 0;
+  cursor: pointer;
+  transition:
+    color 220ms var(--a-ease),
+    border-color 220ms var(--a-ease);
+}
+
+.a-theme-trigger[aria-expanded='true'] {
+  border-bottom-color: var(--a-rubric);
+}
+
+.a-theme-trigger:active {
+  color: var(--a-rubric);
+}
+
+.a-theme-trigger:focus-visible,
+.a-theme-item:focus-visible {
+  outline: 2px solid var(--a-rubric);
+  outline-offset: 3px;
+}
+
+/* A loose sheet laid on the plate: square corners, the neatline's double
+   rule, no shadow beyond a little lift off the paper. */
+.a-theme-panel {
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: absolute;
+  top: calc(100% + 0.9rem);
+  right: 0;
+  width: min(25rem, calc(100vw - 2rem));
+  padding: 0.9rem 0.9rem 0.7rem;
+  text-align: left;
+  background:
+    repeating-linear-gradient(0deg, rgba(44, 34, 24, 0.045) 0 1px, transparent 1px 30px),
+    var(--a-paper);
+  border: 1px solid var(--a-ink);
+  outline: 3px double var(--a-ink);
+  outline-offset: 3px;
+  box-shadow: 0 14px 30px -14px rgba(44, 34, 24, 0.55);
+  transform-origin: top right;
+  /* not the surveyor's easing: that one starts slow, and a menu has to
+     answer the moment it is asked */
+  transition:
+    opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@starting-style {
+  .a-theme-panel {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+.a-theme-head {
+  margin: 0 0 0.6rem;
+  font-family: 'IM Fell English SC', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  color: var(--a-rubric);
+}
+
+.a-theme-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.a-theme-item {
+  display: grid;
+  grid-template-columns: 1.1rem 120px 1fr;
+  gap: 0.7rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.45rem 0.2rem;
+  font: inherit;
+  text-align: left;
+  color: var(--a-ink);
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--a-rule);
+  cursor: pointer;
+}
+
+li:first-child .a-theme-item {
+  border-top: 0;
+}
+
+/* the printer's hand points at the plate the roulette is on */
+.a-theme-hand {
+  font-size: 1.05rem;
+  color: var(--a-rubric);
+  opacity: 0;
+}
+
+.a-theme-item[data-highlight] .a-theme-hand {
+  opacity: 1;
+}
+
+/* plates are printed in the same ink as everything else */
+.a-theme-plate {
+  display: block;
+  padding: 3px;
+  border: 1px solid var(--a-ink);
+  background: var(--a-paper);
+}
+
+.a-theme-plate img {
+  display: block;
+  width: 112px;
+  height: 70px;
+  object-fit: cover;
+  filter: sepia(0.55) saturate(0.7) contrast(1.05);
+  mix-blend-mode: multiply;
+}
+
+.a-theme-item[data-highlight] .a-theme-plate {
+  border-color: var(--a-rubric);
+}
+
+.a-theme-item[data-highlight] .a-theme-plate img {
+  filter: none;
+  mix-blend-mode: normal;
+}
+
+.a-theme-text {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.a-theme-name {
+  font-family: 'IM Fell Great Primer', Georgia, serif;
+  font-size: 1.02rem;
+}
+
+.a-theme-no {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--a-ink-soft);
+}
+
+.a-theme-name em {
+  font-size: 0.82rem;
+  color: var(--a-rubric);
+}
+
+.a-theme-desc {
+  font-style: italic;
+  font-size: 0.84rem;
+  line-height: 1.3;
+  color: var(--a-ink-soft);
+}
+
+.a-theme-foot {
+  margin: 0.55rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--a-ink);
+  font-style: italic;
+  font-size: 0.8rem;
+  text-align: center;
+  color: var(--a-ink-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .a-theme-trigger:hover {
+    border-bottom-color: var(--a-rubric);
+  }
+  .a-theme-panel:not([data-rolling]) .a-theme-item:hover .a-theme-name {
+    color: var(--a-rubric);
+  }
+  .a-theme-panel:not([data-rolling]) .a-theme-item:hover .a-theme-plate img {
+    filter: none;
+    mix-blend-mode: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a-theme-panel {
+    transition: opacity 180ms ease;
+    transform: none;
+  }
 }
 
 /* ---------- cartouche ---------- */
@@ -369,7 +591,8 @@
   z-index: 4;
   left: 5.2%;
   top: 8%;
-  bottom: 8%;
+  /* clear of the zoom tools beneath it: at 8% a long folio ran under them */
+  bottom: 11.5%;
   /* narrow enough that the folio stays over water and never covers the coast */
   width: min(34%, 30rem);
   overflow-y: auto;
@@ -452,6 +675,61 @@
   line-height: 1.6;
   max-width: 62ch;
   font-size: 0.96rem;
+}
+
+/* AI disclosure: the one thing on a sheet allowed to stand in rubric */
+.a-ai-mark {
+  color: var(--a-ink);
+}
+
+.a-ai-flag {
+  margin: -0.6rem 0 1.2rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--a-rubric);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--a-ink);
+}
+
+/* the long account of a work, set as a printed page */
+.a-body {
+  max-width: 62ch;
+  margin-top: 1.2rem;
+  font-size: 0.96rem;
+  line-height: 1.62;
+}
+
+.a-body h2 {
+  margin: 1.8rem 0 0.6rem;
+  font-family: 'IM Fell Great Primer', Georgia, serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+}
+
+.a-body h2:first-child {
+  margin-top: 0;
+}
+
+.a-body p {
+  margin: 0 0 0.9rem;
+}
+
+.a-body ul {
+  margin: 0 0 1rem;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.a-body code {
+  font-family: 'IM Fell English SC', serif;
+  letter-spacing: 0.06em;
+}
+
+.a-body a {
+  color: var(--a-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--a-rubric);
 }
 
 /* project roll */
@@ -664,7 +942,8 @@
   }
 }
 
-.atl a:focus-visible {
+.atl a:focus-visible,
+.a-tools button:focus-visible {
   outline: 2px solid var(--a-rubric);
   outline-offset: 3px;
 }
@@ -729,12 +1008,42 @@
     right: 4%;
     grid-auto-flow: column;
     justify-content: space-between;
-    justify-items: center;
+    align-items: baseline;
     gap: 0.6rem;
+  }
+
+  .a-index-nav {
+    grid-auto-flow: column;
+    gap: 1.1rem;
   }
 
   .a-index-tag {
     display: none;
+  }
+
+  /* on a phone the catalogue spans the sheet under the index row */
+  .a-theme {
+    position: static;
+  }
+
+  .a-theme-panel {
+    position: fixed;
+    top: calc(var(--a-band-h) + 2.6rem);
+    left: 4%;
+    right: 4%;
+    width: auto;
+    max-height: calc(100dvh - var(--a-band-h) - 3.4rem);
+    overflow-y: auto;
+    z-index: 8;
+  }
+
+  .a-theme-item {
+    grid-template-columns: 1rem 90px 1fr;
+  }
+
+  .a-theme-plate img {
+    width: 82px;
+    height: 51px;
   }
 
   .a-cartouche,
@@ -766,4 +1075,9 @@
     bottom: 0.7rem;
     max-width: none;
   }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.a-theme-panel[data-instant] {
+  transition: none;
 }

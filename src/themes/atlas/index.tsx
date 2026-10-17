@@ -4,12 +4,14 @@ import '@fontsource/im-fell-english-sc/400.css'
 import '@fontsource/im-fell-great-primer/400.css'
 import '@fontsource/im-fell-great-primer/400-italic.css'
 import { useMemo, type MouseEvent, type ReactNode } from 'react'
+import Markdown from 'react-markdown'
 import type { ThemeProps } from '../../shared/theme-contract'
 import type { Project, SiteContent } from '../../content/types'
 import { routePath, TOP_LEVEL_ROUTES } from '../../shared/routes'
 import { buildPlate, WORLD, type City } from './plate'
 import { useMapView } from './useMapView'
 import './atlas.css'
+import { ThemeMenu } from './ThemeMenu'
 
 // atlas — the résumé as territory (PLAN Phase 5, direction B "Iron Gall").
 //
@@ -52,7 +54,7 @@ function Link({
   )
 }
 
-export function Root({ content, route, navigate }: ThemeProps) {
+export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
   const plate = useMemo(() => buildPlate(content), [content])
   const map = useMapView({
     worldW: WORLD.w,
@@ -84,7 +86,7 @@ export function Root({ content, route, navigate }: ThemeProps) {
           viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}
           preserveAspectRatio="xMidYMid slice"
           role="img"
-          aria-label="Chart of Damyan Hristov's territories — drag to pan, scroll to zoom"
+          aria-label="Chart of Damyan Hristov's territories. Drag to pan, scroll to zoom."
         >
           <defs>
             <filter id="a-rough" x="-4%" y="-4%" width="108%" height="108%">
@@ -326,7 +328,7 @@ export function Root({ content, route, navigate }: ThemeProps) {
               textAnchor="middle"
               fontSize={s(14)}
             >
-              — reported, not yet surveyed —
+              reported, not yet surveyed
             </text>
             <text className="a-lbl a-lbl-sea" x={330} y={1430} textAnchor="middle" fontSize={s(34)}>
               Mare Incognitum
@@ -348,14 +350,17 @@ export function Root({ content, route, navigate }: ThemeProps) {
 
         <div className="a-neatline" />
 
-        <nav className="a-index" aria-label="Charts">
-          <p className="a-index-tag">CHARTS</p>
-          {TOP_LEVEL_ROUTES.map((r) => (
-            <Link key={r.path} to={r.path} navigate={navigate} current={path === r.path}>
-              {r.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="a-index">
+          <nav className="a-index-nav" aria-label="Charts">
+            <p className="a-index-tag">CHARTS</p>
+            {TOP_LEVEL_ROUTES.map((r) => (
+              <Link key={r.path} to={r.path} navigate={navigate} current={path === r.path}>
+                {r.label}
+              </Link>
+            ))}
+          </nav>
+          <ThemeMenu menu={themeMenu} />
+        </div>
 
         <div className="a-compass" aria-hidden="true">
           <svg viewBox="-60 -60 120 120">
@@ -443,7 +448,8 @@ function Cartouche({ content }: { content: SiteContent }) {
       <p className="a-lede">
         <span className="a-drop">G</span>ame development, engines and graphics. One country holds
         the whole account: the provinces of study and of labour, every work set down as a town upon
-        it, the isles of idle hours offshore, and — ruled in red — the coast toward Delft.
+        it,{content.interests.length > 0 && ' the isles of idle hours offshore,'} and the coast
+        toward Delft, ruled in red.
       </p>
       <div className="a-socials">
         {content.profile.socials.map((s) => (
@@ -480,7 +486,7 @@ function Legend() {
             strokeWidth="0.8"
           />
         </svg>
-        <span>A work shipped — press to read its account</span>
+        <span>A work shipped. Press it to read its account.</span>
       </div>
       <div className="a-legend-row">
         <svg width="42" height="15" viewBox="0 0 42 15">
@@ -503,7 +509,7 @@ function Legend() {
             opacity="0.7"
           />
         </svg>
-        <span>Contour &amp; hachure: the lie of the land</span>
+        <span>Contours and hachures give the lie of the land</span>
       </div>
       <div className="a-legend-row">
         <svg width="42" height="15" viewBox="0 0 42 15">
@@ -517,7 +523,7 @@ function Legend() {
             strokeDasharray="7 5"
           />
         </svg>
-        <span>Reported, unsurveyed — the Delft passage</span>
+        <span>The Delft passage, reported but unsurveyed</span>
       </div>
       <p className="a-legend-note">
         Heights, waters and town sites are computed from one survey of the ground, not drawn by
@@ -639,6 +645,8 @@ function Projects({
           <Link key={p.slug} to={`/projects/${p.slug}`} navigate={navigate}>
             <span className="a-roll-no">
               TOWN {String(i + 1).padStart(2, '0')} · {CHIP[p.category]}
+              {/* the disclosure travels with the entry, not only the sheet */}
+              {p.builtWithAI && <span className="a-ai-mark"> · MADE WITH AI</span>}
             </span>
             <span className="a-roll-title">{p.title}</span>
             <span className="a-roll-sum">{p.summary}</span>
@@ -674,6 +682,9 @@ function ProjectSheet({
       </Link>
       <h1>{project.title}</h1>
       <p className="a-folio-sub">{CHIP[project.category].toLowerCase()}</p>
+      {project.builtWithAI && (
+        <p className="a-ai-flag">This work was made with the help of an AI, and says so below.</p>
+      )}
       <dl className="a-facts">
         {facts.map(([k, v]) => (
           <div key={k}>
@@ -683,6 +694,11 @@ function ProjectSheet({
         ))}
       </dl>
       <p className="a-prose">{project.summary}</p>
+      {project.body && (
+        <div className="a-body">
+          <Markdown>{project.body}</Markdown>
+        </div>
+      )}
       {project.team?.members && <p className="a-meta">with {project.team.members.join(', ')}</p>}
       <div className="a-actions">
         {project.links.map((l) => (

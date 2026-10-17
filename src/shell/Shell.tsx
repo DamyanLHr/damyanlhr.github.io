@@ -1,18 +1,19 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { content } from '../content'
-import { probeCapabilities } from '../shared/capabilities'
+import { probeCapabilities, type Capabilities } from '../shared/capabilities'
 import { getStoredThemeId, setStoredThemeId } from '../shared/prefs'
-import { resolveTheme } from '../shared/resolver'
+import { meetsRequirements, resolveTheme } from '../shared/resolver'
 import { navigate, useRoute } from '../shared/router'
 import type { ThemeDescriptor, ThemeModule } from '../shared/theme-contract'
+import type { ThemeMenu } from '../shared/theme-menu'
 import { themes } from '../themes/registry'
 import { ThemeBoundary } from './ErrorBoundary'
-import { Switcher } from './Switcher'
 import './shell.css'
 
 // The theme-independent boot shell (TECHNOLOGY.md §3.3): resolves a theme
-// (?theme= → stored choice → capability probe → weight), lazy-loads it, and owns
-// the switcher overlay. Content and route live here, so they survive theme swaps.
+// (?theme= → stored choice → capability probe → weight), lazy-loads it, and hands
+// it the theme menu to draw in its own top bar. Content and route live here, so
+// they survive theme swaps.
 
 interface ActiveTheme {
   descriptor: ThemeDescriptor
@@ -41,6 +42,7 @@ export function Shell() {
   const route = useRoute()
   const [active, setActive] = useState<ActiveTheme | null>(null)
   const [dead, setDead] = useState(false)
+  const [caps, setCaps] = useState<Capabilities | null>(null)
 
   const activate = useCallback(async (descriptor: ThemeDescriptor) => {
     const module = await descriptor.load()
@@ -51,6 +53,7 @@ export function Shell() {
     let cancelled = false
     void (async () => {
       const caps = await probeCapabilities()
+      if (!cancelled) setCaps(caps)
       const descriptor = resolveTheme({
         descriptors: themes,
         caps,
@@ -88,13 +91,31 @@ export function Shell() {
     [activate, active],
   )
 
+  const activeId = active?.descriptor.id ?? ''
+  const themeMenu = useMemo<ThemeMenu>(
+    () => ({
+      entries: themes
+        .filter((t) => t.listed)
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          description: t.description,
+          preview: t.preview,
+          runnable: caps === null || meetsRequirements(t.requirements, caps),
+        })),
+      activeId,
+      pick,
+    }),
+    [caps, activeId, pick],
+  )
+
   if (dead) {
     return (
       <main className="shell-dead">
         <p>Something broke badly enough that even the fallback failed.</p>
         <p>
-          The work itself is safe at{' '}
-          <a href="https://github.com/DamyanLHr">github.com/DamyanLHr</a>.
+          The work itself is safe at <a href="https://github.com/DamyanLHr">github.com/DamyanLHr</a>
+          .
         </p>
       </main>
     )
@@ -104,11 +125,8 @@ export function Shell() {
 
   const { Root } = active.module
   return (
-    <>
-      <ThemeBoundary key={active.descriptor.id} onError={onThemeCrash}>
-        <Root content={content} route={route} navigate={navigate} />
-      </ThemeBoundary>
-      <Switcher themes={themes} activeId={active.descriptor.id} onPick={pick} />
-    </>
+    <ThemeBoundary key={active.descriptor.id} onError={onThemeCrash}>
+      <Root content={content} route={route} navigate={navigate} themeMenu={themeMenu} />
+    </ThemeBoundary>
   )
 }

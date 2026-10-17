@@ -1,12 +1,16 @@
 import '@fontsource/space-grotesk/400.css'
 import '@fontsource/space-grotesk/500.css'
 import '@fontsource/space-grotesk/700.css'
+// data face: years, team sizes and tool lists get lining figures
+import '@fontsource/ibm-plex-mono/400.css'
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
+import Markdown from 'react-markdown'
 import type { ThemeProps } from '../../shared/theme-contract'
 import type { Project, SiteContent } from '../../content/types'
 import { routePath, TOP_LEVEL_ROUTES } from '../../shared/routes'
 import { createBulb, type Bulb, type BulbPalette, type BulbPose } from './bulb'
 import './singularity.css'
+import { ThemeMenu } from './ThemeMenu'
 
 // singularity — the flagship theme (PLAN Phase 4). The site is one raymarched
 // BoxFoldBulbPow2 world; navigation flies the camera between authored poses and
@@ -101,7 +105,7 @@ function InternalLink({
   )
 }
 
-export function Root({ content, route, navigate }: ThemeProps) {
+export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const bulbRef = useRef<Bulb | null>(null)
   const [failed, setFailed] = useState(false)
@@ -167,7 +171,7 @@ export function Root({ content, route, navigate }: ThemeProps) {
       {failed && (
         <div className="s-fail s-panel">
           <p>This world needs a GPU the browser did not provide.</p>
-          <p>The Julia theme has you covered via the switcher.</p>
+          <p>Pick another world from the Theme button above.</p>
         </div>
       )}
 
@@ -175,18 +179,21 @@ export function Root({ content, route, navigate }: ThemeProps) {
         <InternalLink to="/" navigate={navigate} className="s-mark">
           DH
         </InternalLink>
-        <nav aria-label="Sections">
-          {TOP_LEVEL_ROUTES.filter((r) => r.path !== '/').map((r) => (
-            <InternalLink
-              key={r.path}
-              to={r.path}
-              navigate={navigate}
-              className={`s-nav-link${path === r.path ? ' s-active' : ''}`}
-            >
-              {r.label}
-            </InternalLink>
-          ))}
-        </nav>
+        <div className="s-nav-right">
+          <nav aria-label="Sections">
+            {TOP_LEVEL_ROUTES.filter((r) => r.path !== '/').map((r) => (
+              <InternalLink
+                key={r.path}
+                to={r.path}
+                navigate={navigate}
+                className={`s-nav-link${path === r.path ? ' s-active' : ''}`}
+              >
+                {r.label}
+              </InternalLink>
+            ))}
+          </nav>
+          <ThemeMenu menu={themeMenu} />
+        </div>
       </header>
 
       {route.kind === 'home' && <Home content={content} navigate={navigate} />}
@@ -367,7 +374,11 @@ function ProjectsIndex({
             navigate={navigate}
             className="s-project-card"
           >
-            <span className="s-chip">{CHIP[p.category]}</span>
+            <span className="s-chips">
+              <span className="s-chip">{CHIP[p.category]}</span>
+              {/* the disclosure travels with the card, not only the page */}
+              {p.builtWithAI && <span className="s-chip s-chip-ai">built with AI</span>}
+            </span>
             <span className="s-card-title">{p.title}</span>
             <span className="s-meta">{[p.year, p.event, p.role].filter(Boolean).join(' · ')}</span>
             <span className="s-card-summary">{p.summary}</span>
@@ -402,6 +413,7 @@ function ProjectPage({
         &larr; all projects
       </InternalLink>
       <h1>{project.title}</h1>
+      {project.builtWithAI && <p className="s-ai-flag">Built with AI</p>}
       <dl className="s-facts">
         {facts.map(([k, v]) => (
           <div key={k}>
@@ -411,6 +423,11 @@ function ProjectPage({
         ))}
       </dl>
       <p className="s-prose">{project.summary}</p>
+      {project.body && (
+        <div className="s-body">
+          <Markdown>{project.body}</Markdown>
+        </div>
+      )}
       {project.team?.members && <p className="s-meta">with {project.team.members.join(', ')}</p>}
       <div className="s-actions">
         {project.links.map((l, i) => (

@@ -460,6 +460,41 @@ crash-fallback. What it needed was design investment, not promotion.
       `julia-f-instrument-panel` in `design/style-tiles/`.
 - **GATE 5d — pick a tile.** No `src/themes/julia/` code changes until then.
 
+### Phase 5e — the theme menu, and two themes retired *(2026-10-17)*
+Damyan: the switcher should be a real thing in each theme's own bar, open on hover
+with a picture of every theme, and a click once it is open should land somewhere at
+random. Holding page and Watershed go; Landfall stays; Debug stays listed; every
+other theme comes up to Julia's standard.
+
+- [x] **Theme menu.** The shell's bottom-right pill is gone. `ThemeProps.themeMenu`
+      carries every listed theme (name, one-line description, preview, whether this
+      device can run it) and `pick`; `src/shared/theme-menu.ts` owns the behaviour
+      once (`useThemeMenu`), each theme draws it in its own language: julia a pill in
+      the bar, landfall one of its own map markers, atlas an entry under its ruled
+      index with the themes as a catalogue of plates and a printer's hand for the
+      cursor, singularity smoked glass with ember light, debug a `theme = "…"` value.
+- [x] **Behaviour.** A resting fine pointer opens it (90 ms intent, 160 ms grace to
+      cross into the panel). A click on the closed button only opens it, so touch and
+      keyboard get the dropdown first. A click once it is showing runs a ~1 s
+      roulette that slows into a random theme this device can run, never the current
+      one; reduced motion skips the stepping. Opened from the keyboard it appears
+      without animation and focus goes to the current theme; arrows, Home/End and
+      Escape work, and the arrows no longer leak to landfall's island travel.
+- [x] **Previews.** `npm run previews` screenshots each landing page through
+      SwiftShader and writes ~125 KB of webp in total to `src/shared/previews/`.
+- [x] **Retired:** `hold` and `watershed`. The bake (`scripts/watershed`,
+      `public/watershed`) stays, because landfall reads it.
+- [x] **Standards pass** (Julia Phase 5d as the bar; audited with `taste-skill`,
+      `redesign-skill`, `web-design-guidelines`, `review-animations`):
+      atlas and singularity now render a project's markdown body and the
+      built-with-AI disclosure on card and page (they showed neither); singularity
+      and landfall got the accent strengths, one radius scale, the mono data face
+      and real headings in place of uppercase labels; landfall's AI chip, flag and
+      body were styled with a `--lf-fg` token that never existed; atlas lost its
+      visible em dashes and colon reveals, and stopped describing interest isles
+      that are switched off; an ungated hover and two missing focus rings fixed.
+- **GATE — "theme menu approved":** live review on Damyan's hardware.
+
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*
 - [ ] Style tile: 2–3 industrial treatments (teenage.engineering register: spec grids,
       safety-orange/black, monospace; where the gaming twist lives — e.g. konami-style

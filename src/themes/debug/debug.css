@@ -73,3 +73,142 @@
 .debug ul {
   padding-left: 1.25rem;
 }
+
+/* ---------- theme menu ---------- */
+
+.debug-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.debug-theme {
+  position: relative;
+}
+
+.debug-theme-trigger {
+  touch-action: manipulation;
+  font: inherit;
+  color: var(--fg);
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+}
+
+.debug-theme-trigger span {
+  color: var(--accent);
+}
+
+.debug-theme-trigger[aria-expanded='true'] {
+  border-color: var(--accent);
+}
+
+.debug-theme-trigger:active {
+  transform: scale(0.98);
+}
+
+.debug-theme-trigger:focus-visible,
+.debug-theme-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* An inspector does not animate: the panel is simply there. */
+.debug-theme-panel {
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  right: 0;
+  width: min(30rem, calc(100vw - 2.5rem));
+  padding: 0.4rem;
+  background: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.debug-theme-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.debug-theme-item {
+  display: grid;
+  grid-template-columns: 1ch 96px 1fr;
+  gap: 0.6rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.3rem;
+  font: inherit;
+  text-align: left;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.debug-theme-item img {
+  display: block;
+  width: 96px;
+  height: 60px;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
+}
+
+.debug-theme-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  font-size: 0.8rem;
+}
+
+.debug-theme-cursor {
+  color: var(--accent);
+  visibility: hidden;
+}
+
+.debug-theme-item[data-highlight] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.debug-theme-item[data-highlight] .debug-theme-cursor,
+.debug-theme-item[data-active] .debug-theme-cursor {
+  visibility: visible;
+}
+
+.debug-theme-hint {
+  margin: 0.4rem 0.3rem 0.1rem;
+  font-size: 0.75rem;
+}
+
+.debug-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .debug-theme-trigger:hover {
+    border-color: var(--accent);
+  }
+  .debug-theme-panel:not([data-rolling]) .debug-theme-item:hover {
+    background: color-mix(in srgb, var(--fg) 8%, transparent);
+  }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.debug-theme-panel[data-instant] {
+  transition: none;
+}
