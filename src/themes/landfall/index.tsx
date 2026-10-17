@@ -893,7 +893,7 @@ function Hero({
         Hristov
       </h1>
       <p className="lf-lede">
-        Games, engines and experimental graphics. Computer Science and Engineering at TU/e, class of
+        Game development, engines and graphics. Computer Science and Engineering at TU/e, class of
         2027.
       </p>
       <p className="lf-note">

@@ -72,8 +72,8 @@ export function Home({ content, navigate }: { content: SiteContent; navigate: Na
           Hristov
         </h1>
         <p className="j-sub">
-          Games, engines and experimental graphics. Computer Science and Engineering at TU/e, class
-          of 2027.
+          Game development, engines and graphics. Computer Science and Engineering at TU/e, class of
+          2027.
         </p>
         <nav className="j-big-links" aria-label="Sections">
           <InternalLink to="/cv" navigate={navigate}>

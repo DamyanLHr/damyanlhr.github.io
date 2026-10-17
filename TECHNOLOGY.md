@@ -180,8 +180,8 @@ Routes (stable across themes, §3.2): `/` · `/cv` · `/projects` · `/projects/
 - **`/projects`** — index + one subpage per project; every project carries
   `{ year, role, duration, tools/platform, category, team?, links, art }`:
   - *Personal:* Extensible Terrain Generation (coming soon)
-  - *Game jams (team "Kartof"):* [Don't Break Glass](https://damianhr.itch.io/dont-break-glass)
-    (GMTK 2025) · [Kill Bunny](https://damianhr.itch.io/kill-bunny) (Totem Game Jam 2026) ·
+  - *Game jams (team "Kartof"):* [Don't Break Glass](https://damyanhr.itch.io/dont-break-glass)
+    (GMTK 2025) · [Kill Bunny](https://damyanhr.itch.io/kill-bunny) (Totem Game Jam 2026) ·
     GMTK 2026 entry (very soon)
   - *University (each a ~2-month course project):* Digital Twinning Suspension, a.k.a.
     Twinning Project 2 (2026; presentation + sim video;

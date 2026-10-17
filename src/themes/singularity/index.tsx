@@ -233,7 +233,7 @@ function Home({ content, navigate }: { content: SiteContent; navigate: ThemeProp
           Hristov
         </h1>
         <p className="s-sub">
-          Games, engines and experimental graphics. Computer Science and Engineering at TU/e,
+          Game development, engines and graphics. Computer Science and Engineering at TU/e,
           class of 2027.
         </p>
         <div className="s-socials">

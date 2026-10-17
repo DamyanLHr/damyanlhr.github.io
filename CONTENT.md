@@ -9,7 +9,7 @@
 - **Name:** Damyan Hristov
 - **Tagline:** Portfolio Blog
 - **GitHub:** [DamianLHr](https://github.com/DamianLHr) — pfp via `https://github.com/DamianLHr.png`
-- **itch.io:** [damianhr](https://damianhr.itch.io/)
+- **itch.io:** [damyanhr](https://damyanhr.itch.io/)
 - **Steam:** https://steamcommunity.com/id/damianlhr/
 - **Spotify:** https://open.spotify.com/user/nmu09x11y3ie6r4l6dxy2co8v?si=0d363aaba7d143bc
 - **LinkedIn:** TODO — Damyan will create one soon; leave a slot in the landing socials
@@ -115,28 +115,28 @@ Schema per project: `{ year, role, duration, tools/platform, category, team?, li
 
 ### Game jams — team "Kartof"
 - **Don't Break Glass** — GMTK Game Jam 2025 (2025, ~96 h) · Unity (C#) ·
-  [itch.io](https://damianhr.itch.io/dont-break-glass) (Windows download, 72 MB;
-  rated 5.0/5) · Puzzle adventure inspired by classic flash point-and-click games and
+  [itch.io](https://damyanhr.itch.io/dont-break-glass) — **playable in browser (HTML5)**;
+  also a Windows download, 72 MB; rated 5.0/5 · Puzzle adventure inspired by classic flash point-and-click games and
   escape rooms: the protagonist is trapped in a **time loop** and must solve puzzles to
-  escape. No generative AI used. · Team: damianhr, Davidd, smarty123, BungerColumbus,
+  escape. No generative AI used. · Team: damyanhr, Davidd, smarty123, BungerColumbus,
   Eyn_Zayan · Repo: private on a teammate's account
   (`github.com/Davidd0605/GMTK2025_Kartof`; local clone `GMTK2025_Kartof`, includes the
   Windows build `Don'tBreakGlass.exe`) — site links point to itch.io ·
   **Role: Scrum Master & Programmer**
 - **Kill Bunny** — Totem Game Jam 2026 (2026) · Unity (C#) ·
-  [itch.io](https://damianhr.itch.io/kill-bunny) — **playable in browser (HTML5)** →
+  [itch.io](https://damyanhr.itch.io/kill-bunny) — **playable in browser (HTML5)** →
   embed it playable in the portfolio; also 65 MB download ·
   [repo](https://github.com/DamianLHr/TGJ2026_Kartof) · **Isometric hack-n-slash with
   RAGE elements** (itch one-liner): manage your character's rage while eliminating
   enemies in a forest; comic-panel art style; "Opportunity makes a thief, but a thief
-  makes his own gallows." No generative AI used. · Team: damianhr, BungerColumbus,
+  makes his own gallows." No generative AI used. · Team: damyanhr, BungerColumbus,
   smarty123, Midas5665, Eyn_Zayan, Davidd · **Role: Scrum Master & Programmer**
 - **5 More Minutes!** — GMTK Game Jam 2026, theme **"Count Down"** (2026, ~96 h) ·
-  Unity (C#) · [itch.io](https://damianhr.itch.io/5-more-minutes) (Windows download,
-  43 MB) · [repo](https://github.com/DamianLHr/GMTK2026_Kartof) · You wake up one
+  Unity (C#) · [itch.io](https://damyanhr.itch.io/5-more-minutes) — **playable in
+  browser (HTML5)**; also a Windows download, 43 MB · [repo](https://github.com/DamianLHr/GMTK2026_Kartof) · You wake up one
   minute before a deadline and have to hand the assignment in: find the final version
   of the project, recover the forgotten password, survive 2FA, and ignore everything in
-  the room trying to distract you. No generative AI used. · Team: damianhr, Davidd,
+  the room trying to distract you. No generative AI used. · Team: damyanhr, Davidd,
   smarty123 (2D art, rigging, animation), Midas5665 (sound, 3D models), Bunger (pixel
   art, UI), ssvuet (art posters), Eyn_Zayan · **Role: Scrum Master & Programmer** ·
   TODO: itch page still reads *In development* — flip it to released

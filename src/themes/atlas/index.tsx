@@ -441,7 +441,7 @@ function Cartouche({ content }: { content: SiteContent }) {
         <em>his territories, described</em>
       </h1>
       <p className="a-lede">
-        <span className="a-drop">G</span>ames, engines and experimental graphics. One country holds
+        <span className="a-drop">G</span>ame development, engines and graphics. One country holds
         the whole account: the provinces of study and of labour, every work set down as a town upon
         it, the isles of idle hours offshore, and — ruled in red — the coast toward Delft.
       </p>

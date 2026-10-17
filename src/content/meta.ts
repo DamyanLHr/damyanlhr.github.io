@@ -5,7 +5,7 @@ export const SITE = {
   tagline: 'Portfolio Blog',
   url: 'https://damianlhr.github.io/',
   github: 'https://github.com/DamianLHr',
-  itch: 'https://damianhr.itch.io/',
+  itch: 'https://damyanhr.itch.io/',
 } as const
 
 /**
