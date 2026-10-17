@@ -125,8 +125,8 @@ I do not use AI as a substitute for learning within my areas of focus. C++ and
 Vulkan are the current case and are being learned directly.
 `,
     links: [
-      { label: 'Repository', url: 'https://github.com/DamianLHr/damianlhr.github.io' },
-      { label: 'The site itself', url: 'https://damianlhr.github.io/' },
+      { label: 'Repository', url: 'https://github.com/DamyanLHr/damyanlhr.github.io' },
+      { label: 'The site itself', url: 'https://damyanlhr.github.io/' },
     ],
   },
   {
@@ -168,7 +168,7 @@ Vulkan are the current case and are being learned directly.
       'An isometric hack-and-slash built around managing your character’s rage while cutting through thieves in a forest, told in comic panels. Its itch.io tagline: “Opportunity makes a thief, but a thief makes his own gallows.” No generative AI used.',
     links: [
       { label: 'Play in browser on itch.io', url: 'https://damyanhr.itch.io/kill-bunny' },
-      { label: 'Repository', url: 'https://github.com/DamianLHr/TGJ2026_Kartof' },
+      { label: 'Repository', url: 'https://github.com/DamyanLHr/TGJ2026_Kartof' },
     ],
   },
   {
@@ -190,7 +190,7 @@ Vulkan are the current case and are being learned directly.
       'You wake up one minute before a deadline. Find the final version of the file, recover the password you forgot, get past two-factor authentication, and do it while everything in your room is trying to distract you. No generative AI used.',
     links: [
       { label: 'Play in browser on itch.io', url: 'https://damyanhr.itch.io/5-more-minutes' },
-      { label: 'Repository', url: 'https://github.com/DamianLHr/GMTK2026_Kartof' },
+      { label: 'Repository', url: 'https://github.com/DamyanLHr/GMTK2026_Kartof' },
     ],
   },
   {
@@ -216,10 +216,10 @@ Vulkan are the current case and are being learned directly.
     summary:
       'A digital twin of an active predictive suspension, running against a real belt-driven test rig. Against a constant damper, the predictive policy cut RMS sprung acceleration by 4.46% and mean peak acceleration by 16.03% on the best-case despiked segment, and placed jolts within about 2 cm of belt travel.',
     links: [
-      { label: 'Repository', url: 'https://github.com/DamianLHr/Digital-Twinning-Suspension' },
+      { label: 'Repository', url: 'https://github.com/DamyanLHr/Digital-Twinning-Suspension' },
       {
         label: 'Windows build + final presentation (Releases)',
-        url: 'https://github.com/DamianLHr/Digital-Twinning-Suspension/releases/latest',
+        url: 'https://github.com/DamyanLHr/Digital-Twinning-Suspension/releases/latest',
       },
     ],
   },
@@ -239,7 +239,7 @@ Vulkan are the current case and are being learned directly.
     links: [
       {
         label: 'Download the game (JAR, GitHub Releases)',
-        url: 'https://github.com/DamianLHr/Blood-of-Hedon/releases/latest',
+        url: 'https://github.com/DamyanLHr/Blood-of-Hedon/releases/latest',
       },
     ],
   },
@@ -256,6 +256,6 @@ Vulkan are the current case and are being learned directly.
     tools: ['Java 21', 'Swing'],
     summary:
       'A top-down roguelite set in Greek myth. You play Achilles, holding out for five minutes against waves of monsters with auto-firing weapons, and a maxed weapon paired with a maxed ability fuses into something new, like the Exploding Bow or the Lightning Axe. Built on a Java and Swing engine written from scratch.',
-    links: [{ label: 'Repository', url: 'https://github.com/DamianLHr/Olympian-Onslaught' }],
+    links: [{ label: 'Repository', url: 'https://github.com/DamyanLHr/Olympian-Onslaught' }],
   },
 ]

@@ -94,7 +94,7 @@ export function Shell() {
         <p>Something broke badly enough that even the fallback failed.</p>
         <p>
           The work itself is safe at{' '}
-          <a href="https://github.com/DamianLHr">github.com/DamianLHr</a>.
+          <a href="https://github.com/DamyanLHr">github.com/DamyanLHr</a>.
         </p>
       </main>
     )

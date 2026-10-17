@@ -3,8 +3,8 @@
 export const SITE = {
   name: 'Damyan Hristov',
   tagline: 'Portfolio Blog',
-  url: 'https://damianlhr.github.io/',
-  github: 'https://github.com/DamianLHr',
+  url: 'https://damyanlhr.github.io/',
+  github: 'https://github.com/DamyanLHr',
   itch: 'https://damyanhr.itch.io/',
 } as const
 

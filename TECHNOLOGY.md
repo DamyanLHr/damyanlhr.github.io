@@ -22,7 +22,7 @@ without touching content.
 - **Repo/asset discipline:** ~1 GB recommended site size, 100 MB hard per-file limit,
   ~100 GB/month soft bandwidth. Heavy media must be compressed aggressively (see §5).
 - **Deploy:** GitHub Actions → `actions/deploy-pages`. As a *user site* repo
-  (`damianlhr.github.io`) it serves at `https://damianlhr.github.io/` from the domain
+  (`damyanlhr.github.io`) it serves at `https://damyanlhr.github.io/` from the domain
   root — **no Vite `base` path juggling needed**. (If ever moved to a project repo,
   set `base: '/<repo>/'` in Vite.)
 - HTTPS enforced; custom domain possible later via CNAME.
@@ -169,7 +169,7 @@ the switcher rather than auto-resolution.
 Routes (stable across themes, §3.2): `/` · `/cv` · `/projects` · `/projects/:slug` · `/interests`
 
 - **`/` landing** — clearly separated gateways to every subpage; GitHub profile picture
-  (`https://github.com/DamianLHr.png`); links to GitHub and all socials.
+  (`https://github.com/DamyanLHr.png`); links to GitHub and all socials.
 - **`/cv`** — Education (BSc Computer Science & Engineering at TU/e, year 3, class of
   2027; secondary: National Gymnasium of Natural Sciences and Mathematics "Acad. L.
   Chakalov", Sofia — Mathematics & Informatics with German); Experience (INDEAVR
@@ -185,9 +185,9 @@ Routes (stable across themes, §3.2): `/` · `/cv` · `/projects` · `/projects/
     GMTK 2026 entry (very soon)
   - *University (each a ~2-month course project):* Digital Twinning Suspension, a.k.a.
     Twinning Project 2 (2026; presentation + sim video;
-    [repo](https://github.com/DamianLHr/Digital-Twinning-Suspension)) · Blood of Hedon
+    [repo](https://github.com/DamyanLHr/Digital-Twinning-Suspension)) · Blood of Hedon
     (2025; downloadable executable) · Olympian Onslaught (2025; Java;
-    [repo](https://github.com/DamianLHr/Olympian-Onslaught); downloadable executable)
+    [repo](https://github.com/DamyanLHr/Olympian-Onslaught); downloadable executable)
 - **`/interests`** (one subpage) — Books (favourite series) · Gaming (favourites + Steam
   link) · Skiing (background) · Music (Spotify link).
 
