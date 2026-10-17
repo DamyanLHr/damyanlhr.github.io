@@ -141,12 +141,14 @@ Vulkan are the current case and are being learned directly.
     team: {
       name: 'Kartof',
       size: 5,
-      members: ['damianhr', 'Davidd', 'smarty123', 'BungerColumbus', 'Eyn_Zayan'],
+      members: ['damyanhr', 'Davidd', 'smarty123', 'BungerColumbus', 'Eyn_Zayan'],
     },
     tools: ['Unity', 'C#'],
     summary:
       'A point-and-click adventure in the vein of old flash escape-room games, with the player stuck in a time loop and solving their way out of it. Rated 5.0/5 on itch.io. No generative AI used.',
-    links: [{ label: 'Play on itch.io', url: 'https://damianhr.itch.io/dont-break-glass' }],
+    links: [
+      { label: 'Play in browser on itch.io', url: 'https://damyanhr.itch.io/dont-break-glass' },
+    ],
   },
   {
     slug: 'kill-bunny',
@@ -159,13 +161,13 @@ Vulkan are the current case and are being learned directly.
     team: {
       name: 'Kartof',
       size: 6,
-      members: ['damianhr', 'BungerColumbus', 'smarty123', 'Midas5665', 'Eyn_Zayan', 'Davidd'],
+      members: ['damyanhr', 'BungerColumbus', 'smarty123', 'Midas5665', 'Eyn_Zayan', 'Davidd'],
     },
     tools: ['Unity', 'C#'],
     summary:
       'An isometric hack-and-slash built around managing your character’s rage while cutting through thieves in a forest, told in comic panels. Its itch.io tagline: “Opportunity makes a thief, but a thief makes his own gallows.” No generative AI used.',
     links: [
-      { label: 'Play in browser on itch.io', url: 'https://damianhr.itch.io/kill-bunny' },
+      { label: 'Play in browser on itch.io', url: 'https://damyanhr.itch.io/kill-bunny' },
       { label: 'Repository', url: 'https://github.com/DamianLHr/TGJ2026_Kartof' },
     ],
   },
@@ -181,13 +183,13 @@ Vulkan are the current case and are being learned directly.
     team: {
       name: 'Kartof',
       size: 7,
-      members: ['damianhr', 'Davidd', 'smarty123', 'Midas5665', 'Bunger', 'ssvuet', 'Eyn_Zayan'],
+      members: ['damyanhr', 'Davidd', 'smarty123', 'Midas5665', 'Bunger', 'ssvuet', 'Eyn_Zayan'],
     },
     tools: ['Unity', 'C#'],
     summary:
       'You wake up one minute before a deadline. Find the final version of the file, recover the password you forgot, get past two-factor authentication, and do it while everything in your room is trying to distract you. No generative AI used.',
     links: [
-      { label: 'Play on itch.io', url: 'https://damianhr.itch.io/5-more-minutes' },
+      { label: 'Play in browser on itch.io', url: 'https://damyanhr.itch.io/5-more-minutes' },
       { label: 'Repository', url: 'https://github.com/DamianLHr/GMTK2026_Kartof' },
     ],
   },
