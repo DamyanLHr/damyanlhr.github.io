@@ -117,17 +117,21 @@
   outline-offset: 2px;
 }
 
-/* An inspector does not animate: the panel is simply there. */
+/* An inspector does not animate: the panel is simply there, list on the
+   left, the preview of the entry under the cursor on the right. */
 .debug-theme-panel {
-  max-height: calc(100dvh - 5rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
   position: absolute;
   z-index: 10;
   top: calc(100% + 6px);
   right: 0;
-  width: min(30rem, calc(100vw - 2.5rem));
-  padding: 0.4rem;
+  width: min(34rem, calc(100vw - 2.5rem));
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 15rem);
+  gap: 0.6rem 0.9rem;
+  padding: 0.55rem;
   background: var(--bg);
   border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
   border-radius: 6px;
@@ -142,11 +146,10 @@
 
 .debug-theme-item {
   display: grid;
-  grid-template-columns: 1ch 96px 1fr;
+  grid-template-columns: 1ch 1fr;
   gap: 0.6rem;
-  align-items: center;
   width: 100%;
-  padding: 0.3rem;
+  padding: 0.3rem 0.4rem;
   font: inherit;
   text-align: left;
   color: var(--fg);
@@ -156,28 +159,17 @@
   cursor: pointer;
 }
 
-.debug-theme-item img {
-  display: block;
-  width: 96px;
-  height: 60px;
-  object-fit: cover;
-  border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
-}
-
-.debug-theme-text {
-  display: grid;
-  gap: 0.1rem;
-  min-width: 0;
-  font-size: 0.8rem;
-}
-
 .debug-theme-cursor {
   color: var(--accent);
   visibility: hidden;
 }
 
+.debug-theme-item[data-shown] {
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
 .debug-theme-item[data-highlight] {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .debug-theme-item[data-highlight] .debug-theme-cursor,
@@ -185,8 +177,37 @@
   visibility: visible;
 }
 
+.debug-theme-lens {
+  margin: 0;
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+}
+
+.debug-theme-lens img {
+  display: none;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
+}
+
+.debug-theme-lens img[data-shown] {
+  display: block;
+}
+
+.debug-theme-panel[data-landed] .debug-theme-lens img[data-shown] {
+  border-color: var(--accent);
+}
+
+.debug-theme-lens figcaption {
+  font-size: 0.75rem;
+}
+
 .debug-theme-hint {
-  margin: 0.4rem 0.3rem 0.1rem;
+  grid-column: 1 / -1;
+  margin: 0 0.4rem;
   font-size: 0.75rem;
 }
 
@@ -203,12 +224,10 @@
   .debug-theme-trigger:hover {
     border-color: var(--accent);
   }
-  .debug-theme-panel:not([data-rolling]) .debug-theme-item:hover {
-    background: color-mix(in srgb, var(--fg) 8%, transparent);
-  }
 }
 
-/* opened from the keyboard: keyboard actions never animate */
-.debug-theme-panel[data-instant] {
-  transition: none;
+@media (max-width: 520px) {
+  .debug-theme-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

@@ -155,7 +155,7 @@
 }
 
 .s-theme-trigger[aria-expanded='true'] {
-  border-color: color-mix(in srgb, var(--s-accent) 45%, transparent);
+  border-color: var(--s-accent-rule);
 }
 
 .s-theme-trigger:active {
@@ -168,25 +168,30 @@
   outline-offset: 2px;
 }
 
-/* the content panels' glass, grown from the button */
+/* the content panels' glass, with a viewport onto the world under the pointer */
 .s-theme-panel {
-  max-height: calc(100dvh - 5rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: min(24rem, calc(100vw - 1.6rem));
-  padding: 0.45rem;
-  border-radius: 14px;
-  background: linear-gradient(150deg, var(--s-glass), rgba(7, 8, 10, 0.86));
+  width: min(35rem, calc(100vw - 1.6rem));
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.7rem;
+  border-radius: var(--s-r);
+  background: linear-gradient(150deg, var(--s-glass), rgba(7, 8, 10, 0.9));
   border: 1px solid var(--s-line);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 20px 50px -16px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 24px 60px -18px rgba(0, 0, 0, 0.85);
   transform-origin: top right;
   transition:
-    opacity 160ms var(--ease-out-strong),
-    transform 160ms var(--ease-out-strong);
+    opacity 180ms var(--ease-out-strong),
+    transform 180ms var(--ease-out-strong);
 }
 
 @starting-style {
@@ -196,83 +201,150 @@
   }
 }
 
-.s-theme-panel ul {
+.s-theme-lens {
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+}
+
+.s-theme-port {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: var(--s-r-in);
+  background: var(--s-bg);
+  box-shadow: 0 0 0 1px var(--s-line);
+  transition: box-shadow 260ms ease;
+}
+
+.s-theme-port img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  /* opacity only: this panel floats over a live GPU scene, and a filter
+     transition on top of that is the expensive kind */
+  transition: opacity 180ms ease;
+}
+
+.s-theme-port img[data-shown] {
+  opacity: 1;
+}
+
+/* a rim of ember light, like the bulb's hot edges */
+.s-theme-port::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s-accent) 18%, transparent);
+}
+
+.s-theme-panel[data-rolling] .s-theme-port img {
+  transition: none;
+}
+
+.s-theme-panel[data-landed] .s-theme-port {
+  box-shadow:
+    0 0 0 1px var(--s-accent-rule),
+    0 0 28px -6px color-mix(in srgb, var(--s-accent) 70%, transparent);
+}
+
+.s-theme-panel[data-landed] .s-theme-port img[data-shown] {
+  animation: s-theme-settle 320ms var(--ease-out-strong);
+}
+
+@keyframes s-theme-settle {
+  from {
+    transform: scale(1.04);
+  }
+}
+
+.s-theme-lens figcaption {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0 0.15rem;
+  min-height: 3.6rem;
+}
+
+.s-theme-lens-name {
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.s-theme-lens-desc {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--s-muted);
+  text-wrap: pretty;
+}
+
+.s-theme-side {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-width: 0;
+}
+
+.s-theme-side ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
+  align-content: start;
   gap: 2px;
 }
 
 .s-theme-item {
-  display: grid;
-  grid-template-columns: 112px 1fr;
-  gap: 0.85rem;
-  align-items: center;
-  width: 100%;
-  padding: 0.42rem;
-  font: inherit;
-  text-align: left;
-  color: var(--s-fg);
-  background: transparent;
-  border: 0;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.s-theme-item img {
-  display: block;
-  width: 112px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 7px;
-  box-shadow: 0 0 0 1px var(--s-line);
-}
-
-.s-theme-text {
-  display: grid;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.s-theme-name {
   display: flex;
   align-items: baseline;
-  gap: 0.55rem;
-  font-size: 0.95rem;
-  font-weight: 500;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  font: inherit;
+  font-size: 0.94rem;
+  text-align: left;
+  color: var(--s-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--s-r-in);
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background 140ms ease;
 }
 
-.s-theme-name em {
+.s-theme-item[data-shown] {
+  color: var(--s-fg);
+  background: color-mix(in srgb, var(--s-fg) 6%, transparent);
+}
+
+.s-theme-item[data-highlight] {
+  color: var(--s-fg);
+  background: var(--s-accent-wash);
+  box-shadow: inset 0 0 0 1px var(--s-accent-rule);
+}
+
+.s-theme-panel[data-rolling] .s-theme-item {
+  transition: none;
+}
+
+.s-theme-item em {
   font-style: normal;
-  font-size: 0.7rem;
-  font-weight: 400;
+  font-size: 0.68rem;
   color: var(--s-accent-soft);
 }
 
-.s-theme-desc {
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: var(--s-muted);
-}
-
-/* the roulette cursor glows the way the bulb's hot rims do */
-.s-theme-item[data-highlight] {
-  background: color-mix(in srgb, var(--s-accent) 9%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s-accent) 40%, transparent);
-}
-
-.s-theme-item[data-highlight] img {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--s-accent) 60%, transparent),
-    0 0 18px -4px color-mix(in srgb, var(--s-accent) 70%, transparent);
-}
-
 .s-theme-hint {
-  margin: 0.35rem 0.45rem 0.25rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--s-line);
+  margin: 0.6rem 0.65rem 0.1rem;
   font-size: 0.72rem;
+  line-height: 1.45;
   color: var(--s-muted);
 }
 
@@ -287,30 +359,34 @@
 
 @media (hover: hover) and (pointer: fine) {
   .s-theme-trigger:hover {
-    border-color: color-mix(in srgb, var(--s-accent) 45%, transparent);
-  }
-  .s-theme-panel:not([data-rolling]) .s-theme-item:hover {
-    background: color-mix(in srgb, var(--s-fg) 6%, transparent);
+    border-color: var(--s-accent-rule);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .s-theme-panel {
-    transition: opacity 160ms ease;
+    transition: opacity 180ms ease;
     transform: none;
   }
+  .s-theme-panel[data-landed] .s-theme-port img[data-shown] {
+    animation: none;
+  }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.s-theme-panel[data-instant] {
+  transition: none;
 }
 
 @media (max-width: 560px) {
   .s-theme-label {
     display: none;
   }
-  .s-theme-item {
-    grid-template-columns: 84px 1fr;
+  .s-theme-panel {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .s-theme-item img {
-    width: 84px;
-    height: 53px;
+  .s-theme-lens figcaption {
+    min-height: 0;
   }
 }
 
@@ -870,9 +946,4 @@
     flex-wrap: wrap;
     gap: 0.35rem 0.7rem;
   }
-}
-
-/* opened from the keyboard: keyboard actions never animate */
-.s-theme-panel[data-instant] {
-  transition: none;
 }

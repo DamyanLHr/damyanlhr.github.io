@@ -442,10 +442,17 @@
     transform 140ms var(--lf-ease);
 }
 
-.lf-theme-trigger i {
+.lf-theme-trigger i,
+.lf-theme-tag i,
+.lf-theme-item i {
+  flex: none;
   width: 7px;
   height: 7px;
   border-radius: 50%;
+  background: var(--lf-accent);
+}
+
+.lf-theme-trigger i {
   background: var(--lf-accent-warm);
 }
 
@@ -469,26 +476,29 @@
   outline-offset: 3px;
 }
 
-/* The hero card's glass, opening from the marker that owns it. */
+/* The hero card's glass, holding a postcard of the world under the pointer. */
 .lf-theme-panel {
-  max-height: calc(100dvh - 5rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: min(23rem, calc(100vw - 2rem));
-  padding: 0.45rem;
+  width: min(35rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 0.7rem;
   border-radius: var(--lf-r);
   background: var(--lf-glass);
   border: 1px solid rgba(16, 22, 28, 0.14);
-  box-shadow: 0 18px 50px rgba(8, 16, 22, 0.3);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 22px 60px -14px rgba(8, 16, 22, 0.45);
+  backdrop-filter: blur(12px);
   color: var(--lf-ink);
   transform-origin: top right;
   transition:
-    opacity 170ms var(--lf-ease),
-    transform 170ms var(--lf-ease);
+    opacity 180ms var(--lf-ease),
+    transform 180ms var(--lf-ease);
 }
 
 @starting-style {
@@ -498,64 +508,151 @@
   }
 }
 
-.lf-theme-panel ul {
+.lf-theme-lens {
+  margin: 0;
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+
+/* a postcard: white border, a little tilt of shadow, the world inside */
+.lf-theme-card {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: var(--lf-r-in);
+  border: 4px solid #fff;
+  background: var(--lf-sky);
+  box-shadow:
+    0 1px 2px rgba(8, 16, 22, 0.18),
+    0 10px 24px -10px rgba(8, 16, 22, 0.45);
+}
+
+.lf-theme-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  /* opacity only: this panel floats over a live GPU scene, and a filter
+     transition on top of that is the expensive kind */
+  transition: opacity 180ms ease;
+}
+
+.lf-theme-card img[data-shown] {
+  opacity: 1;
+}
+
+/* the postcard's name, written the way the map writes a town */
+.lf-theme-tag {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.5rem 0.12rem 0.36rem;
+  border-radius: 999px;
+  background: var(--lf-glass);
+  border: 1px solid rgba(16, 22, 28, 0.18);
+  box-shadow: 0 2px 10px rgba(8, 16, 22, 0.28);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.lf-theme-lens figcaption {
+  min-height: 2.6rem;
+  padding: 0 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--lf-muted);
+  text-wrap: pretty;
+}
+
+.lf-theme-panel[data-rolling] .lf-theme-card img {
+  transition: none;
+}
+
+.lf-theme-panel[data-landed] .lf-theme-card {
+  border-color: var(--lf-paper);
+  box-shadow:
+    0 0 0 2px var(--lf-accent-warm),
+    0 10px 24px -10px rgba(8, 16, 22, 0.45);
+}
+
+.lf-theme-panel[data-landed] .lf-theme-card img[data-shown] {
+  animation: lf-theme-settle 320ms var(--lf-ease);
+}
+
+.lf-theme-panel[data-landed] .lf-theme-tag i {
+  background: var(--lf-accent-warm);
+}
+
+@keyframes lf-theme-settle {
+  from {
+    transform: scale(1.04);
+  }
+}
+
+.lf-theme-side {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-width: 0;
+}
+
+.lf-theme-side ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
+  align-content: start;
   gap: 2px;
 }
 
+/* the places you could sail to: a marker and a name each */
 .lf-theme-item {
-  display: grid;
-  grid-template-columns: 104px 1fr;
-  gap: 0.8rem;
+  display: flex;
   align-items: center;
+  gap: 0.55rem;
   width: 100%;
-  padding: 0.4rem;
+  padding: 0.45rem 0.55rem;
   border: 1px solid transparent;
   border-radius: var(--lf-r-in);
   background: transparent;
   font: inherit;
+  font-size: 0.9rem;
   text-align: left;
-  color: inherit;
+  color: var(--lf-ink);
   cursor: pointer;
 }
 
-.lf-theme-item img {
-  display: block;
-  width: 104px;
-  height: 65px;
-  object-fit: cover;
-  border-radius: 5px;
-  box-shadow: 0 0 0 1px rgba(16, 22, 28, 0.16);
+.lf-theme-item i {
+  background: var(--lf-muted);
+  opacity: 0.6;
 }
 
-.lf-theme-text {
-  display: grid;
-  gap: 0.18rem;
-  min-width: 0;
+.lf-theme-item[data-active] i {
+  background: var(--lf-accent-warm);
+  opacity: 1;
 }
 
-.lf-theme-name {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.lf-theme-name em {
+.lf-theme-item em {
+  margin-left: auto;
   font-style: normal;
-  font-size: 0.68rem;
-  font-weight: 400;
+  font-size: 0.66rem;
   color: var(--lf-accent-warm);
 }
 
-.lf-theme-desc {
-  font-size: 0.76rem;
-  line-height: 1.4;
-  color: var(--lf-muted);
+.lf-theme-item[data-shown] {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.lf-theme-item[data-shown] i {
+  background: var(--lf-accent);
+  opacity: 1;
 }
 
 /* The keyboard tour's "you are here" ring, reused as the roulette cursor. */
@@ -565,10 +662,9 @@
 }
 
 .lf-theme-hint {
-  margin: 0.35rem 0.4rem 0.2rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(16, 22, 28, 0.12);
+  margin: 0.6rem 0.55rem 0.15rem;
   font-size: 0.72rem;
+  line-height: 1.45;
   color: var(--lf-muted);
 }
 
@@ -577,28 +673,32 @@
     background: var(--lf-paper);
     border-color: var(--lf-accent-warm);
   }
-  .lf-theme-panel:not([data-rolling]) .lf-theme-item:hover {
-    background: rgba(255, 255, 255, 0.55);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lf-theme-panel {
-    transition: opacity 170ms ease;
+    transition: opacity 180ms ease;
     transform: none;
   }
+  .lf-theme-panel[data-landed] .lf-theme-card img[data-shown] {
+    animation: none;
+  }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.lf-theme-panel[data-instant] {
+  transition: none;
 }
 
 @media (max-width: 700px) {
   .lf-theme-label {
     display: none;
   }
-  .lf-theme-item {
-    grid-template-columns: 80px 1fr;
+  .lf-theme-panel {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .lf-theme-item img {
-    width: 80px;
-    height: 50px;
+  .lf-theme-lens figcaption {
+    min-height: 0;
   }
 }
 
@@ -1091,9 +1191,4 @@
     top: 60px;
     left: 0.6rem;
   }
-}
-
-/* opened from the keyboard: keyboard actions never animate */
-.lf-theme-panel[data-instant] {
-  transition: none;
 }

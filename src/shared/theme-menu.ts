@@ -52,7 +52,7 @@ export function pickRandom(
 /** Total time the highlight spends travelling before it settles, in ms. */
 export const ROULETTE_MS = 1000
 /** How long the winner stays highlighted before the site switches. */
-export const ROULETTE_HOLD_MS = 240
+export const ROULETTE_HOLD_MS = 320
 
 /**
  * The highlight's path: at least one full lap from `from`, ending on `to`, with
@@ -93,7 +93,11 @@ export function useThemeMenu(menu: ThemeMenu) {
   const { entries, activeId, pick } = menu
   const [open, setOpen] = useState(false)
   const [rolling, setRolling] = useState(false)
+  /** The roulette has stopped on its winner and is holding before the switch. */
+  const [landed, setLanded] = useState(false)
   const [highlight, setHighlight] = useState(-1)
+  /** The entry the pointer or focus is on, for the theme's preview lens. */
+  const [hover, setHover] = useState(-1)
   const [status, setStatus] = useState('')
   /** Opened from the keyboard: show it at once, keyboard actions never animate. */
   const [instant, setInstant] = useState(false)
@@ -130,7 +134,9 @@ export function useThemeMenu(menu: ThemeMenu) {
       window.clearTimeout(openTimer.current)
       clearRoll()
       setRolling(false)
+      setLanded(false)
       setHighlight(-1)
+      setHover(-1)
       setOpen(false)
       if (returnFocus) triggerRef.current?.focus()
     },
@@ -147,6 +153,7 @@ export function useThemeMenu(menu: ThemeMenu) {
 
     const land = () => {
       setHighlight(to)
+      setLanded(true)
       setStatus(`Switching to ${winner.name}`)
       rollTimers.current.push(window.setTimeout(() => pick(winner.id), ROULETTE_HOLD_MS))
     }
@@ -281,6 +288,7 @@ export function useThemeMenu(menu: ThemeMenu) {
   /** The panel around the list: room for a heading or a hint. */
   const panelProps = {
     'data-rolling': rolling || undefined,
+    'data-landed': landed || undefined,
     'data-instant': instant || undefined,
   }
 
@@ -304,6 +312,13 @@ export function useThemeMenu(menu: ThemeMenu) {
     },
   }
 
+  const activeIndex = entries.findIndex((e) => e.id === activeId)
+  /**
+   * Which entry a preview lens should show: the roulette's cursor while it
+   * runs, else whatever the visitor is pointing at, else the current theme.
+   */
+  const shown = highlight >= 0 ? highlight : hover >= 0 ? hover : activeIndex
+
   const itemProps = (i: number) => {
     const entry = entries[i]
     return {
@@ -316,6 +331,13 @@ export function useThemeMenu(menu: ThemeMenu) {
       tabIndex: -1,
       'data-highlight': highlight === i || undefined,
       'data-active': entry.id === activeId || undefined,
+      'data-shown': shown === i || undefined,
+      onPointerEnter: (e: ReactPointerEvent) => {
+        if (e.pointerType === 'mouse' && !rolling) setHover(i)
+      },
+      onFocus: () => {
+        if (!rolling) setHover(i)
+      },
       onClick: () => {
         if (rolling) return
         if (entry.id === activeId) {
@@ -331,6 +353,7 @@ export function useThemeMenu(menu: ThemeMenu) {
     open,
     rolling,
     highlight,
+    shown,
     status,
     rootProps,
     triggerProps,
