@@ -493,6 +493,18 @@ other theme comes up to Julia's standard.
       body were styled with a `--lf-fg` token that never existed; atlas lost its
       visible em dashes and colon reveals, and stopped describing interest isles
       that are switched off; an ungated hover and two missing focus rings fixed.
+- [x] **Dropdown, second pass** (Damyan: "more visually appealing, use the
+      skills"; `frontend-design`, `impeccable` polish, `emil-design-eng`). Each
+      panel is now mostly picture: a large lens shows the theme under the pointer
+      (or the roulette's cursor) beside a compact list, framed in each theme's own
+      way: julia an obsidian plate with an ember rule on the shown entry, landfall
+      a postcard labelled with a town marker, atlas an engraved double-ruled plate
+      printed in sepia that comes up in full colour with a rubric frame when the
+      roulette lands, singularity a viewport that flares with ember light,
+      debug a plain box. Hover crossfades in 180 ms (blur-bridged on the 2D
+      themes, opacity only over the GPU scenes); the roulette cuts between
+      previews without fading and settles once on the winner; previews went
+      from 560 to 720 px wide for the larger lens.
 - **GATE — "theme menu approved":** live review on Damyan's hardware.
 
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*

@@ -169,26 +169,33 @@
   outline-offset: 2px;
 }
 
-/* Grows out of the button it belongs to: origin top right, 160ms strong
-   ease-out from .97. Seen a few times a visit, so it animates, but briefly. */
+/* Mostly picture. The plate is the one bold thing in the panel; the index
+   beside it stays quiet. Grows out of its button: origin top right, 180ms
+   strong ease-out from .97. */
 .j-theme-panel {
-  max-height: calc(100dvh - 5rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
   z-index: 30;
-  width: min(390px, calc(100vw - 2rem));
-  padding: 0.4rem;
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.75rem;
   background: var(--j-raise);
   border: 1px solid var(--j-line);
   border-radius: var(--j-r);
-  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--j-fg) 6%, transparent) inset,
+    0 24px 60px -18px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(0, 0, 0, 0.4);
   transform-origin: top right;
   transition:
-    opacity 160ms var(--ease-out-strong),
-    transform 160ms var(--ease-out-strong);
+    opacity 180ms var(--ease-out-strong),
+    transform 180ms var(--ease-out-strong);
 }
 
 @starting-style {
@@ -198,90 +205,169 @@
   }
 }
 
-.j-theme-panel ul {
+.j-theme-lens {
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+  align-content: start;
+}
+
+/* every preview is stacked here; only the shown one is opaque */
+.j-theme-plate {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: calc(var(--j-r) - 3px);
+  background: var(--j-bg);
+  box-shadow: 0 0 0 1px var(--j-line);
+}
+
+.j-theme-plate img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  filter: blur(2px);
+  transition:
+    opacity 180ms ease,
+    filter 180ms ease;
+}
+
+.j-theme-plate img[data-shown] {
+  opacity: 1;
+  filter: none;
+}
+
+/* the ember edge: a hairline that warms when the plate is the winner */
+.j-theme-plate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px transparent;
+  pointer-events: none;
+  transition: box-shadow 220ms ease;
+}
+
+/* During the random pick the plate cuts, it does not fade: a wheel ticking
+   past worlds. When it lands, it settles once. */
+.j-theme-panel[data-rolling] .j-theme-plate img {
+  transition: none;
+}
+
+.j-theme-panel[data-landed] .j-theme-plate::after {
+  box-shadow: inset 0 0 0 1px var(--j-accent-rule);
+}
+
+.j-theme-panel[data-landed] .j-theme-plate img[data-shown] {
+  animation: j-theme-settle 320ms var(--ease-out-strong);
+}
+
+@keyframes j-theme-settle {
+  from {
+    transform: scale(1.04);
+  }
+}
+
+.j-theme-lens figcaption {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0 0.15rem;
+  min-height: 3.6rem;
+}
+
+.j-theme-lens-name {
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.j-theme-lens-desc {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--j-muted);
+  text-wrap: pretty;
+}
+
+.j-theme-side {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-width: 0;
+}
+
+.j-theme-side ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 2px;
+  align-content: start;
+  gap: 1px;
 }
 
 .j-theme-item {
-  display: grid;
-  grid-template-columns: 112px 1fr;
-  gap: 0.85rem;
-  align-items: center;
-  width: 100%;
-  font: inherit;
-  text-align: left;
-  color: var(--j-fg);
-  background: transparent;
-  border: 0;
-  border-radius: calc(var(--j-r) - 2px);
-  padding: 0.45rem;
-  cursor: pointer;
-}
-
-.j-theme-item img {
-  display: block;
-  width: 112px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 0 0 1px var(--j-line);
-  filter: saturate(0.85) brightness(0.86);
-  transition: filter 160ms ease;
-}
-
-.j-theme-text {
-  display: grid;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.j-theme-item-name {
+  position: relative;
   display: flex;
   align-items: baseline;
-  gap: 0.55rem;
-  font-weight: 500;
-  font-size: 0.95rem;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  font: inherit;
+  font-size: 0.94rem;
+  text-align: left;
+  color: var(--j-muted);
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--j-r) - 3px);
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+/* the entry the plate is showing: an ember rule grows in from the left */
+.j-theme-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--j-ember);
+  transform: scaleY(0);
+  transition: transform 160ms var(--ease-out-strong);
+}
+
+.j-theme-item[data-shown] {
+  color: var(--j-fg);
+}
+
+.j-theme-item[data-shown]::before {
+  transform: scaleY(1);
+}
+
+.j-theme-panel[data-rolling] .j-theme-item,
+.j-theme-panel[data-rolling] .j-theme-item::before {
+  transition: none;
+}
+
+.j-theme-item[data-highlight] {
+  background: var(--j-accent-wash);
 }
 
 .j-theme-now {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.68rem;
-  font-weight: 400;
+  font-size: 0.66rem;
   color: var(--j-accent-soft);
 }
 
-.j-theme-desc {
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: var(--j-muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* The roulette's cursor. No transition: each step is a jump, which is what
-   makes it read as a wheel ticking past entries rather than a fade. */
-.j-theme-item[data-highlight] {
-  background: var(--j-accent-wash);
-  box-shadow: inset 0 0 0 1px var(--j-accent-edge);
-}
-
-.j-theme-item[data-highlight] img {
-  filter: none;
-  transition: none;
-}
-
 .j-theme-hint {
-  margin: 0.35rem 0.45rem 0.25rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--j-line);
+  margin: 0.6rem 0.65rem 0.1rem;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
   color: var(--j-muted);
 }
 
@@ -299,30 +385,37 @@
     border-color: var(--j-accent-rule);
   }
   .j-theme-panel:not([data-rolling]) .j-theme-item:hover {
-    background: color-mix(in srgb, var(--j-fg) 5%, transparent);
-  }
-  .j-theme-panel:not([data-rolling]) .j-theme-item:hover img {
-    filter: none;
+    color: var(--j-fg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .j-theme-panel {
-    transition: opacity 160ms ease;
+    transition: opacity 180ms ease;
     transform: none;
   }
+  .j-theme-plate img {
+    filter: none;
+  }
+  .j-theme-panel[data-landed] .j-theme-plate img[data-shown] {
+    animation: none;
+  }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.j-theme-panel[data-instant] {
+  transition: none;
 }
 
 @media (max-width: 560px) {
   .j-theme-label {
     display: none;
   }
-  .j-theme-item {
-    grid-template-columns: 84px 1fr;
+  .j-theme-panel {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .j-theme-item img {
-    width: 84px;
-    height: 53px;
+  .j-theme-lens figcaption {
+    min-height: 0;
   }
 }
 
@@ -1063,9 +1156,4 @@
     grid-column: auto;
     min-height: 14rem;
   }
-}
-
-/* opened from the keyboard: keyboard actions never animate */
-.j-theme-panel[data-instant] {
-  transition: none;
 }

@@ -1,12 +1,13 @@
 import { useThemeMenu, type ThemeMenu as Menu } from '../../shared/theme-menu'
 
-// The theme button, singularity's way: the same smoked glass as the content
-// panels, floating over the bulb, with ember light marking where the roulette
-// has got to.
+// The theme button, singularity's way: the content panels' smoked glass, with
+// a viewport onto the world you point at, rimmed in ember light. During the
+// random pick the viewport cuts between worlds and flares on the one it lands.
 
 export function ThemeMenu({ menu }: { menu: Menu }) {
   const m = useThemeMenu(menu)
   const active = menu.entries.find((e) => e.id === menu.activeId)
+  const shown = menu.entries[m.shown] ?? active
   return (
     <div className="s-theme" {...m.rootProps}>
       <button className="s-theme-trigger" {...m.triggerProps}>
@@ -15,23 +16,39 @@ export function ThemeMenu({ menu }: { menu: Menu }) {
       </button>
       {m.open && (
         <div className="s-theme-panel" {...m.panelProps}>
-          <ul {...m.menuProps}>
-            {menu.entries.map((e, i) => (
-              <li key={e.id} role="none">
-                <button className="s-theme-item" {...m.itemProps(i)}>
-                  <img src={e.preview} alt="" width={112} height={70} decoding="async" />
-                  <span className="s-theme-text">
-                    <span className="s-theme-name">
-                      {e.name}
-                      {e.id === menu.activeId && <em>inside now</em>}
-                    </span>
-                    <span className="s-theme-desc">{e.description}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p className="s-theme-hint">Press Theme again to fall into a random one.</p>
+          <figure className="s-theme-lens" aria-hidden="true">
+            <span className="s-theme-port">
+              {menu.entries.map((e, i) => (
+                <img
+                  key={e.id}
+                  src={e.preview}
+                  alt=""
+                  width={360}
+                  height={225}
+                  decoding="async"
+                  data-shown={m.shown === i || undefined}
+                />
+              ))}
+            </span>
+            <figcaption>
+              <span className="s-theme-lens-name">{shown?.name}</span>
+              <span className="s-theme-lens-desc">{shown?.description}</span>
+            </figcaption>
+          </figure>
+          <div className="s-theme-side">
+            <ul {...m.menuProps}>
+              {menu.entries.map((e, i) => (
+                <li key={e.id} role="none">
+                  <button className="s-theme-item" {...m.itemProps(i)}>
+                    <span>{e.name}</span>
+                    {e.id === menu.activeId && <em>inside now</em>}
+                    <span className="s-sr">{e.description}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="s-theme-hint">Press Theme again to fall into a random one.</p>
+          </div>
         </div>
       )}
       <span className="s-sr" role="status" aria-live="polite">
