@@ -11,12 +11,32 @@
   --s-line: color-mix(in srgb, var(--s-fg) 16%, transparent);
   --s-glass: rgba(7, 8, 10, 0.66);
   --s-ember: linear-gradient(90deg, #460c10, #bc2616, #ff6a00, #ffb25c);
+  /* Julia's rule (Phase 5d): full-strength orange is for actual accents. Rules,
+     borders and washes take these instead. */
+  --s-accent-rule: color-mix(in srgb, var(--s-accent) 38%, transparent);
+  --s-accent-edge: color-mix(in srgb, var(--s-accent) 22%, transparent);
+  --s-accent-wash: color-mix(in srgb, var(--s-accent) 7%, transparent);
+  /* one radius scale: glass panes, then things inside them, then pills */
+  --s-r: 14px;
+  --s-r-in: 10px;
 
   position: relative;
   min-height: 100dvh;
   background: var(--s-bg);
   color: var(--s-fg);
   font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+/* Metadata is data: a mono with lining figures, so years and tool lists line
+   up. Space Grotesk keeps every voice. */
+.sing .s-meta,
+.sing .s-chip,
+.sing .s-facts dt,
+.sing .s-upnext-tag,
+.sing .s-eyebrow,
+.sing .s-ticker-tag {
+  font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .s-canvas {
@@ -98,6 +118,202 @@
   transform: scaleX(1);
 }
 
+/* ---------- theme menu ---------- */
+
+.s-nav-right {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.9rem, 2.5vw, 1.7rem);
+}
+
+.s-theme {
+  position: relative;
+}
+
+.s-theme-trigger {
+  touch-action: manipulation;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--s-fg);
+  padding: 0.36rem 0.85rem;
+  border-radius: 999px;
+  background: var(--s-glass);
+  border: 1px solid var(--s-line);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 140ms var(--ease-out-strong);
+}
+
+.s-theme-label {
+  font-size: 0.72rem;
+  color: var(--s-muted);
+}
+
+.s-theme-trigger[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--s-accent) 45%, transparent);
+}
+
+.s-theme-trigger:active {
+  transform: scale(0.97);
+}
+
+.s-theme-trigger:focus-visible,
+.s-theme-item:focus-visible {
+  outline: 2px solid var(--s-accent);
+  outline-offset: 2px;
+}
+
+/* the content panels' glass, grown from the button */
+.s-theme-panel {
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(24rem, calc(100vw - 1.6rem));
+  padding: 0.45rem;
+  border-radius: 14px;
+  background: linear-gradient(150deg, var(--s-glass), rgba(7, 8, 10, 0.86));
+  border: 1px solid var(--s-line);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px -16px rgba(0, 0, 0, 0.8);
+  transform-origin: top right;
+  transition:
+    opacity 160ms var(--ease-out-strong),
+    transform 160ms var(--ease-out-strong);
+}
+
+@starting-style {
+  .s-theme-panel {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.s-theme-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.s-theme-item {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 0.85rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.42rem;
+  font: inherit;
+  text-align: left;
+  color: var(--s-fg);
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.s-theme-item img {
+  display: block;
+  width: 112px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 7px;
+  box-shadow: 0 0 0 1px var(--s-line);
+}
+
+.s-theme-text {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.s-theme-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.s-theme-name em {
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--s-accent-soft);
+}
+
+.s-theme-desc {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--s-muted);
+}
+
+/* the roulette cursor glows the way the bulb's hot rims do */
+.s-theme-item[data-highlight] {
+  background: color-mix(in srgb, var(--s-accent) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s-accent) 40%, transparent);
+}
+
+.s-theme-item[data-highlight] img {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--s-accent) 60%, transparent),
+    0 0 18px -4px color-mix(in srgb, var(--s-accent) 70%, transparent);
+}
+
+.s-theme-hint {
+  margin: 0.35rem 0.45rem 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--s-line);
+  font-size: 0.72rem;
+  color: var(--s-muted);
+}
+
+.s-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .s-theme-trigger:hover {
+    border-color: color-mix(in srgb, var(--s-accent) 45%, transparent);
+  }
+  .s-theme-panel:not([data-rolling]) .s-theme-item:hover {
+    background: color-mix(in srgb, var(--s-fg) 6%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-theme-panel {
+    transition: opacity 160ms ease;
+    transform: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .s-theme-label {
+    display: none;
+  }
+  .s-theme-item {
+    grid-template-columns: 84px 1fr;
+  }
+  .s-theme-item img {
+    width: 84px;
+    height: 53px;
+  }
+}
+
 /* ---------- home ---------- */
 
 .s-home-copy {
@@ -109,7 +325,7 @@
   gap: 0.9rem;
   max-width: 30rem;
   padding: 1.4rem 1.6rem;
-  border-radius: 12px;
+  border-radius: var(--s-r);
   background: linear-gradient(120deg, var(--s-glass), rgba(7, 8, 10, 0.35));
   border: 1px solid var(--s-line);
   backdrop-filter: blur(10px);
@@ -209,7 +425,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 1.5rem 1.7rem 2rem;
-  border-radius: 14px;
+  border-radius: var(--s-r);
   background: linear-gradient(150deg, var(--s-glass), rgba(7, 8, 10, 0.82));
   border: 1px solid var(--s-line);
   backdrop-filter: blur(12px);
@@ -225,12 +441,22 @@
 }
 
 .s-h2 {
-  margin: 1.9rem 0 0.8rem;
-  font-size: 0.78rem;
+  /* a real heading, not an uppercase label: the size carries the level */
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin: 2.2rem 0 1rem;
+  font-size: 1.28rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--s-accent);
+  letter-spacing: -0.02em;
+  color: var(--s-fg);
+}
+
+.s-h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--s-accent-rule), transparent);
 }
 
 .s-entry {
@@ -282,9 +508,9 @@
 /* ---------- projects ---------- */
 
 .s-upnext {
-  border: 1px solid color-mix(in srgb, var(--s-accent) 34%, transparent);
-  border-radius: 10px;
-  background: linear-gradient(120deg, rgba(255, 106, 0, 0.09), transparent 62%);
+  border: 1px solid var(--s-accent-edge);
+  border-radius: var(--s-r-in);
+  background: linear-gradient(120deg, var(--s-accent-wash), transparent 62%);
   padding: 0.9rem 1.1rem 1rem;
   margin-bottom: 1.3rem;
 }
@@ -320,7 +546,7 @@
   gap: 0.3rem;
   padding: 0.95rem 1.05rem;
   border: 1px solid var(--s-line);
-  border-radius: 10px;
+  border-radius: var(--s-r-in);
   color: var(--s-fg);
   text-decoration: none;
   background: rgba(7, 8, 10, 0.35);
@@ -333,15 +559,78 @@
   transform: scale(0.985);
 }
 
+.s-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .s-chip {
   width: fit-content;
   color: var(--s-accent);
-  border: 1px solid color-mix(in srgb, var(--s-accent) 45%, transparent);
+  border: 1px solid var(--s-accent-rule);
   border-radius: 999px;
   padding: 0.12rem 0.5rem;
   font-size: 0.62rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+/* The AI disclosure is a statement of fact, not a warning: muted ink, beside
+   the category chip as a peer. */
+.s-chip-ai {
+  color: var(--s-fg);
+  border-color: var(--s-line);
+  background: color-mix(in srgb, var(--s-fg) 8%, transparent);
+}
+
+.s-ai-flag {
+  margin: -0.4rem 0 1rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  border-left: 2px solid var(--s-accent);
+  padding-left: 0.6rem;
+}
+
+.s-body {
+  margin-top: 1.4rem;
+  color: color-mix(in srgb, var(--s-fg) 86%, var(--s-muted));
+  font-size: 0.92rem;
+  line-height: 1.66;
+}
+
+.s-body h2 {
+  margin: 1.9rem 0 0.7rem;
+  font-size: 1.12rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--s-fg);
+}
+
+.s-body h2:first-child {
+  margin-top: 0;
+}
+
+.s-body p {
+  margin: 0 0 0.9rem;
+}
+
+.s-body ul {
+  margin: 0 0 1.1rem;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.s-body strong {
+  color: var(--s-fg);
+  font-weight: 500;
+}
+
+.s-body code {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.88em;
+  color: var(--s-accent-soft);
 }
 
 .s-card-title {
@@ -372,13 +661,11 @@
   margin: 0 0 1.2rem;
   padding: 0.9rem 1rem;
   border: 1px solid var(--s-line);
-  border-radius: 8px;
+  border-radius: var(--s-r-in);
 }
 
 .s-facts dt {
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 0.72rem;
   color: var(--s-muted);
 }
 
@@ -401,7 +688,7 @@
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  border: 1px solid color-mix(in srgb, var(--s-accent) 60%, transparent);
+  border: 1px solid var(--s-accent-rule);
   border-radius: 999px;
   padding: 0.55rem 1.2rem;
   transition:
@@ -433,7 +720,7 @@
   padding: 0.7rem 0.85rem;
   background: var(--s-glass);
   border: 1px solid var(--s-line);
-  border-radius: 10px;
+  border-radius: var(--s-r-in);
   backdrop-filter: blur(8px);
   font-size: 0.74rem;
   font-variant-numeric: tabular-nums;
@@ -489,9 +776,10 @@
   .s-ticker:hover {
     color: var(--s-fg);
   }
+  /* no lift: the bulb behind is the motion on this page, a card does not
+     need to jump to say it is pressable */
   .s-project-card:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--s-accent) 55%, transparent);
+    border-color: var(--s-accent-rule);
   }
   .s-btn:hover {
     border-color: var(--s-accent);
@@ -575,12 +863,16 @@
     max-width: none;
   }
   .s-ticker {
-    /* keep clear of the shell's theme-switcher pill bottom-right */
     left: 0.9rem;
-    right: 10rem;
+    right: 0.9rem;
     bottom: 0.55rem;
     max-width: none;
     flex-wrap: wrap;
     gap: 0.35rem 0.7rem;
   }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.s-theme-panel[data-instant] {
+  transition: none;
 }

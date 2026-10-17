@@ -6,6 +6,7 @@ import '@fontsource/ibm-plex-mono/400.css'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { routePath } from '../../shared/routes'
 import { FEATURES } from '../../content/meta'
+import { ThemeMenu } from './ThemeMenu'
 import { Cv, Home, Interests, InternalLink, NotFound, ProjectPage, ProjectsIndex } from './views'
 import './julia.css'
 
@@ -19,7 +20,7 @@ const NAV = [
   { to: '/interests', label: 'Interests' },
 ].filter((n) => n.to !== '/interests' || FEATURES.interests)
 
-export function Root({ content, route, navigate }: ThemeProps) {
+export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
   const path = routePath(route)
   return (
     <div className="julia">
@@ -27,18 +28,21 @@ export function Root({ content, route, navigate }: ThemeProps) {
         <InternalLink to="/" navigate={navigate} className="j-mark">
           DH
         </InternalLink>
-        <nav aria-label="Sections">
-          {NAV.map((n) => (
-            <InternalLink
-              key={n.to}
-              to={n.to}
-              navigate={navigate}
-              className={path.startsWith(n.to) ? 'j-nav-link j-active' : 'j-nav-link'}
-            >
-              {n.label}
-            </InternalLink>
-          ))}
-        </nav>
+        <div className="j-nav-right">
+          <nav aria-label="Sections">
+            {NAV.map((n) => (
+              <InternalLink
+                key={n.to}
+                to={n.to}
+                navigate={navigate}
+                className={path.startsWith(n.to) ? 'j-nav-link j-active' : 'j-nav-link'}
+              >
+                {n.label}
+              </InternalLink>
+            ))}
+          </nav>
+          <ThemeMenu menu={themeMenu} />
+        </div>
       </header>
 
       {route.kind === 'home' && <Home content={content} navigate={navigate} />}

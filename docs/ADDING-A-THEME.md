@@ -20,7 +20,7 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
 1. **Create the folder** `src/themes/<id>/` with an `index.tsx` exporting:
 
    ```tsx
-   export function Root({ content, route, navigate }: ThemeProps) { … }
+   export function Root({ content, route, navigate, themeMenu }: ThemeProps) { … }
    ```
 
    `ThemeProps` comes from `src/shared/theme-contract.ts`. Import content types from
@@ -33,20 +33,35 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
    `navigate(path)` in onClick with preventDefault (see `InternalLink` in julia for the
    pattern — copy it locally, do not import across themes).
 
-3. **Surface the required content.** Non-negotiable minimums:
+3. **Draw the theme button.** Every theme renders one in its own top bar, styled in
+   its own language (julia's is a pill, landfall's is a map marker, atlas's is an
+   index entry). Copy one of the existing `ThemeMenu.tsx` files into your folder and
+   restyle it; the behaviour comes from `useThemeMenu(themeMenu)` in
+   `src/shared/theme-menu.ts`, so do not reimplement it. Spread `rootProps` on the
+   wrapper, `triggerProps` on the button, `panelProps` on the dropdown, `menuProps`
+   on the list and `itemProps(i)` on each entry; style `[data-highlight]` (the
+   roulette cursor) and `[data-instant]` (opened from the keyboard: no transition).
+   If the theme can fail (no GPU), the bar must stay above the failure screen.
+
+4. **Surface the required content.** Non-negotiable minimums:
    - All projects (with their links) and the CV data.
    - **`content.announcements` ("Up next") on the landing AND projects pages** — this
      site is a blog; the pulse must show in every world.
    - Socials on the landing.
+   - A project's `body` (markdown, via react-markdown) on its page, and the
+     `builtWithAI` disclosure on both its card and its page.
    - Art DNA (`project.art`, `content.routeArt`) is an *offer*: interpret the facets
      your theme understands, ignore the rest.
 
-4. **Register it** in `src/themes/registry.ts`: one descriptor — `id`, `name`,
+5. **Register it** in `src/themes/registry.ts`: one descriptor — `id`, `name`,
    `description`, `requirements` (leave `{}` only if it truly runs everywhere),
    `weight` (see the ladder in the registry; the floor keeps the lowest positive
-   weight), `listed: true`, `load: () => import('./<id>')`.
+   weight), `listed: true`, `load: () => import('./<id>')`, and a `preview`: add the id
+   to `scripts/capture-previews.mjs`, run `npm run build && npm run previews`, look at
+   the webp it writes to `src/shared/previews/` (a blank capture is a failed one), and
+   import it in the registry.
 
-5. **Respect the platform rules** (all enforced by review, some by CSS):
+6. **Respect the platform rules** (all enforced by review, some by CSS):
    - `prefers-reduced-motion` ⇒ no movement, content fully readable.
    - Hover effects gated behind `@media (hover: hover) and (pointer: fine)`.
    - Interactive elements: visible `:focus-visible`, `:active` feedback, WCAG AA
@@ -56,13 +71,13 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
      theme, but do not rely on it.
    - No em-dashes in visible copy (site-wide rule from the taste-skill pre-flight).
 
-6. **Verify before pushing:** `npm run check && npm run lint && npm run test &&
+7. **Verify before pushing:** `npm run check && npm run lint && npm run test &&
    npm run build`, then walk every route in the browser (desktop + mobile viewport,
    console clean), including `?theme=<id>` while your theme is not yet the default.
 
-7. **Ship behind the switcher first.** New themes go live with a weight that does not
+8. **Ship behind the theme menu first.** New themes go live with a weight that does not
    auto-win until Damyan approves them at their gate (see PLAN.md); visitors reach them
-   via `?theme=<id>` and the switcher.
+   via `?theme=<id>` and the theme menu.
 
 ## What you get for free
 

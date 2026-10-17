@@ -3,6 +3,7 @@ import type { ThemeProps } from '../../shared/theme-contract'
 import type { Project } from '../../content/types'
 import { routePath, TOP_LEVEL_ROUTES } from '../../shared/routes'
 import './debug.css'
+import { ThemeMenu } from './ThemeMenu'
 
 // `debug` — the content & route inspector (PLAN Phase 1). Not a design statement:
 // a QA surface proving every theme receives the full content model and that routing
@@ -69,13 +70,16 @@ function ProjectCard({
   )
 }
 
-export function Root({ content, route, navigate }: ThemeProps) {
+export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
   return (
     <main className="debug">
       <header>
-        <h1>debug — content &amp; route inspector</h1>
+        <div className="debug-bar">
+          <h1>debug: content &amp; route inspector</h1>
+          <ThemeMenu menu={themeMenu} />
+        </div>
         <p className="debug-dim">
-          Same content model every theme receives; switch themes and this route survives.
+          Same content model every theme receives. Switch themes and this route survives.
         </p>
         <Nav route={route} navigate={navigate} />
         <p className="debug-route">
@@ -90,6 +94,18 @@ export function Root({ content, route, navigate }: ThemeProps) {
           </Section>
           <Section title="announcements (up next)">
             <Dump value={content.announcements} />
+          </Section>
+          <Section title="theme menu (what every theme is handed)">
+            <Dump
+              value={{
+                activeId: themeMenu.activeId,
+                entries: themeMenu.entries.map(({ id, name, runnable }) => ({
+                  id,
+                  name,
+                  runnable,
+                })),
+              }}
+            />
           </Section>
           <Section title="counts">
             <Dump

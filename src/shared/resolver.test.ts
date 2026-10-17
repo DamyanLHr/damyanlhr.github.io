@@ -17,6 +17,7 @@ const theme = (id: string, weight: number, requirements = {}): ThemeDescriptor =
   id,
   name: id,
   description: id,
+  preview: '',
   requirements,
   weight,
   listed: true,

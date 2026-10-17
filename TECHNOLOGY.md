@@ -115,13 +115,15 @@ skin over shared chrome**: it receives the whole content model and builds its ow
 ```ts
 interface ThemeDescriptor {
   id: string;                       // 'singularity', 'atlas', …
-  name: string;                     // label in the switcher
+  name: string;                     // label in the theme menu
+  description: string;              // one line under the name in the theme menu
+  preview: string;                  // screenshot of its landing page (npm run previews)
   requirements: Requirements;       // { webgpu?, webgl2?, minDeviceMemoryGB?, finePointer?, motionOK? }
   weight: number;                   // preference among qualifying themes (higher wins)
   load: () => Promise<ThemeModule>; // dynamic import → each theme is its own code-split chunk
 }
 interface ThemeModule {
-  Root: React.ComponentType<{ content: SiteContent; route: Route }>;
+  Root: React.ComponentType<{ content; route; navigate; themeMenu }>;
 }
 ```
 
@@ -135,7 +137,7 @@ interface ThemeModule {
 ### 3.3 Registry, resolution, switching
 
 `src/themes/registry.ts` lists all descriptors. A tiny theme-independent boot shell
-(target < ~50 KB; also owns the theme-switcher overlay and a11y basics) resolves in order:
+(target < ~50 KB; also owns a11y basics) resolves in order:
 
 1. `?theme=` URL param — deep-link/demo override
 2. persisted visitor choice (`localStorage`)
@@ -147,6 +149,16 @@ interface ThemeModule {
 
 Switching = unmount the current theme root, dynamic-import the next. Content and current
 route survive the swap untouched — the decoupling made visible.
+
+**The theme menu (2026-10-17).** The shell no longer draws a switcher. It hands every
+theme `themeMenu` (every listed theme with its name, one-line description, preview and
+whether this device can run it, plus `pick`), and each theme draws a theme button in its
+own top bar, in its own visual language. Behaviour is shared and lives in
+`src/shared/theme-menu.ts` (`useThemeMenu`): a resting fine pointer opens the dropdown;
+a click on the closed button only opens it (touch, keyboard); a click once it is showing
+runs a ~1 s roulette and lands on a random theme this device can run, never the current
+one; picking an entry switches to it directly. Previews are small webp screenshots in
+`src/shared/previews/`, regenerated with `npm run previews`.
 
 ### 3.4 Theme roster (concepts locked July 2026)
 
