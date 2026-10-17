@@ -13,7 +13,7 @@ export const content: SiteContent = {
     name: SITE.name,
     tagline: SITE.tagline,
     url: SITE.url,
-    pfpUrl: 'https://github.com/DamianLHr.png',
+    pfpUrl: 'https://github.com/DamyanLHr.png',
     socials: [
       { label: 'GitHub', url: SITE.github },
       { label: 'itch.io', url: SITE.itch },
