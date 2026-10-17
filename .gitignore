@@ -23,8 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
-# local claude workspace (design skills are vendored third-party content)
-.claude/
+# local claude workspace; the vendored skills are tracked so they travel with the repo
+.claude/*
+!.claude/skills/
 
 # dev-only render captures
 design/shots/
