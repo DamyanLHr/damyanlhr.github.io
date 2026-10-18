@@ -16,7 +16,6 @@ export interface SetShape {
 
 const GRID = 128
 const REACH = 2
-const MAX = 120
 /** Points that stay this long are already lit, so they count as the set. */
 const LIT = 10
 /** Ignore the furthest stray grains, so dust does not shrink the whole set. */
@@ -36,8 +35,10 @@ export function measureSet(c: Complex): SetShape {
       const y0 = ((gy + 0.5) / GRID - 0.5) * 2 * REACH
       let x = x0
       let y = y0
+      // only "has it lasted LIT steps" matters, so stop there: the measure
+      // runs once per card and per page, and this keeps it to a few ms
       let k = 0
-      for (; k < MAX && x * x + y * y < 16; k++) {
+      for (; k < LIT && x * x + y * y < 16; k++) {
         const t = x * x - y * y + c.re
         y = 2 * x * y + c.im
         x = t

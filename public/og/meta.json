@@ -1,0 +1,67 @@
+{
+  "/": {
+    "title": "Damyan Hristov · Portfolio Blog",
+    "description": "Game development, engines and graphics. Computer Science and Engineering at TU/e, class of 2027.",
+    "image": "/og/home.jpg"
+  },
+  "/cv": {
+    "title": "CV · Damyan Hristov",
+    "description": "Education, experience and the languages Damyan Hristov builds games and graphics in.",
+    "image": "/og/cv.jpg"
+  },
+  "/projects": {
+    "title": "Projects · Damyan Hristov",
+    "description": "Games, engines and graphics projects by Damyan Hristov, each with its own live fractal.",
+    "image": "/og/projects.jpg"
+  },
+  "/projects/gallery": {
+    "title": "Gallery · Damyan Hristov",
+    "description": "Every effect this theme can play, live. The ones on the projects are here, and the rest are waiting for projects of their own. Choose one to play it above.",
+    "image": "/og/gallery.jpg"
+  },
+  "/projects/this-site": {
+    "title": "This Portfolio Site · Damyan Hristov",
+    "description": "This site, built with an AI agent over roughly two months as a deliberate learning exercise. The direction, the theme concepts and every visual decision are mine; the implementation is not.",
+    "image": "/og/this-site.jpg"
+  },
+  "/projects/dont-break-glass": {
+    "title": "Don't Break Glass · Damyan Hristov",
+    "description": "A point-and-click adventure in the vein of old flash escape-room games, with the player stuck in a time loop and solving their way out of it. Rated 5.0/5 on itch.io. No generative AI used.",
+    "image": "/og/dont-break-glass.jpg"
+  },
+  "/projects/kill-bunny": {
+    "title": "Kill Bunny · Damyan Hristov",
+    "description": "An isometric hack-and-slash built around managing your character’s rage while cutting through thieves in a forest, told in comic panels.",
+    "image": "/og/kill-bunny.jpg"
+  },
+  "/projects/five-more-minutes": {
+    "title": "5 More Minutes! · Damyan Hristov",
+    "description": "You wake up one minute before a deadline. Find the final version of the file, recover the password you forgot, get past two-factor authentication, and do it while everything in your room is trying to…",
+    "image": "/og/five-more-minutes.jpg"
+  },
+  "/projects/digital-twinning-suspension": {
+    "title": "Digital Twinning Suspension · Damyan Hristov",
+    "description": "A digital twin of an active predictive suspension, running against a real belt-driven test rig.",
+    "image": "/og/digital-twinning-suspension.jpg"
+  },
+  "/projects/blood-of-hedon": {
+    "title": "Blood of Hedon · Damyan Hristov",
+    "description": "A roguelike gladiator game with turn-based, card-driven combat in a hand-drawn Roman arena, with about 35 cards, 4 gladiator classes and a mythological bestiary.",
+    "image": "/og/blood-of-hedon.jpg"
+  },
+  "/projects/olympian-onslaught": {
+    "title": "Olympian Onslaught · Damyan Hristov",
+    "description": "A top-down roguelite set in Greek myth. You play Achilles, holding out for five minutes against waves of monsters with auto-firing weapons, and a maxed weapon paired with a maxed ability fuses into…",
+    "image": "/og/olympian-onslaught.jpg"
+  },
+  "/projects/extensible-terrain-generation": {
+    "title": "Extensible Terrain Generation · Damyan Hristov",
+    "description": "A terrain generator in C++ and Vulkan, built so new generation algorithms can be added without rewriting the pipeline around them. The first personal graphics project on the road to Delft.",
+    "image": "/og/extensible-terrain-generation.jpg"
+  },
+  "/projects/davincis-black-market-bird-dealer": {
+    "title": "Davinci's Black Market Bird Dealer · Damyan Hristov",
+    "description": "A Game Design 1 course project at TU/e, in production now.",
+    "image": "/og/davincis-black-market-bird-dealer.jpg"
+  }
+}

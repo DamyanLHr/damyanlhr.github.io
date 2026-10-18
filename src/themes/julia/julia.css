@@ -1358,6 +1358,124 @@
   font-size: 0.82rem;
 }
 
+.j-foot-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+}
+
+.j-cv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.2rem;
+}
+
+.j-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.82rem;
+  color: var(--j-fg);
+}
+
+.j-email-address {
+  user-select: all;
+}
+
+.j-email-copy {
+  font: inherit;
+  font-size: 0.72rem;
+  color: var(--j-muted);
+  background: none;
+  border: 1px solid var(--j-line);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-out-strong),
+    border-color 160ms var(--ease-out-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .j-email-copy:hover {
+    color: var(--j-accent-soft);
+    border-color: var(--j-accent-rule);
+  }
+}
+
+.j-email-copy:focus-visible {
+  outline: 2px solid var(--j-accent-soft);
+  outline-offset: 2px;
+}
+
+.j-email-copy:active {
+  transform: scale(0.96);
+}
+
+/* ---------- print: the CV as a document ---------- */
+
+/* What scripts/cv-pdf.mjs prints: ink on paper, no stage, no chrome. */
+.j-print-only {
+  display: none;
+}
+
+@media print {
+  .julia .j-print-only {
+    display: block;
+  }
+  .julia .j-print-name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111;
+  }
+  .julia {
+    background: #fff !important;
+    color: #111 !important;
+    min-height: 0;
+  }
+  .julia::after,
+  .j-stage,
+  .j-nav,
+  .j-foot,
+  .j-cv-actions .j-btn,
+  .j-email-copy {
+    display: none !important;
+  }
+  .julia .j-page {
+    max-width: none;
+    padding: 0;
+  }
+  .julia .j-enter {
+    animation: none;
+  }
+  .julia .j-h2,
+  .julia .j-entry h3,
+  .julia .j-page-head h1,
+  .julia .j-email {
+    color: #111;
+  }
+  .julia .j-meta,
+  .julia .j-prose,
+  .julia .j-entry p,
+  .julia .j-entry li {
+    color: #333;
+  }
+  .julia .j-h2::after {
+    background: #bbb;
+  }
+  .julia a {
+    color: #111;
+    text-decoration: none;
+  }
+  .j-entry {
+    break-inside: avoid;
+  }
+}
+
 .j-foot-links {
   display: flex;
   gap: 1.1rem;

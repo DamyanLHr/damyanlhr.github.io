@@ -103,8 +103,16 @@ Schema per project: `{ year, role, duration, tools/platform, category, team?, li
 
 `art.effect` names the live effect on the project's band and card in the julia theme: `relief`,
 `ripple`, `cursor`, `stardust`, `field-lines`, `orbit-traps`, `ridgelines`,
-`scroll-dive` or `heartbeat`. Leave it out and one is derived from the slug; set it to
+`scroll-dive`, `heartbeat`, `root-bloom`, `quintic-braid`, `shape-shifter`,
+`mandel-julia`, `pendulum`, `life`, `ship-tricorn`, `newton`, `phoenix`, `buddhabrot`,
+`attractor`, `coral` or `murmuration` (all playable in the julia gallery). Leave it out and one is derived from the slug; set it to
 keep a project's effect from moving when the roster changes.
+
+After adding or changing a project, run `npm run build && npm run og` so its share image
+and share tags exist; the content tests fail until it has an entry in
+`public/og/meta.json`. `profile.email` is shown as text with a copy button, and
+`profile.cvPdf` points at `public/cv.pdf`, regenerated with `npm run cv-pdf` after the
+CV changes.
 
 ### Personal
 - **This Portfolio Site** — *released* · **TypeScript, React, Three.js, WebGL 2, Vite** ·

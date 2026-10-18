@@ -12,7 +12,16 @@ import { createStageBus } from './stage-bus'
 import { Gallery } from './Gallery'
 import { GALLERY_SLUG } from './gallery-slug'
 import { ThemeMenu } from './ThemeMenu'
-import { Cv, Home, Interests, InternalLink, NotFound, ProjectPage, ProjectsIndex } from './views'
+import {
+  Cv,
+  Email,
+  Home,
+  Interests,
+  InternalLink,
+  NotFound,
+  ProjectPage,
+  ProjectsIndex,
+} from './views'
 import './julia.css'
 
 // `julia` — the 2D-fractal floor theme, direction A "obsidian gallery" (Gate 2a):
@@ -79,13 +88,21 @@ export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
 
       {route.kind !== 'home' && (
         <footer className="j-foot">
-          <span>{content.profile.name}</span>
+          <span className="j-foot-who">
+            <span>{content.profile.name}</span>
+            {content.profile.email && <Email address={content.profile.email} />}
+          </span>
           <span className="j-foot-links">
             {content.profile.socials.map((s) => (
               <a key={s.url} href={s.url}>
                 {s.label}
               </a>
             ))}
+            {content.profile.cvPdf && (
+              <a href={content.profile.cvPdf} download>
+                CV (PDF)
+              </a>
+            )}
           </span>
         </footer>
       )}

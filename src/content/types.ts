@@ -54,6 +54,10 @@ export interface Profile {
   url: string
   pfpUrl: string
   socials: LinkRef[]
+  /** shown as text with a copy button, never only as a mailto link */
+  email?: string
+  /** a print-ready PDF of the CV, served from public/ */
+  cvPdf?: string
 }
 
 export interface EducationEntry {

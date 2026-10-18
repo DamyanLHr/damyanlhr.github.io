@@ -11,6 +11,13 @@ import type { PlaneView } from './effects/view'
 // phone the card nearest the middle of the screen plays itself. Only one card
 // is ever live, and all of them are drawn by one shared renderer.
 
+// Safari has no requestIdleCallback; a short timeout is close enough there.
+const idleSupported = typeof window.requestIdleCallback === 'function'
+const requestIdle = (fn: () => void): number =>
+  idleSupported ? window.requestIdleCallback(fn, { timeout: 1200 }) : window.setTimeout(fn, 40)
+const cancelIdle = (id: number) =>
+  idleSupported ? window.cancelIdleCallback(id) : window.clearTimeout(id)
+
 /** The share of the card the set may take when the title block can't be measured. */
 const ART = 0.56
 
@@ -72,6 +79,7 @@ export function EffectCard({
     // twenty stills, each a few hundred thousand iterations, would otherwise
     // all render at once on arrival.
     let near = false
+    let idle = 0
     const run = (next: typeof mode) => {
       mode = next
       if (!near) return
@@ -86,9 +94,13 @@ export function EffectCard({
     const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting || near) return
-        near = true
         io.disconnect()
-        run(pointed.current ? 'pointer' : mode)
+        // One card per idle moment, so a page of stills never arrives as one
+        // long frozen task.
+        idle = requestIdle(() => {
+          near = true
+          run(pointed.current ? 'pointer' : mode)
+        })
       },
       { rootMargin: '300px 0px' },
     )
@@ -101,6 +113,7 @@ export function EffectCard({
     })
     ro.observe(canvas)
     return () => {
+      cancelIdle(idle)
       io.disconnect()
       window.clearTimeout(resizeTimer)
       ro.disconnect()

@@ -95,7 +95,18 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
   return (
     <section className="j-page j-enter">
       <header className="j-page-head">
+        <p className="j-print-only j-print-name">
+          {content.profile.name} · {content.profile.url.replace(/^https?:\/\//, '')}
+        </p>
         <h1>CV</h1>
+        <div className="j-cv-actions">
+          {content.profile.cvPdf && (
+            <a className="j-btn j-btn-primary" href={content.profile.cvPdf} download>
+              Download CV (PDF)
+            </a>
+          )}
+          {content.profile.email && <Email address={content.profile.email} />}
+        </div>
       </header>
 
       <h2 className="j-h2">Education</h2>
@@ -292,6 +303,40 @@ export function ProjectsIndex({
         </div>
       </section>
     </>
+  )
+}
+
+/**
+ * An email address as text you can select, with a button that copies it. A
+ * bare mailto link does nothing for anyone without a mail app set up, which
+ * is most people on a laptop.
+ */
+export function Email({ address }: { address: string }) {
+  const [copied, setCopied] = useState(false)
+  const text = useRef<HTMLSpanElement>(null)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(address)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // no clipboard: select the address so a copy shortcut works
+      const r = document.createRange()
+      if (text.current) r.selectNodeContents(text.current)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(r)
+    }
+  }
+  return (
+    <span className="j-email">
+      <span ref={text} className="j-email-address">
+        {address}
+      </span>
+      <button type="button" className="j-email-copy" onClick={copy} aria-live="polite">
+        {copied ? 'Copied' : 'Copy'}
+      </button>
+    </span>
   )
 }
 

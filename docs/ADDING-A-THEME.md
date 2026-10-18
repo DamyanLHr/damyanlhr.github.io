@@ -27,7 +27,8 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
    `src/content/types.ts`, route helpers from `src/shared/routes.ts`. CSS lives inside
    the folder and is imported by the theme entry (it code-splits with the theme).
 
-2. **Cover every route.** `route.kind` is `home | cv | projects | project | interests |
+2. **Cover every route.** (`/projects/gallery` is julia's own page; another theme may
+   show its not-found page there, or a gallery of its own.) `route.kind` is `home | cv | projects | project | interests |
    notFound`. The micro-router owns what the URL *is*; your theme owns what navigation
    *feels* like. Internal links: render `<a href={path}>` and call
    `navigate(path)` in onClick with preventDefault (see `InternalLink` in julia for the

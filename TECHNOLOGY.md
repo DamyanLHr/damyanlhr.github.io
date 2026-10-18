@@ -172,7 +172,18 @@ set is fitted into the page's band (`fit.ts`); on a project page the same canvas
 develops into the project's effect, from one fragment shader with a mode uniform and a
 develop amount, or a 2D layer for stardust and ridgelines. `effects/controller.ts`
 drives an effect on either surface (the band, or a card drawn by the shared renderer in
-`effects/thumbs.ts`) and folds mouse and touch into the same few gestures.
+`effects/thumbs.ts`) and folds mouse, touch and keyboard into the same few gestures.
+Every effect is described once in `effects/registry.ts`: a mode of the band's shader, or
+a layer (`effects/layers/`) drawn on a canvas over the band. The simulations ping-pong
+float textures in the cards' shared context (`layers/sims.ts`) and fall back to a small
+CPU grid. The gallery at `/projects/gallery` is julia's own page.
+
+**Share tags and the CV PDF (2026-10-18).** `npm run og` renders each page at
+1200×630 into `public/og/` and records its title and description in
+`public/og/meta.json`; `scripts/postbuild.mjs` writes a copy of `index.html` per page
+with those tags (link previews never run scripts), plus `sitemap.xml`. `npm run cv-pdf`
+prints julia's CV through its print stylesheet into `public/cv.pdf`. Both are run by hand
+and committed, like the theme previews.
 Math themes after julia should keep the pattern: one persistent scene that pages pose,
 rather than a canvas per page.
 

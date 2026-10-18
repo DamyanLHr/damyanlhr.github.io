@@ -122,12 +122,12 @@ export const murmuration: LayerFactory = (canvas, view, opts) => {
     for (let gx = 0; gx < GW; gx++) {
       let [x, y] = planeAt(canvas, view, (gx + 0.5) / GW, (gy + 0.5) / GH)
       let k = 0
-      for (; k < 90 && x * x + y * y < 16; k++) {
+      for (; k < 60 && x * x + y * y < 16; k++) {
         const t = x * x - y * y + view.re
         y = 2 * x * y + view.im
         x = t
       }
-      field[gy * GW + gx] = k >= 90 ? 1 : k / 90
+      field[gy * GW + gx] = k >= 60 ? 1 : k / 60
     }
   const F = (u: number, v: number) => {
     const gx = Math.max(0, Math.min(GW - 1, (u * GW) | 0))

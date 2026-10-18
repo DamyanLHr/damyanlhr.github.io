@@ -14,6 +14,8 @@ export const content: SiteContent = {
     tagline: SITE.tagline,
     url: SITE.url,
     pfpUrl: 'https://github.com/DamyanLHr.png',
+    email: 'damyan.hristov05@gmail.com',
+    cvPdf: '/cv.pdf',
     socials: [
       { label: 'GitHub', url: SITE.github },
       { label: 'itch.io', url: SITE.itch },

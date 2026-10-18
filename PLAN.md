@@ -558,6 +558,33 @@ different live effect on every project plate.
       heartbeat.
 - **GATE — "julia motion approved":** live review on Damyan's hardware.
 
+### Phase 5g — the gallery, thirteen new effects, and the site's loose ends *(2026-10-18)*
+Damyan, from the proposal page: all twelve new effects plus murmuration for Davinci,
+ridgelines as a flyover on a wider card, swaptube as a submodule, the gallery as a tab
+under Projects, and the improvements that need nothing from him; then
+`/review-animations` and the merge to main.
+
+- [x] **Gallery.** "Work · Gallery" under the Projects heading opens `/projects/gallery`
+      (julia only). The band plays the chosen effect, picked from a grid of live tiles
+      with their own addresses (`#coral`). Every effect is described once, in
+      `effects/registry.ts`, which the bands, cards and gallery read.
+- [x] **Thirteen new effects.** Root bloom, quintic braid, shape-shifter, Mandelbrot to
+      Julia, pendulum chaos, life on the edge and ship-and-tricorn follow 2swap's
+      swaptube (a pinned submodule at `vendor/swaptube`, credited in `CREDITS.md`, the
+      gallery and each module); Newton's basins, Phoenix, Buddhabrot ember, strange
+      attractor, coral and murmuration are new. Five are modes of the band's shader;
+      the rest are layers, the simulations running in the cards' shared WebGL context
+      with a CPU floor. Davinci's Black Market Bird Dealer flies a murmuration.
+- [x] **Ridgelines, flown.** The terrain streams toward the viewer a row at a time from
+      a drifting constant; Extensible Terrain Generation's card is two columns wide.
+- [x] **Loose ends.** Set interiors shaded by how close their orbits come to zero; the
+      band plays from the keyboard; an email line with a copy button on the CV and in
+      the footer; a print stylesheet and `public/cv.pdf` (`npm run cv-pdf`); share
+      images and per-page share tags (`npm run og`, written out by `postbuild`), with
+      `robots.txt` and a sitemap; cards drawn only as they near the screen, one per
+      idle moment; fresh theme previews.
+- **GATE — "gallery approved"**, after `/review-animations`, then merge to main.
+
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*
 - [ ] Style tile: 2–3 industrial treatments (teenage.engineering register: spec grids,
       safety-orange/black, monospace; where the gaming twist lives — e.g. konami-style
