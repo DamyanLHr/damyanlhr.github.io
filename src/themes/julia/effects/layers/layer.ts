@@ -1,4 +1,5 @@
 import { toPlane, type PlaneView } from '../view'
+import { ember } from '../../fractal'
 
 // The effects that are not a mode of the band's shader draw on a 2D canvas
 // of their own: the layer laid over the band, or a card's canvas. They all
@@ -60,3 +61,27 @@ export function fadeToGround(data: Uint8ClampedArray, k: number) {
     data[i + 3] = 255
   }
 }
+
+const LUT_SIZE = 1024
+let lut: Uint8Array | null = null
+
+/**
+ * The ember palette as a table, for the layers that colour every pixel every
+ * frame: `ember` builds an array per call, which at band size is a lot of
+ * garbage. Index it with {@link lutIndex}.
+ */
+export function emberLut(): Uint8Array {
+  if (!lut) {
+    lut = new Uint8Array(LUT_SIZE * 3)
+    for (let i = 0; i < LUT_SIZE; i++) {
+      const c = ember(i / (LUT_SIZE - 1))
+      lut[i * 3] = c[0]
+      lut[i * 3 + 1] = c[1]
+      lut[i * 3 + 2] = c[2]
+    }
+  }
+  return lut
+}
+
+/** Where 0..1 lands in {@link emberLut}. */
+export const lutIndex = (v: number) => Math.max(0, Math.min(LUT_SIZE - 1, (v * LUT_SIZE) | 0)) * 3

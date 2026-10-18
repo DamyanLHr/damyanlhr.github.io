@@ -51,6 +51,13 @@ export function durandKerner(coef: Float64Array, deg: number, roots: Float64Arra
   }
 }
 
+function splat(d: Uint8ClampedArray, p: number, col: number[], k: number) {
+  const g = 0.9 * k
+  d[p] += col[0] * g
+  d[p + 1] += col[1] * g
+  d[p + 2] += col[2] * g
+}
+
 export const roots: LayerFactory = (canvas, _view, opts) => {
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
@@ -74,7 +81,7 @@ export const roots: LayerFactory = (canvas, _view, opts) => {
   let t = 0
 
   const step = (sweeps: number, glow: number) => {
-    const [w, h] = fitCanvas(canvas, 760)
+    const [w, h] = fitCanvas(canvas, 1400, 2)
     if (!img || img.width !== w || img.height !== h) {
       img = ctx.createImageData(w, h)
       fadeToGround(img.data, 0)
@@ -94,15 +101,21 @@ export const roots: LayerFactory = (canvas, _view, opts) => {
       }
       for (let it = 0; it < sweeps; it++) durandKerner(co, DEG, R, i * DEG * 2)
       const col = shade[i]
+      // each root is shared between the four pixels around it, so the lace
+      // stays fine and unbroken instead of stepping from pixel to pixel
       for (let k = 0; k < DEG; k++) {
         const o = (i * DEG + k) * 2
-        const x = (R[o] * s + w / 2) | 0
-        const y = (-R[o + 1] * s + h / 2) | 0
-        if (x < 0 || y < 0 || x >= w || y >= h) continue
-        const p = (y * w + x) * 4
-        d[p] = Math.min(255, d[p] + col[0] * 0.35)
-        d[p + 1] = Math.min(255, d[p + 1] + col[1] * 0.35)
-        d[p + 2] = Math.min(255, d[p + 2] + col[2] * 0.35)
+        const fx = R[o] * s + w / 2 - 0.5
+        const fy = -R[o + 1] * s + h / 2 - 0.5
+        const x = Math.floor(fx)
+        const y = Math.floor(fy)
+        if (x < 0 || y < 0 || x >= w - 1 || y >= h - 1) continue
+        const ax = fx - x
+        const ay = fy - y
+        splat(d, (y * w + x) * 4, col, (1 - ax) * (1 - ay))
+        splat(d, (y * w + x + 1) * 4, col, ax * (1 - ay))
+        splat(d, ((y + 1) * w + x) * 4, col, (1 - ax) * ay)
+        splat(d, ((y + 1) * w + x + 1) * 4, col, ax * ay)
       }
     }
     ctx.putImageData(img, 0, 0)

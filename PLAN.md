@@ -583,6 +583,11 @@ under Projects, and the improvements that need nothing from him; then
       images and per-page share tags (`npm run og`, written out by `postbuild`), with
       `robots.txt` and a sitemap; cards drawn only as they near the screen, one per
       idle moment; fresh theme previews.
+- [x] **Second pass.** Social links drawn as brand marks in every theme
+      (`src/shared/social-icons.tsx`, LinkedIn ready for when it exists); the CV prints
+      on one A4 page; the gallery's band takes most of the screen; the layer effects
+      and simulations render near the band's own resolution, the simulations blending
+      their cells instead of stretching them.
 - **GATE — "gallery approved"**, after `/review-animations`, then merge to main.
 
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*

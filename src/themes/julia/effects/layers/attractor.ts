@@ -1,12 +1,11 @@
-import { ember } from '../../fractal'
-import { fitCanvas, type LayerFactory } from './layer'
+import { emberLut, fitCanvas, lutIndex, type LayerFactory } from './layer'
 
 // A Clifford attractor: x' = sin(a·y) + c·cos(a·x), y' = sin(b·x) + d·cos(b·y).
 // Thousands of points follow it at once and leave a fading density, while the
 // four numbers drift, so the silk keeps folding into shapes it has not made
 // before. The pointer bends a and b.
 
-const P = 2500
+const P = 6000
 
 export const attractor: LayerFactory = (canvas, _view, opts) => {
   const ctx = canvas.getContext('2d')
@@ -22,7 +21,7 @@ export const attractor: LayerFactory = (canvas, _view, opts) => {
   let bend: [number, number] = [0, 0]
 
   const run = (t: number, steps: number, decay: number) => {
-    const [w, h] = fitCanvas(canvas, 640, 1)
+    const [w, h] = fitCanvas(canvas, 1400, 1.5)
     if (!dens || dens.length !== w * h) {
       dens = new Float32Array(w * h)
       img = ctx.createImageData(w, h)
@@ -50,11 +49,14 @@ export const attractor: LayerFactory = (canvas, _view, opts) => {
       ys[i] = y
     }
     const data = img!.data
+    const lut = emberLut()
+    // the same silk spread over more pixels lands fewer times on each
+    const gain = 0.12 * ((w * h) / 230400) * (2500 / P)
     for (let i = 0, p = 0; i < dens.length; i++, p += 4) {
-      const col = ember(0.03 + 0.95 * (1 - Math.exp(-dens[i] * 0.12)))
-      data[p] = col[0]
-      data[p + 1] = col[1]
-      data[p + 2] = col[2]
+      const c = lutIndex(0.03 + 0.95 * (1 - Math.exp(-dens[i] * gain)))
+      data[p] = lut[c]
+      data[p + 1] = lut[c + 1]
+      data[p + 2] = lut[c + 2]
       data[p + 3] = 255
     }
     ctx.putImageData(img!, 0, 0)

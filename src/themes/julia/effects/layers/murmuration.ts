@@ -1,5 +1,5 @@
 import { ember } from '../../fractal'
-import { fitCanvas, planeAt, type LayerFactory } from './layer'
+import { emberLut, fitCanvas, lutIndex, planeAt, type LayerFactory } from './layer'
 
 // Murmuration: a flock over the Julia set behind it. Each bird follows the
 // three boids rules (keep apart, match neighbours, close ranks) and the set's
@@ -154,20 +154,36 @@ export const murmuration: LayerFactory = (canvas, view, opts) => {
   const draw = () => {
     const [w, h] = fitCanvas(canvas, 1100, 2)
     if (!ground || ground.width !== w || ground.height !== h) {
-      // the set itself, faint, so the flock has something to settle on
+      // the set itself, faint, so the flock has something to settle on. It is
+      // worked out per pixel, smoothly, rather than read off the flock's
+      // coarse field, so it stays crisp at any size.
       ground = document.createElement('canvas')
       ground.width = w
       ground.height = h
       const g = ground.getContext('2d')!
       const im = g.createImageData(w, h)
+      const lut = emberLut()
       for (let y = 0; y < h; y++)
         for (let x = 0; x < w; x++) {
-          const v = F(x / w, y / h)
-          const c = v >= 1 ? [20, 12, 13] : ember(v * 1.3)
+          let [zr, zi] = planeAt(canvas, view, (x + 0.5) / w, (y + 0.5) / h)
+          let k = 0
+          for (; k < 60 && zr * zr + zi * zi < 16; k++) {
+            const t = zr * zr - zi * zi + view.re
+            zi = 2 * zr * zi + view.im
+            zr = t
+          }
           const p = (y * w + x) * 4
-          im.data[p] = c[0] * 0.5 + 5
-          im.data[p + 1] = c[1] * 0.5 + 5.5
-          im.data[p + 2] = c[2] * 0.5 + 6.5
+          if (k >= 60) {
+            im.data[p] = 15
+            im.data[p + 1] = 11
+            im.data[p + 2] = 13
+          } else {
+            const v = (k + 1 - Math.log2(Math.log2(zr * zr + zi * zi) / 2)) / 60
+            const c = lutIndex(v * 1.3)
+            im.data[p] = lut[c] * 0.5 + 5
+            im.data[p + 1] = lut[c + 1] * 0.5 + 5.5
+            im.data[p + 2] = lut[c + 2] * 0.5 + 6.5
+          }
           im.data[p + 3] = 255
         }
       g.putImageData(im, 0, 0)

@@ -182,8 +182,16 @@ CPU grid. The gallery at `/projects/gallery` is julia's own page.
 1200×630 into `public/og/` and records its title and description in
 `public/og/meta.json`; `scripts/postbuild.mjs` writes a copy of `index.html` per page
 with those tags (link previews never run scripts), plus `sitemap.xml`. `npm run cv-pdf`
-prints julia's CV through its print stylesheet into `public/cv.pdf`. Both are run by hand
-and committed, like the theme previews.
+prints julia's CV through its print stylesheet into `public/cv.pdf`, sized to fit one
+A4 page (the print root font sets the whole scale; check `pdfinfo` says one page after a
+CV change). Both are run by hand and committed, like the theme previews.
+
+**Layer resolution.** The layer effects size their canvas with `fitCanvas(canvas, cap,
+dprCap)`; caps sit near band width (1100 to 1800 px) so the band is not stretched. CPU
+layers colour pixels through `emberLut()` rather than `ember()`, which allocates. The
+simulations run on a fixed grid and their show passes blend the four nearest cells by
+hand (float textures cannot be filtered on most GPUs), so a 640×360 grid still reads
+smooth across a 1800 px band.
 Math themes after julia should keep the pattern: one persistent scene that pages pose,
 rather than a canvas per page.
 

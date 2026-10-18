@@ -1,5 +1,4 @@
-import { ember } from '../../fractal'
-import { fitCanvas, type LayerFactory } from './layer'
+import { emberLut, fitCanvas, lutIndex, type LayerFactory } from './layer'
 
 // Buddhabrot ember. Instead of colouring where a point starts, every place
 // an escaping orbit passes through is counted, and the counts are shown as a
@@ -8,6 +7,8 @@ import { fitCanvas, type LayerFactory } from './layer'
 // before iterating.
 
 const MAX = 400
+/** orbits per frame for every 100k pixels, so a bigger canvas fills as fast */
+const RATE = 2300
 
 export const buddha: LayerFactory = (canvas) => {
   const ctx = canvas.getContext('2d')
@@ -55,18 +56,19 @@ export const buddha: LayerFactory = (canvas) => {
     for (let i = 0; i < hist.length; i++) if (hist[i] > mx) mx = hist[i]
     const lm = Math.log(1 + mx)
     const d = img.data
+    const lut = emberLut()
     // faint paths stay dark until they have been crossed often
     for (let i = 0, p = 0; i < hist.length; i++, p += 4) {
-      const c = ember(0.97 * Math.pow(Math.log(1 + hist[i]) / lm, 1.9))
-      d[p] = c[0]
-      d[p + 1] = c[1]
-      d[p + 2] = c[2]
+      const c = lutIndex(0.97 * Math.pow(Math.log(1 + hist[i]) / lm, 1.9))
+      d[p] = lut[c]
+      d[p + 1] = lut[c + 1]
+      d[p + 2] = lut[c + 2]
       d[p + 3] = 255
     }
     ctx.putImageData(img, 0, 0)
   }
   const size = () => {
-    const [w, h] = fitCanvas(canvas, 520, 1)
+    const [w, h] = fitCanvas(canvas, 1100, 1.5)
     if (!hist || hist.length !== w * h) {
       hist = new Float32Array(w * h)
       reset()
@@ -78,13 +80,13 @@ export const buddha: LayerFactory = (canvas) => {
     frame() {
       const [w, h] = size()
       if (performance.now() - born > 45000) reset()
-      sample(3500, w, h)
+      sample((RATE * w * h) / 1e5, w, h)
       draw(w, h)
       return true
     },
     still() {
       const [w, h] = size()
-      sample(40000, w, h)
+      sample((RATE * 12 * w * h) / 1e5, w, h)
       draw(w, h)
     },
     press: reset,

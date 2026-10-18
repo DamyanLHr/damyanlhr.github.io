@@ -31,9 +31,16 @@ out vec4 o;
 uniform vec2 uRes;
 `
 
+// Float textures cannot be filtered on most GPUs, so the show passes blend the
+// four nearest cells themselves: the picture stays smooth however far the
+// simulation is stretched over the band.
+const BLEND = `ivec2 cl(ivec2 p) { return clamp(p, ivec2(0), textureSize(uS, 0) - 1); }
+#define BILERP(F, q) { vec2 b_ = (q) - 0.5; ivec2 i_ = ivec2(floor(b_)); vec2 f_ = fract(b_); res = mix(mix(F(cl(i_)), F(cl(i_ + ivec2(1, 0))), f_.x), mix(F(cl(i_ + ivec2(0, 1))), F(cl(i_ + ivec2(1, 1))), f_.x), f_.y); }
+`
+
 const SPECS: Record<Kind, Spec> = {
   pendulum: {
-    size: [320, 180],
+    size: [640, 360],
     float: true,
     steps: 3,
     init: `${HEAD}uniform float uSeed;
@@ -52,16 +59,23 @@ void main() {
   vec4 k1 = f(s), k2 = f(s + 0.5 * h * k1), k3 = f(s + 0.5 * h * k2), k4 = f(s + h * k3);
   o = s + h / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }`,
+    // the angles wrap, so it is the colours that are blended, not the angles
     show: `${HEAD}uniform sampler2D uS;
 ${PALETTE}
-void main() {
-  vec4 s = texture(uS, gl_FragCoord.xy / uRes);
+${BLEND}
+vec3 col(ivec2 p) {
+  vec4 s = texelFetch(uS, p, 0);
   float a = 0.5 - 0.5 * cos(s.x), b = 0.5 - 0.5 * cos(s.y);
-  o = vec4(pal(0.12 + 0.55 * a * b + 0.3 * b * (1.0 - a)), 1.0);
+  return pal(0.12 + 0.55 * a * b + 0.3 * b * (1.0 - a));
+}
+void main() {
+  vec3 res;
+  BILERP(col, gl_FragCoord.xy / uRes * vec2(textureSize(uS, 0)))
+  o = vec4(res, 1.0);
 }`,
   },
   life: {
-    size: [192, 108],
+    size: [320, 180],
     float: false,
     steps: 1,
     every: 3,
@@ -90,14 +104,27 @@ void main() {
   float alive = (s.r > 0.5 && (n == 2 || n == 3)) || (s.r < 0.5 && n == 3) ? 1.0 : 0.0;
   o = vec4(alive, max(alive, s.g * 0.93), 0.0, 1.0);
 }`,
+    // live cells are round embers once there is room to draw them round; the
+    // trails they leave are blended smooth
     show: `${HEAD}uniform sampler2D uS;
 ${PALETTE}
-void main() { vec4 s = texture(uS, gl_FragCoord.xy / uRes); o = vec4(pal(0.05 + 0.55 * s.g + 0.38 * s.r), 1.0); }`,
+${BLEND}
+float trail(ivec2 p) { return texelFetch(uS, p, 0).g; }
+void main() {
+  vec2 sz = vec2(textureSize(uS, 0));
+  vec2 q = gl_FragCoord.xy / uRes * sz;
+  float alive = texelFetch(uS, cl(ivec2(q)), 0).r;
+  float res;
+  BILERP(trail, q)
+  float disc = alive * (1.0 - smoothstep(0.3, 0.5, length(fract(q) - 0.5)));
+  float room = clamp((uRes.x / sz.x - 2.0) * 0.5, 0.0, 1.0);
+  o = vec4(pal(0.05 + 0.5 * res + 0.42 * mix(alive, disc, room)), 1.0);
+}`,
   },
   coral: {
-    size: [256, 144],
+    size: [512, 288],
     float: true,
-    steps: 12,
+    steps: 18,
     init: `${HEAD}uniform float uSeed; uniform vec2 uC;
 void main() {
   vec2 f = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y * 2.9;
@@ -118,12 +145,18 @@ void main() {
   float u = s.x, v = s.y, F = 0.0545, K = 0.062, uvv = u * v * v;
   u += 1.0 * lap.x - uvv + F * (1.0 - u);
   v += 0.5 * lap.y + uvv - (F + K) * v;
-  if (uDrop.z > 0.0 && length(gl_FragCoord.xy - uDrop.xy) < 4.0) v = 0.5;
+  if (uDrop.z > 0.0 && length(gl_FragCoord.xy - uDrop.xy) < 7.0) v = 0.5;
   o = vec4(clamp(u, 0.0, 1.0), clamp(v, 0.0, 1.0), 0.0, 1.0);
 }`,
     show: `${HEAD}uniform sampler2D uS;
 ${PALETTE}
-void main() { vec2 s = texture(uS, gl_FragCoord.xy / uRes).rg; o = vec4(pal(0.04 + s.y * 2.6), 1.0); }`,
+${BLEND}
+float v(ivec2 p) { return texelFetch(uS, p, 0).g; }
+void main() {
+  float res;
+  BILERP(v, gl_FragCoord.xy / uRes * vec2(textureSize(uS, 0)))
+  o = vec4(pal(0.04 + res * 2.6), 1.0);
+}`,
   },
 }
 
@@ -237,7 +270,7 @@ function gpuSim(kind: Kind, canvas: HTMLCanvasElement, c: [number, number]) {
       }
     },
     draw() {
-      const [cw, ch] = fitCanvas(canvas, 900, 1.5)
+      const [cw, ch] = fitCanvas(canvas, 1800, 2)
       const off = gl.canvas as HTMLCanvasElement
       if (off.width < cw || off.height < ch) {
         off.width = Math.max(off.width, cw)

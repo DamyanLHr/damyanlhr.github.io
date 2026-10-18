@@ -17,7 +17,7 @@ export function Gallery({ navigate }: { navigate: ThemeProps['navigate'] }) {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   return (
     <>
-      <div className="j-band j-band-tall">
+      <div className="j-band j-band-gallery">
         <p className="j-band-note">
           <span className="j-band-name">{info.name}</span>
           <span className="j-band-how j-how-pointer">{info.pointer}</span>
