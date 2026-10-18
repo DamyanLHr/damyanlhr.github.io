@@ -16,8 +16,16 @@ import { easeInOut, easeOut, travelPose, type Pose } from './travel'
 export type Follow = 'off' | 'window' | HTMLElement
 
 export interface Stage {
-  /** Move the set to a page's pose. `travel: false` cuts (resize, first paint). */
-  setPose: (pose: Pose, opts?: { travel?: boolean }) => void
+  /**
+   * Move the set to a page's pose. `travel: false` cuts (resize, first paint);
+   * `preview` is the quicker trip a pointed-at card asks for.
+   */
+  setPose: (pose: Pose, opts?: { travel?: boolean; preview?: boolean }) => void
+  /**
+   * Draw only the top `px` CSS pixels once the set has landed (a band page,
+   * where nothing below the band shows), or everything (null).
+   */
+  setClip: (px: number | null) => void
   /**
    * The set's lean toward the pointer: everywhere with ambient drift and a
    * hold-to-lean-in (the home hero), or only while the pointer is over one
@@ -40,6 +48,8 @@ export interface Stage {
 }
 
 const TRAVEL_MS = 950
+/** A card's preview is frequent and small, so it travels quicker. */
+const PREVIEW_MS = 650
 const CONDENSE_MS = 1100
 const DEVELOP_MS = 600
 const DISSOLVE_MS = 300
@@ -56,7 +66,9 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
   const animated = glr !== null && !reduced
 
   let shown: Pose | null = null
-  let trip: { from: Pose; to: Pose; t0: number } | null = null
+  let trip: { from: Pose; to: Pose; t0: number; ms: number; ease: (k: number) => number } | null =
+    null
+  let clip: number | null = null
   let condenseT0: number | null = null
   let follow: Follow = 'off'
   const cur = { dre: 0, dim: 0, spanMul: 1 }
@@ -95,10 +107,25 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
   const draw = (maxIter: number) => {
     const v = current()
     if (!v || !shown) return
-    canvas.style.opacity = String(shown.dim)
     if (glr) {
-      glr.render(v, { ...fx, maxIter: Math.min(maxIter, fx.maxIter ?? maxIter) }, { scale })
+      // The dim is drawn into the picture rather than set as the canvas's
+      // opacity: written every frame of a trip, an opacity would restart its
+      // CSS transition each time and always trail the set.
+      const rows =
+        clip !== null && !trip
+          ? clip * (canvas.height / Math.max(1, canvas.clientHeight))
+          : undefined
+      glr.render(
+        v,
+        { ...fx, maxIter: Math.min(maxIter, fx.maxIter ?? maxIter) },
+        { scale },
+        {
+          dim: shown.dim,
+          clip: rows,
+        },
+      )
     } else {
+      canvas.style.opacity = String(shown.dim)
       renderJulia(
         canvas,
         { re: v.re, im: v.im, span: v.span, centerX: v.cx, centerY: v.cy, angle: v.angle, maxIter },
@@ -133,11 +160,14 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
       slowFrames = t - lastFrame > SLOW_FRAME_MS ? slowFrames + 1 : Math.max(0, slowFrames - 1)
       if (slowFrames > 30) scale = 0.75
     }
+    // seconds since the last frame, in sixtieths, so the follow eases at the
+    // same pace on a 60Hz and a 120Hz screen
+    const steps = lastFrame ? Math.min(6, ((t - lastFrame) / 1000) * 60) : 1
     lastFrame = t
 
     if (trip) {
-      const k = Math.min(1, Math.max(0, (t - trip.t0) / TRAVEL_MS))
-      shown = travelPose(trip.from, trip.to, easeInOut(k))
+      const k = Math.min(1, Math.max(0, (t - trip.t0) / trip.ms))
+      shown = travelPose(trip.from, trip.to, trip.ease(k))
       if (k >= 1) {
         shown = trip.to
         trip = null
@@ -173,9 +203,10 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
       drift.dre = 0
       drift.dim = 0
     }
-    cur.dre += (tgt.dre + drift.dre - cur.dre) * 0.14
-    cur.dim += (tgt.dim + drift.dim - cur.dim) * 0.14
-    cur.spanMul += (tgt.spanMul - cur.spanMul) * 0.14
+    const ease = 1 - Math.pow(1 - 0.14, steps)
+    cur.dre += (tgt.dre + drift.dre - cur.dre) * ease
+    cur.dim += (tgt.dim + drift.dim - cur.dim) * ease
+    cur.spanMul += (tgt.spanMul - cur.spanMul) * ease
     if (!followSettled()) busy = true
 
     draw(maxIter)
@@ -269,11 +300,25 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
       } else {
         // An effect dissolves before the set sets off, so it never travels
         // half developed.
-        const wait =
-          develop && develop.to === 0 ? Math.max(0, develop.t0 + develop.ms - performance.now()) : 0
-        trip = { from: shown!, to: pose, t0: performance.now() + wait }
+        const now = performance.now()
+        const wait = develop && develop.to === 0 ? Math.max(0, develop.t0 + develop.ms - now) : 0
+        // A set already on its way keeps its speed: the new trip leaves at
+        // once instead of easing in from a standstill again.
+        const moving = trip !== null && now >= trip.t0 && now < trip.t0 + trip.ms
+        trip = {
+          from: shown!,
+          to: pose,
+          t0: now + wait,
+          ms: opts.preview ? PREVIEW_MS : TRAVEL_MS,
+          ease: moving ? easeOut : easeInOut,
+        }
       }
       wake()
+    },
+    setClip(px) {
+      if (clip === px) return
+      clip = px
+      if (!running && glr) draw(fx.maxIter ?? MAX_ITER)
     },
     setFollow(next) {
       follow = next
@@ -315,7 +360,7 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     },
     view: current,
     eta() {
-      return trip ? Math.max(0, trip.t0 + TRAVEL_MS - performance.now()) : 0
+      return trip ? Math.max(0, trip.t0 + trip.ms - performance.now()) : 0
     },
     dispose() {
       disposed = true

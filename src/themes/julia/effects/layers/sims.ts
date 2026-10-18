@@ -1,7 +1,8 @@
 import { ember } from '../../fractal'
-import { PALETTE, VERT } from '../../fractal-gl'
+import { PALETTE } from '../../fractal-gl'
+import { buildProgram } from '../effects-gl'
 import { copyTo, sharedContext } from '../thumbs'
-import { fitCanvas, type LayerFactory } from './layer'
+import { fitCanvas, pacer, type LayerFactory } from './layer'
 
 // The three simulations: every pixel a double pendulum (after 2swap's
 // swaptube, src/CUDA/pendulum_fractal.cu), Conway's Game of Life seeded from
@@ -162,38 +163,29 @@ void main() {
 
 interface Prog {
   p: WebGLProgram
+  ready: () => boolean
   u: (name: string) => WebGLUniformLocation | null
 }
 
 const programs = new WeakMap<WebGL2RenderingContext, Map<string, Prog | null>>()
 
+// Compiled without waiting (see buildProgram): the first gallery tile of a
+// simulation would otherwise stall the page while three programs compile.
 function program(gl: WebGL2RenderingContext, src: string): Prog | null {
   let cache = programs.get(gl)
   if (!cache) programs.set(gl, (cache = new Map()))
   if (cache.has(src)) return cache.get(src)!
-  const sh = (type: number, s: string) => {
-    const x = gl.createShader(type)!
-    gl.shaderSource(x, s)
-    gl.compileShader(x)
-    return gl.getShaderParameter(x, gl.COMPILE_STATUS) ? x : null
-  }
-  const vs = sh(gl.VERTEX_SHADER, VERT)
-  const fs = sh(gl.FRAGMENT_SHADER, src)
-  const p = gl.createProgram()
+  const built = buildProgram(gl, src, true)
   let out: Prog | null = null
-  if (vs && fs && p) {
-    gl.attachShader(p, vs)
-    gl.attachShader(p, fs)
-    gl.linkProgram(p)
-    if (gl.getProgramParameter(p, gl.LINK_STATUS)) {
-      const locs = new Map<string, WebGLUniformLocation | null>()
-      out = {
-        p,
-        u: (n) => {
-          if (!locs.has(n)) locs.set(n, gl.getUniformLocation(p, n))
-          return locs.get(n)!
-        },
-      }
+  if (built) {
+    const locs = new Map<string, WebGLUniformLocation | null>()
+    out = {
+      p: built.p,
+      ready: built.ready,
+      u: (n) => {
+        if (!locs.has(n)) locs.set(n, gl.getUniformLocation(built.p, n))
+        return locs.get(n)!
+      },
     }
   }
   cache.set(src, out)
@@ -250,10 +242,20 @@ function gpuSim(kind: Kind, canvas: HTMLCanvasElement, c: [number, number]) {
     pass(init, a.fb, null)
     frame = 0
   }
-  reset()
+  // nothing runs until all three programs have compiled
+  let started = false
+  const ready = () => {
+    if (!started && init.ready() && step.ready() && show.ready()) {
+      reset()
+      started = true
+    }
+    return started
+  }
 
   return {
+    ready,
     step(n = 1) {
+      if (!ready()) return
       for (let k = 0; k < n; k++) {
         frame++
         if (spec.every && frame % spec.every) continue
@@ -270,6 +272,7 @@ function gpuSim(kind: Kind, canvas: HTMLCanvasElement, c: [number, number]) {
       }
     },
     draw() {
+      if (!ready()) return
       const [cw, ch] = fitCanvas(canvas, 1800, 2)
       const off = gl.canvas as HTMLCanvasElement
       if (off.width < cw || off.height < ch) {
@@ -283,7 +286,7 @@ function gpuSim(kind: Kind, canvas: HTMLCanvasElement, c: [number, number]) {
       if (kind === 'coral') drop = [fx * w, (1 - fy) * h]
       else {
         seed += 1.3
-        reset()
+        if (started) reset()
       }
     },
     dispose() {
@@ -409,6 +412,7 @@ function cpuSim(kind: Kind, canvas: HTMLCanvasElement, c: [number, number]) {
     drop = null
   }
   return {
+    ready: () => true,
     step(n = 1) {
       for (let k = 0; k < n; k++) {
         frame++
@@ -455,27 +459,42 @@ function simLayer(kind: Kind): LayerFactory {
     const sim = gpuSim(kind, canvas, c) ?? cpuSim(kind, canvas, c)
     if (!sim) return null
     let born = performance.now()
+    // The simulations advance at sixty steps a second whatever the display's
+    // rate, so a 120Hz screen does not run them twice as fast.
+    const steps = pacer(3)
+    let retry = 0
+    const still = () => {
+      cancelAnimationFrame(retry)
+      // the programs may still be compiling; try again next frame
+      if (!sim.ready()) {
+        retry = requestAnimationFrame(still)
+        return
+      }
+      sim.step(kind === 'pendulum' ? 90 : kind === 'life' ? 60 : 50)
+      sim.draw()
+    }
     return {
-      frame(now) {
+      frame(now, dt) {
         // the pendulums settle into noise in half a minute; start them again
         if (kind === 'pendulum' && now - born > 26000) {
           sim.press(0.5, 0.5)
           born = now
         }
-        sim.step()
+        const n = steps(dt)
+        if (n) sim.step(n)
         sim.draw()
         return true
       },
-      still() {
-        sim.step(kind === 'pendulum' ? 90 : kind === 'life' ? 60 : 160)
-        sim.draw()
-      },
+      still,
       press(fx, fy) {
         sim.press(fx, fy)
         born = performance.now()
       },
       resize() {},
-      dispose: () => sim.dispose(),
+      dispose: () => {
+        cancelAnimationFrame(retry)
+        sim.dispose()
+      },
     }
   }
 }

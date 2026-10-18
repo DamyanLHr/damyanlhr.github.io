@@ -66,18 +66,44 @@ describe('the maths behind the new effects', () => {
   it('keeps every bird of the flock between its speed limits', () => {
     const n = 200
     const f: Flock = {
-      x: new Float32Array(n).map(() => Math.random()),
+      x: new Float32Array(n).map(() => Math.random() * 2),
       y: new Float32Array(n).map(() => Math.random()),
       vx: new Float32Array(n).map(() => (Math.random() - 0.5) * 0.02),
       vy: new Float32Array(n).map(() => (Math.random() - 0.5) * 0.02),
     }
     for (let k = 0; k < 50; k++)
-      flockStep(f, (u, v) => Math.min(1, Math.hypot(u - 0.5, v - 0.5)), [0.5, 0.5])
+      flockStep(f, (u, v) => Math.min(1, Math.hypot(u - 0.5, v - 0.5)), [0.5, 0.5], 2)
     for (let i = 0; i < n; i++) {
       const sp = Math.hypot(f.vx[i], f.vy[i])
       expect(sp).toBeLessThanOrEqual(MAX_SPEED * 1.0001)
       expect(sp).toBeGreaterThanOrEqual(MIN_SPEED * 0.9999)
     }
+  })
+
+  it('flies the flock as far in a second at 120Hz as at 60Hz', () => {
+    const run = (hz: number) => {
+      const n = 300
+      // the same flock each time, so only the step length differs
+      let seed = 7
+      const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+      const f: Flock = {
+        x: new Float32Array(n).map(() => 0.3 + rnd() * 1.4),
+        y: new Float32Array(n).map(() => 0.2 + rnd() * 0.6),
+        vx: new Float32Array(n).map(() => (rnd() - 0.5) * 0.004),
+        vy: new Float32Array(n).map(() => (rnd() - 0.5) * 0.004),
+      }
+      const x0 = Float32Array.from(f.x)
+      const y0 = Float32Array.from(f.y)
+      for (let i = 0; i < hz; i++) flockStep(f, () => 0.5, null, 2, 60 / hz)
+      let d = 0
+      for (let i = 0; i < n; i++) d += Math.hypot(f.x[i] - x0[i], f.y[i] - y0[i])
+      return d / n
+    }
+    const at60 = run(60)
+    const at120 = run(120)
+    expect(Math.abs(at120 - at60) / at60).toBeLessThan(0.15)
+    // and calm: under a fifth of a band height a second
+    expect(at60).toBeLessThan(0.2)
   })
 
   it('streams terrain without growing', () => {

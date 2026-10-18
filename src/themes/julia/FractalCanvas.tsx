@@ -72,23 +72,28 @@ export function FractalCanvas({ params, className, live = 'still', hoverHost, gl
       Math.abs(tgt.dim + drift.dim - cur.dim) < 0.0006 &&
       Math.abs(tgt.spanMul - cur.spanMul) < 0.004
 
+    let lastT = 0
     const loop = (t: number) => {
       if (disposed) return
+      // eased per sixtieth of a second, so a 120Hz screen is not twice as quick
+      const ease = 1 - Math.pow(1 - 0.14, lastT ? Math.min(6, ((t - lastT) / 1000) * 60) : 1)
+      lastT = t
       if (live === 'hero' && finePointer) {
         const idle = t - lastInput
         const amp = idle < 4000 ? 1 : Math.max(0, 1 - (idle - 4000) / 1500)
         drift.dre = Math.sin(t * 0.00012) * 0.015 * amp
         drift.dim = Math.cos(t * 0.00009) * 0.015 * amp
       }
-      cur.dre += (tgt.dre + drift.dre - cur.dre) * 0.14
-      cur.dim += (tgt.dim + drift.dim - cur.dim) * 0.14
-      cur.spanMul += (tgt.spanMul - cur.spanMul) * 0.14
+      cur.dre += (tgt.dre + drift.dre - cur.dre) * ease
+      cur.dim += (tgt.dim + drift.dim - cur.dim) * ease
+      cur.spanMul += (tgt.spanMul - cur.spanMul) * ease
       const heroActive = live === 'hero' && finePointer && t - lastInput < 5600
       if (settled() && !heroActive) {
         cur.spanMul = tgt.spanMul
         draw(true)
         sharp = true
         running = false
+        lastT = 0
         return
       }
       sharp = false

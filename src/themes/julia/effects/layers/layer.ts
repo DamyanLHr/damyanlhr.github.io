@@ -85,3 +85,18 @@ export function emberLut(): Uint8Array {
 
 /** Where 0..1 lands in {@link emberLut}. */
 export const lutIndex = (v: number) => Math.max(0, Math.min(LUT_SIZE - 1, (v * LUT_SIZE) | 0)) * 3
+
+/**
+ * How many sixtieth-of-a-second steps a frame of `dt` seconds owes, at most
+ * `max`: the layers step at sixty a second whatever the display's rate, so a
+ * 120Hz screen does not play them twice as fast, and a slow frame catches up.
+ */
+export function pacer(max = 2) {
+  let owed = 0
+  return (dt: number) => {
+    owed = Math.min(max, owed + dt * 60)
+    const n = Math.floor(owed)
+    owed -= n
+    return n
+  }
+}

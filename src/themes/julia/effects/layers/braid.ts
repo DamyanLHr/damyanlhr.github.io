@@ -114,6 +114,9 @@ export const braid: LayerFactory = (canvas) => {
     ctx.fillText('c', ix + 6, iy + Math.max(12, iw * 0.08))
   }
 
+  // the trails gain a point each sixtieth of a second, so they are as long
+  // on a 120Hz display as on a 60Hz one
+  let owed = 0
   const advance = (dt: number) => {
     if (steer) c = steer
     else {
@@ -125,8 +128,12 @@ export const braid: LayerFactory = (canvas) => {
       const b = bz[which]
       c = [b[0] + 0.32 * Math.cos(phase), b[1] + 0.32 * Math.sin(phase)]
     }
+    owed = Math.min(2, owed + dt * 60)
+    const mark = owed >= 1
+    if (mark) owed -= 1
     for (let k = 0; k < 5; k++) {
       rs[k] = quinticRoot(c, rs[k])
+      if (!mark) continue
       trails[k].push(rs[k])
       if (trails[k].length > TRAIL) trails[k].shift()
     }

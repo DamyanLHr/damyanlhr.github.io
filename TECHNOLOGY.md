@@ -186,6 +186,25 @@ prints julia's CV through its print stylesheet into `public/cv.pdf`, sized to fi
 A4 page (the print root font sets the whole scale; check `pdfinfo` says one page after a
 CV change). Both are run by hand and committed, like the theme previews.
 
+**Motion budget (julia).** Nothing heavy may land while the set travels, and nothing
+may move faster on a faster screen:
+- The cards' shared WebGL context is warmed in idle time on the first page, and its
+  programs (and the simulations') compile with `KHR_parallel_shader_compile`:
+  `buildProgram` never asks for a compile status until the driver says it is done, and
+  a surface simply skips frames until `ready()`.
+- Card stills go through `effects/idle-queue.ts`: one task per idle moment with room
+  in it, held until the stage's `eta()` has passed.
+- ResizeObservers act only on a real change of size (they fire once on observe).
+- A card's effect is built once; `EffectHandle.setMode` switches it between still,
+  pointer and autopilot without rebuilding, so leaving a card keeps its last frame.
+- Everything that moves is paced by `dt`: layers step at sixty a second through
+  `pacer()`, eases use `1 - (1 - r)^(dt·60)`.
+- The edge under the band is `.j-stage-curtain`, the page's ground moved by a transform
+  transition, not an animated mask; once the set has landed the stage scissors its
+  draw to the band (`Stage.setClip`).
+- The set's dim is drawn in the shader (`uDim`), not written to the canvas's opacity
+  every frame.
+
 **Layer resolution.** The layer effects size their canvas with `fitCanvas(canvas, cap,
 dprCap)`; caps sit near band width (1100 to 1800 px) so the band is not stretched. CPU
 layers colour pixels through `emberLut()` rather than `ember()`, which allocates. The

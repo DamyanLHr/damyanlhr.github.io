@@ -23,6 +23,8 @@ interface ReelState {
   open: boolean
   shown: number
   spin: { to: number; ms: number } | null
+  /** the strip has stopped on the spin's winner */
+  spun?: () => void
   instant: boolean
 }
 
@@ -89,9 +91,17 @@ export function useReel(m: ReelState, count: number, blur = true) {
       )
     }
     const to = m.spin.to
-    if (run) run.onfinish = () => moveTo(to, 0)
-    else moveTo(to, 0)
-  }, [m.spin, count, blur, moveTo])
+    const { spun } = m
+    if (run) {
+      run.onfinish = () => {
+        moveTo(to, 0)
+        spun?.()
+      }
+    } else {
+      moveTo(to, 0)
+      spun?.()
+    }
+  }, [m.spin, m.spun, count, blur, moveTo])
 
   // a resize changes the cell height; keep the same entry centred
   useEffect(() => {

@@ -17,9 +17,22 @@ export function sharedGl() {
   if (!shared) {
     const canvas = document.createElement('canvas')
     const forceCpu = new URLSearchParams(window.location.search).has('cpufractal')
-    shared = { canvas, gl: forceCpu ? null : createEffectGl(canvas, { preserve: true }) }
+    shared = {
+      canvas,
+      gl: forceCpu ? null : createEffectGl(canvas, { preserve: true, parallel: true }),
+    }
   }
   return shared
+}
+
+/**
+ * Creates the shared context ahead of need, so its shader compiles while the
+ * visitor is still reading the page they are on rather than in the first
+ * frames of the projects page.
+ */
+export function warmShared() {
+  const { gl } = sharedGl()
+  gl?.ready()
 }
 
 /** The shared context itself, for the simulations; null without WebGL. */
@@ -81,7 +94,11 @@ export function cardSurface(
       canvas.width = width
       canvas.height = height
     }
-    gl.render(v, fx ?? { mode: 'plain' }, { width, height })
+    // still compiling: keep what the card shows and try again next frame
+    if (!gl.render(v, fx ?? { mode: 'plain' }, { width, height })) {
+      request()
+      return
+    }
     copyTo(canvas, width, height)
   }
   const request = () => {

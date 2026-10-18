@@ -39,7 +39,7 @@ const FRAG = `#version 300 es
 precision highp float;
 out vec4 o;
 uniform vec2 uRes, uC, uAt, uOff, uP, uQ;
-uniform float uSpan, uAngle, uMaxF, uT, uRipple, uAmount;
+uniform float uSpan, uAngle, uMaxF, uT, uRipple, uAmount, uDim;
 uniform int uMode;
 uniform vec2 uCyc[8];
 uniform int uCycN;
@@ -200,7 +200,8 @@ void main() {
   }
   if (uMode >= 7) col = another(p);
   // uAmount develops the effect out of the plain set: 0 is the set alone.
-  o = vec4(mix(base, col, uAmount), 1.0);
+  // uDim turns the whole picture down toward the page's ground.
+  o = vec4(mix(vec3(10.0, 11.0, 13.0) / 255.0, mix(base, col, uAmount), uDim), 1.0);
 }`
 
 export interface EffectState {
@@ -221,14 +222,25 @@ export interface EffectState {
 export interface EffectGl {
   /**
    * Draws at the canvas's own size times `scale` (a resolution cut for slow
-   * devices), or at an explicit pixel size for an offscreen canvas.
+   * devices), or at an explicit pixel size for an offscreen canvas. False when
+   * nothing was drawn because the program is still compiling.
    */
   render: (
     view: PlaneView,
     state: EffectState,
     size?: { width: number; height: number } | { scale: number },
-  ) => void
+    extra?: DrawExtra,
+  ) => boolean
+  /** Whether the program has finished compiling, so a render will draw. */
+  ready: () => boolean
   dispose: () => void
+}
+
+export interface DrawExtra {
+  /** how far the picture is turned down toward the ground, 0..1 (default 1, none) */
+  dim?: number
+  /** draw only this many device pixels from the top; the rest is left empty */
+  clip?: number
 }
 
 const NAMES = [
@@ -244,6 +256,7 @@ const NAMES = [
   'uT',
   'uRipple',
   'uAmount',
+  'uDim',
   'uMode',
   'uCyc',
   'uCycN',
@@ -251,36 +264,30 @@ const NAMES = [
 
 export function createEffectGl(
   canvas: HTMLCanvasElement,
-  opts: { preserve?: boolean } = {},
+  opts: { preserve?: boolean; parallel?: boolean } = {},
 ): EffectGl | null {
   if (!probeGl()) return null
   // An offscreen canvas that is copied from after drawing must keep its pixels.
   const gl = canvas.getContext('webgl2', { ...CTX_OPTS, preserveDrawingBuffer: !!opts.preserve })
   if (!gl) return null
-  const compile = (type: number, src: string) => {
-    const sh = gl.createShader(type)
-    if (!sh) return null
-    gl.shaderSource(sh, src)
-    gl.compileShader(sh)
-    return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null
+  const program = buildProgram(gl, FRAG, !!opts.parallel)
+  if (!program) return null
+  let u: Record<(typeof NAMES)[number], WebGLUniformLocation | null> | null = null
+  const ready = () => {
+    if (u) return true
+    if (!program.ready()) return false
+    u = Object.fromEntries(NAMES.map((n) => [n, gl.getUniformLocation(program.p, n)])) as Record<
+      (typeof NAMES)[number],
+      WebGLUniformLocation | null
+    >
+    return true
   }
-  const vs = compile(gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl.FRAGMENT_SHADER, FRAG)
-  const program = gl.createProgram()
-  if (!vs || !fs || !program) return null
-  gl.attachShader(program, vs)
-  gl.attachShader(program, fs)
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return null
-  gl.useProgram(program)
-  const u = Object.fromEntries(NAMES.map((n) => [n, gl.getUniformLocation(program, n)])) as Record<
-    (typeof NAMES)[number],
-    WebGLUniformLocation | null
-  >
   const cyc = new Float32Array(16)
 
   return {
-    render(v, s, size) {
+    ready,
+    render(v, s, size, extra) {
+      if (!ready() || !u) return false
       let w: number
       let h: number
       if (size && 'width' in size) {
@@ -291,7 +298,7 @@ export function createEffectGl(
         w = Math.round(canvas.clientWidth * dpr)
         h = Math.round(canvas.clientHeight * dpr)
       }
-      if (!w || !h) return
+      if (!w || !h) return false
       if (size && 'width' in size) {
         // An offscreen canvas shared by many sizes only ever grows; the frame
         // goes in its bottom-left corner, where `copyTo` reads it from.
@@ -304,9 +311,17 @@ export function createEffectGl(
         canvas.height = h
       }
       // the context may be shared with the simulations, so claim it each time
-      gl.useProgram(program)
+      gl.useProgram(program.p)
       gl.bindFramebuffer(gl.FRAMEBUFFER, null)
       gl.viewport(0, 0, w, h)
+      // Only the band shows on a band page; the rows under it are not drawn.
+      const clip = extra?.clip
+      if (clip !== undefined && clip < h) {
+        gl.enable(gl.SCISSOR_TEST)
+        gl.scissor(0, Math.max(0, h - Math.ceil(clip)), w, Math.ceil(clip))
+        gl.clearColor(0, 0, 0, 0)
+        gl.clear(gl.COLOR_BUFFER_BIT)
+      } else gl.disable(gl.SCISSOR_TEST)
       gl.uniform2f(u.uRes, w, h)
       gl.uniform2f(u.uC, v.re, v.im)
       gl.uniform2f(u.uAt, v.cx, v.cy)
@@ -319,6 +334,7 @@ export function createEffectGl(
       gl.uniform1f(u.uT, s.t ?? 0)
       gl.uniform1f(u.uRipple, s.ripple ?? -2)
       gl.uniform1f(u.uAmount, s.amount ?? 1)
+      gl.uniform1f(u.uDim, extra?.dim ?? 1)
       gl.uniform1i(u.uMode, GL_MODES[s.mode])
       const n = Math.min(8, s.cycle?.length ?? 0)
       cyc.fill(0)
@@ -326,9 +342,50 @@ export function createEffectGl(
       gl.uniform2fv(u.uCyc, cyc)
       gl.uniform1i(u.uCycN, n)
       gl.drawArrays(gl.TRIANGLES, 0, 3)
+      gl.disable(gl.SCISSOR_TEST)
+      return true
     },
     dispose() {
       gl.getExtension('WEBGL_lose_context')?.loseContext()
+    },
+  }
+}
+
+/**
+ * Compiles and links a program. With `parallel`, and the driver's
+ * KHR_parallel_shader_compile, nothing waits on the compile: asking for a
+ * shader's status straight after compiling it is what makes the main thread
+ * stall until the driver is done (tens to hundreds of milliseconds for the
+ * effects shader on some machines). `ready()` polls instead, so callers can
+ * skip a frame and try again.
+ */
+export function buildProgram(gl: WebGL2RenderingContext, frag: string, parallel: boolean) {
+  const vs = gl.createShader(gl.VERTEX_SHADER)
+  const fs = gl.createShader(gl.FRAGMENT_SHADER)
+  const p = gl.createProgram()
+  if (!vs || !fs || !p) return null
+  gl.shaderSource(vs, VERT)
+  gl.shaderSource(fs, frag)
+  gl.compileShader(vs)
+  gl.compileShader(fs)
+  gl.attachShader(p, vs)
+  gl.attachShader(p, fs)
+  gl.linkProgram(p)
+  const ext = parallel ? gl.getExtension('KHR_parallel_shader_compile') : null
+  let state: 'pending' | 'ok' | 'failed' = 'pending'
+  const settle = () => {
+    state = gl.getProgramParameter(p, gl.LINK_STATUS) ? 'ok' : 'failed'
+    return state === 'ok'
+  }
+  if (!ext && !settle()) return null
+  return {
+    p,
+    ready() {
+      if (state === 'pending') {
+        if (!gl.getProgramParameter(p, ext!.COMPLETION_STATUS_KHR)) return false
+        settle()
+      }
+      return state === 'ok'
     },
   }
 }

@@ -369,13 +369,10 @@ export function ProjectPage({
   content,
   slug,
   navigate,
-  late,
 }: {
   content: SiteContent
   slug: string
   navigate: Nav
-  /** arriving from the projects page: the text waits for the set to arrive */
-  late: boolean
 }) {
   const project = content.projects.find((p) => p.slug === slug)
   if (!project) return <NotFound path={`/projects/${slug}`} navigate={navigate} />
@@ -396,7 +393,7 @@ export function ProjectPage({
           <span className="j-band-how j-how-touch">{note.touch}</span>
         </p>
       </div>
-      <section className={late ? 'j-project j-enter j-enter-late' : 'j-project j-enter'}>
+      <section className="j-project j-enter">
         <div className="j-rail">
           <InternalLink to="/projects" navigate={navigate} className="j-back">
             &larr; all projects

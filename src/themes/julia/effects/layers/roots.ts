@@ -1,5 +1,5 @@
 import { ember } from '../../fractal'
-import { fadeToGround, fitCanvas, type LayerFactory } from './layer'
+import { fadeToGround, fitCanvas, pacer, type LayerFactory } from './layer'
 
 // Root bloom, after 2swap's swaptube (src/CUDA/root_fractal.cu): every
 // polynomial of degree N-1 whose coefficients are each one of two numbers,
@@ -121,11 +121,12 @@ export const roots: LayerFactory = (canvas, _view, opts) => {
     ctx.putImageData(img, 0, 0)
   }
 
+  const steps = pacer()
   return {
-    frame(now) {
+    frame(now, dt) {
       t = now / 1000
       if (opts.autopilot) turn = 0.6 * Math.sin(t * 0.3)
-      step(2, 0.8)
+      for (let n = steps(dt); n > 0; n--) step(2, 0.8)
       return true
     },
     still() {

@@ -558,7 +558,22 @@
   border-radius: 8px;
   box-shadow: 0 0 0 999px rgba(244, 242, 236, 0.32);
   pointer-events: none;
-  transition: box-shadow 220ms ease;
+}
+
+/* The landing glow is its own layer whose opacity fades in: animating the
+   box-shadow itself would repaint the whole 999px dimmer every frame. */
+.lf-theme-slot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 2px var(--lf-accent-warm);
+  opacity: 0;
+  transition: opacity 220ms var(--lf-ease);
+}
+
+.lf-theme-panel[data-landed] .lf-theme-slot::after {
+  opacity: 1;
 }
 
 .lf-theme-tag {
@@ -576,12 +591,6 @@
   font-size: 0.74rem;
   font-weight: 500;
   letter-spacing: 0.03em;
-}
-
-.lf-theme-panel[data-landed] .lf-theme-slot {
-  box-shadow:
-    0 0 0 2px var(--lf-accent-warm),
-    0 0 0 999px rgba(244, 242, 236, 0.32);
 }
 
 .lf-theme-panel[data-landed] .lf-theme-tag i {

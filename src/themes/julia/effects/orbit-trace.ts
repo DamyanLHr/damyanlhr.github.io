@@ -7,8 +7,8 @@ import { orbit, toPlane, toScreen, type PlaneView } from './view'
 // on touch there is no hovering, and a finger would hide it anyway.
 
 export interface OrbitTrace {
-  /** Trace from a client-space point over `box`. */
-  trace: (x: number, y: number, box: DOMRect) => void
+  /** Trace from a client-space point over `box`; `whole` draws it at once (reduced motion). */
+  trace: (x: number, y: number, box: DOMRect, whole?: boolean) => void
   clear: () => void
   dispose: () => void
 }
@@ -22,6 +22,7 @@ export function createOrbitTrace(
   let pts: [number, number][] = []
   let age = 0
   let raf = 0
+  let last = 0
 
   const size = () => {
     const d = Math.min(window.devicePixelRatio || 1, 2)
@@ -42,7 +43,7 @@ export function createOrbitTrace(
     for (let i = 1; i < n; i++) {
       const a = toScreen(pts[i - 1], canvas.width, canvas.height, v)
       const b = toScreen(pts[i], canvas.width, canvas.height, v)
-      // the newest steps are the brightest, so the path reads in order
+      // the first steps are the brightest, so the path reads from where it starts
       const f = 1 - i / (pts.length + 4)
       ctx.strokeStyle = `rgba(255,${120 + 80 * f},${40 + 60 * f},${0.16 + 0.5 * f})`
       ctx.lineWidth = d
@@ -57,17 +58,25 @@ export function createOrbitTrace(
     }
   }
 
-  // Drawn out a step and a half per frame, so the eye can follow it.
-  const tick = () => {
-    age += 1.6
+  // Drawn out about a hundred steps a second, so the eye can follow it, at
+  // the same pace on any display.
+  const tick = (t: number) => {
+    age += last ? Math.min(0.1, (t - last) / 1000) * 96 : 1.6
+    last = t
     render()
     raf = age < pts.length + 2 ? requestAnimationFrame(tick) : 0
+    if (!raf) last = 0
   }
 
   return {
-    trace(x, y, box) {
+    trace(x, y, box, whole = false) {
       const v = getView()
       pts = orbit(toPlane(x, y, box, v), v.re, v.im)
+      if (whole) {
+        age = pts.length + 2
+        render()
+        return
+      }
       age = Math.min(age, 3)
       if (!raf) raf = requestAnimationFrame(tick)
     },
@@ -75,6 +84,7 @@ export function createOrbitTrace(
       pts = []
       cancelAnimationFrame(raf)
       raf = 0
+      last = 0
       ctx.clearRect(0, 0, canvas.width, canvas.height)
     },
     dispose() {

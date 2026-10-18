@@ -145,6 +145,9 @@ export function useThemeMenu(menu: ThemeMenu, options: ThemeMenuOptions = {}) {
   const rollTimers = useRef<number[]>([])
   /** Item to focus once the panel has rendered (keyboard opening). */
   const pendingFocus = useRef<number | null>(null)
+  /** Lands a running spin: called when the theme's strip has actually stopped. */
+  const landSpin = useRef<(() => void) | null>(null)
+  const spun = useCallback(() => landSpin.current?.(), [])
 
   const clearRoll = useCallback(() => {
     for (const t of rollTimers.current) window.clearTimeout(t)
@@ -177,43 +180,54 @@ export function useThemeMenu(menu: ThemeMenu, options: ThemeMenuOptions = {}) {
     [clearRoll],
   )
 
-  const roll = useCallback(() => {
-    const winner = pickRandom(entries, activeId)
-    if (!winner) return
-    const to = entries.findIndex((e) => e.id === winner.id)
-    const from = entries.findIndex((e) => e.id === activeId)
-    setRolling(true)
-    setStatus(`Picking a theme at random`)
+  const roll = useCallback(
+    (fromKeyboard = false) => {
+      const winner = pickRandom(entries, activeId)
+      if (!winner) return
+      const to = entries.findIndex((e) => e.id === winner.id)
+      const from = entries.findIndex((e) => e.id === activeId)
+      setRolling(true)
+      setStatus(`Picking a theme at random`)
 
-    const land = () => {
-      setHighlight(to)
-      setLanded(true)
-      setStatus(`Switching to ${winner.name}`)
-      rollTimers.current.push(window.setTimeout(() => pick(winner.id), ROULETTE_HOLD_MS))
-    }
+      let landed = false
+      const land = () => {
+        if (landed) return
+        landed = true
+        landSpin.current = null
+        setHighlight(to)
+        setLanded(true)
+        setStatus(`Switching to ${winner.name}`)
+        rollTimers.current.push(window.setTimeout(() => pick(winner.id), ROULETTE_HOLD_MS))
+      }
 
-    if (reducedMotion()) {
-      land()
-      return
-    }
-    if (reel) {
-      // the theme spins its strip for SPIN_MS; the list waits for the landing
-      setSpin({ to, ms: SPIN_MS })
-      rollTimers.current.push(window.setTimeout(land, SPIN_MS))
-      return
-    }
-    let at = 0
-    const steps = rouletteSteps(entries.length, from, to)
-    steps.forEach((s, k) => {
-      rollTimers.current.push(
-        window.setTimeout(() => {
-          if (k === steps.length - 1) land()
-          else setHighlight(s.index)
-        }, at),
-      )
-      at += s.ms
-    })
-  }, [entries, activeId, pick, reel])
+      // keyboard actions never animate, and reduced motion only shows the result
+      if (reducedMotion() || fromKeyboard) {
+        land()
+        return
+      }
+      if (reel) {
+        // The theme spins its strip for SPIN_MS and lands the list when the
+        // strip has stopped (spun), so the highlight never arrives early on a
+        // frame that came late. The timer is only a backstop.
+        landSpin.current = land
+        setSpin({ to, ms: SPIN_MS })
+        rollTimers.current.push(window.setTimeout(land, SPIN_MS + 500))
+        return
+      }
+      let at = 0
+      const steps = rouletteSteps(entries.length, from, to)
+      steps.forEach((s, k) => {
+        rollTimers.current.push(
+          window.setTimeout(() => {
+            if (k === steps.length - 1) land()
+            else setHighlight(s.index)
+          }, at),
+        )
+        at += s.ms
+      })
+    },
+    [entries, activeId, pick, reel],
+  )
 
   // outside press and Escape close; leaving focus closes
   useEffect(() => {
@@ -314,7 +328,8 @@ export function useThemeMenu(menu: ThemeMenu, options: ThemeMenuOptions = {}) {
         else show()
         return
       }
-      roll()
+      // keyboard activation (Enter/Space) arrives as a click with no pointer
+      roll(e.detail === 0)
     },
     onKeyDown: (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -373,7 +388,10 @@ export function useThemeMenu(menu: ThemeMenu, options: ThemeMenuOptions = {}) {
       'data-active': entry.id === activeId || undefined,
       'data-shown': shown === i || undefined,
       onPointerEnter: (e: ReactPointerEvent) => {
-        if (e.pointerType === 'mouse' && !rolling) setHover(i)
+        if (e.pointerType !== 'mouse' || rolling) return
+        // the mouse is back: its moves slide again, even after a keyboard open
+        setInstant(false)
+        setHover(i)
       },
       onFocus: () => {
         if (!rolling) setHover(i)
@@ -395,6 +413,7 @@ export function useThemeMenu(menu: ThemeMenu, options: ThemeMenuOptions = {}) {
     highlight,
     shown,
     spin,
+    spun,
     landed,
     instant,
     status,

@@ -588,6 +588,12 @@ under Projects, and the improvements that need nothing from him; then
       on one A4 page; the gallery's band takes most of the screen; the layer effects
       and simulations render near the band's own resolution, the simulations blending
       their cells instead of stretching them.
+- [x] **`/review-animations`.** Opening Projects no longer stalls: the card renderer
+      compiles off the main thread ahead of time, stills wait for the set to land and
+      run once each, and the band's edge moves on the compositor. The murmuration flies
+      calmer, evenly in both directions, and every effect keeps its pace on 120Hz
+      screens. Hovering a card no longer restarts it; reduced motion no longer
+      swallows the wheel on the dive; keyboard spins of the theme reel land at once.
 - **GATE — "gallery approved"**, after `/review-animations`, then merge to main.
 
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*

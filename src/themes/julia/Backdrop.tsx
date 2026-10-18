@@ -4,9 +4,11 @@ import type { PlateEffect, SiteContent } from '../../content/types'
 import { effectConstant, effectFor, ROUTE_C } from './fractal'
 import { fitExtent, fitToBox } from './fit'
 import { attachEffect } from './effects/controller'
+import { enqueue, holdUntil } from './effects/idle-queue'
 import { createOrbitTrace, type OrbitTrace } from './effects/orbit-trace'
 import { EFFECT_INFO } from './effects/registry'
 import { stageSurface } from './effects/stage-surface'
+import { warmShared } from './effects/thumbs'
 import { constantForEffect } from './effects/view'
 import { GALLERY_SLUG, galleryEffect, useHash } from './gallery-slug'
 import { createStage, type Stage } from './stage'
@@ -75,6 +77,7 @@ export function Backdrop({
     canvas: HTMLCanvasElement
     layer: HTMLCanvasElement
     trace: OrbitTrace | null
+    curtain: HTMLDivElement
   } | null>(null)
   const kind = kindFor(route, content)
   const project =
@@ -103,17 +106,25 @@ export function Backdrop({
     layer.className = 'j-stage-layer'
     const overlay = document.createElement('canvas')
     overlay.className = 'j-stage-trace'
-    host.current?.append(canvas, layer, overlay)
+    // the page's ground, drawn over everything under the band (see edge())
+    const curtain = document.createElement('div')
+    curtain.className = 'j-stage-curtain'
+    host.current?.append(canvas, layer, overlay, curtain)
     const stage = createStage(canvas)
     const trace = createOrbitTrace(overlay, () => stage.view() ?? FALLBACK_VIEW)
-    parts.current = { stage, canvas, layer, trace }
+    parts.current = { stage, canvas, layer, trace, curtain }
+    // The cards' renderer compiles its shader while the first page is read,
+    // not in the first frames of the projects page.
+    const warm = window.setTimeout(() => enqueue(warmShared), 1500)
     return () => {
+      window.clearTimeout(warm)
       stage.dispose()
       trace?.dispose()
       parts.current = null
       canvas.remove()
       layer.remove()
       overlay.remove()
+      curtain.remove()
     }
   }, [])
 
@@ -121,7 +132,7 @@ export function Backdrop({
   useEffect(() => {
     const p = parts.current
     if (!p) return
-    const { stage, canvas, layer, trace } = p
+    const { stage, canvas, layer, trace, curtain } = p
     const mq = window.matchMedia(NARROW)
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const pose = () =>
@@ -129,22 +140,27 @@ export function Backdrop({
       poseFor(kind === 'gallery' ? 'project' : kind, { re, im }, mq.matches)
 
     stage.setPose(pose())
+    // stills and other deferrable work wait until the set has landed
+    holdUntil(performance.now() + stage.eta())
     const band = document.querySelector<HTMLElement>('.j-band')
     // Nothing the stage draws may show below the band: a dive or a field line
-    // that reaches past it fades out just under the band's edge instead.
-    const edge = () => {
-      const el = host.current
-      if (!el) return
-      if (!banded || !band) el.style.removeProperty('--j-band-end')
-      else {
-        const b = band.getBoundingClientRect()
-        el.style.setProperty(
-          '--j-band-end',
-          `${b.bottom - canvas.getBoundingClientRect().top + 48}px`,
-        )
+    // that reaches past it fades out just under the band's edge instead. The
+    // curtain is the page's ground, moved by a transform (the compositor's
+    // work, unlike the mask it replaces), and the stage stops drawing the rows
+    // it covers.
+    const edge = (moving: boolean) => {
+      let end: number | null = null
+      if (banded && band)
+        end = band.getBoundingClientRect().bottom - canvas.getBoundingClientRect().top + 48
+      stage.setClip(end)
+      if (!moving) curtain.style.transition = 'none'
+      curtain.style.transform = end === null ? '' : `translateY(calc(${end}px - 4rem))`
+      if (!moving) {
+        void curtain.offsetHeight
+        curtain.style.transition = ''
       }
     }
-    edge()
+    edge(true)
     stage.setFollow(kind === 'home' ? 'window' : kind === 'projects' && band ? band : 'off')
 
     let detach: (() => void) | null = null
@@ -158,7 +174,7 @@ export function Backdrop({
         autopilot: false,
         greet: true,
         wheel: true,
-      })
+      }).detach
     }
     // Travel first, then develop: the effect starts once the set has arrived.
     timer = window.setTimeout(attach, stage.eta())
@@ -168,7 +184,7 @@ export function Backdrop({
       window.clearTimeout(resizeTimer)
       resizeTimer = window.setTimeout(() => {
         stage.setPose(pose(), { travel: false })
-        edge()
+        edge(false)
         if (detach) attach()
       }, 200)
     }
@@ -182,7 +198,7 @@ export function Backdrop({
         ? (to) => {
             const target = to ?? ROUTE_C.projects
             const next = bandPose(target, canvas)
-            if (next) stage.setPose(next)
+            if (next) stage.setPose(next, { preview: true })
           }
         : null,
     )

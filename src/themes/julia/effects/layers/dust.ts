@@ -1,5 +1,5 @@
 import { createStardust } from '../stardust'
-import { planeAt, type LayerFactory } from './layer'
+import { pacer, planeAt, type LayerFactory } from './layer'
 
 // Stardust as a layer: the inverse-iteration dust from ../stardust.ts, with
 // the pointer scattering it and a tap scattering it harder.
@@ -8,13 +8,14 @@ export const dust: LayerFactory = (canvas, view) => {
   const d = createStardust(canvas, view)
   if (!d) return null
   let pushUntil = 0
+  const steps = pacer()
   return {
-    frame(t) {
+    frame(t, dt) {
       if (pushUntil && t > pushUntil) {
         d.push(null)
         pushUntil = 0
       }
-      d.frame()
+      for (let n = steps(dt); n > 0; n--) d.frame()
       return true
     },
     still() {

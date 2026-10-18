@@ -2,7 +2,8 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import type { PlateEffect } from '../../content/types'
 import { fitExtent, fitToBox } from './fit'
 import { EFFECT_INFO } from './effects/registry'
-import { attachEffect } from './effects/controller'
+import { attachEffect, type CardMode, type EffectHandle } from './effects/controller'
+import { enqueue } from './effects/idle-queue'
 import { cardSurface } from './effects/thumbs'
 import type { PlaneView } from './effects/view'
 
@@ -10,13 +11,6 @@ import type { PlaneView } from './effects/view'
 // of that effect. Under the mouse it comes alive and answers the pointer; on a
 // phone the card nearest the middle of the screen plays itself. Only one card
 // is ever live, and all of them are drawn by one shared renderer.
-
-// Safari has no requestIdleCallback; a short timeout is close enough there.
-const idleSupported = typeof window.requestIdleCallback === 'function'
-const requestIdle = (fn: () => void): number =>
-  idleSupported ? window.requestIdleCallback(fn, { timeout: 1200 }) : window.setTimeout(fn, 40)
-const cancelIdle = (id: number) =>
-  idleSupported ? window.cancelIdleCallback(id) : window.clearTimeout(id)
 
 /** The share of the card the set may take when the title block can't be measured. */
 const ART = 0.56
@@ -49,7 +43,7 @@ export function EffectCard({
   const card = useRef<HTMLAnchorElement>(null)
   const art = useRef<HTMLCanvasElement>(null)
   const pointed = useRef(false)
-  const swap = useRef<((mode: 'still' | 'pointer' | 'auto') => void) | null>(null)
+  const swap = useRef<((mode: CardMode) => void) | null>(null)
   const { re, im } = c
   const frame = EFFECT_INFO[effect].frame
 
@@ -58,8 +52,8 @@ export function EffectCard({
     const canvas = art.current
     if (!host || !canvas) return
     const motion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    let detach: (() => void) | null = null
-    let mode: 'still' | 'pointer' | 'auto' = 'still'
+    let handle: EffectHandle | null = null
+    let mode: CardMode = 'still'
 
     const base = (): PlaneView => {
       const w = canvas.clientWidth || 1
@@ -79,45 +73,58 @@ export function EffectCard({
     // twenty stills, each a few hundred thousand iterations, would otherwise
     // all render at once on arrival.
     let near = false
-    let idle = 0
-    const run = (next: typeof mode) => {
-      mode = next
-      if (!near) return
-      detach?.()
-      const playing = next !== 'still' && motion
-      detach = attachEffect(effect, cardSurface(host, canvas, base(), playing), {
-        input: next === 'pointer',
-        autopilot: next === 'auto',
+    let unqueue: (() => void) | null = null
+    // The effect is built once; going live or back to rest only switches its
+    // mode, so nothing restarts under the pointer and nothing is recomputed
+    // when it leaves. Only a new size (a new fit) builds it again.
+    const build = () => {
+      handle?.detach()
+      handle = attachEffect(effect, cardSurface(host, canvas, base(), motion), {
+        input: false,
+        autopilot: false,
+        mode,
       })
+      handle.setMode(mode)
+    }
+    const run = (next: CardMode) => {
+      mode = next
+      if (near) handle?.setMode(next)
     }
     swap.current = run
     const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting || near) return
         io.disconnect()
-        // One card per idle moment, so a page of stills never arrives as one
-        // long frozen task.
-        idle = requestIdle(() => {
+        // One card per idle moment, and none while the set is travelling, so
+        // a page of stills never arrives as one long frozen task.
+        unqueue = enqueue(() => {
           near = true
-          run(pointed.current ? 'pointer' : mode)
+          if (pointed.current) mode = 'pointer'
+          build()
         })
       },
       { rootMargin: '300px 0px' },
     )
     io.observe(host)
 
+    // A ResizeObserver reports once when it starts; only a real change of
+    // size needs a new fit.
+    let size = [canvas.clientWidth, canvas.clientHeight]
     let resizeTimer = 0
     const ro = new ResizeObserver(() => {
+      const next = [canvas.clientWidth, canvas.clientHeight]
+      if (next[0] === size[0] && next[1] === size[1]) return
+      size = next
       window.clearTimeout(resizeTimer)
-      resizeTimer = window.setTimeout(() => run(mode), 160)
+      resizeTimer = window.setTimeout(() => near && build(), 160)
     })
     ro.observe(canvas)
     return () => {
-      cancelIdle(idle)
+      unqueue?.()
       io.disconnect()
       window.clearTimeout(resizeTimer)
       ro.disconnect()
-      detach?.()
+      handle?.detach()
       swap.current = null
     }
   }, [effect, re, im, frame])

@@ -48,6 +48,24 @@ export interface EffectOptions {
   greet?: boolean
   /** the wheel dives (the band); over a card it stays the page's scroll */
   wheel?: boolean
+  /** a card: how it starts (see EffectHandle.setMode) */
+  mode?: CardMode
+}
+
+/**
+ * A card at rest shows a still; under the mouse it answers the pointer; the
+ * phone's centred card plays itself.
+ */
+export type CardMode = 'still' | 'pointer' | 'auto'
+
+export interface EffectHandle {
+  detach: () => void
+  /**
+   * Switch a card between still, pointer and autopilot on the same running
+   * effect: nothing is rebuilt, so a flock keeps flying where it was and a
+   * card that goes back to rest keeps its last frame.
+   */
+  setMode: (mode: CardMode) => void
 }
 
 const RIPPLE_MS = 1600
@@ -72,8 +90,11 @@ interface Handlers {
 
 const KEY_STEP = 0.05
 
-/** Mouse and touch, folded into the few gestures the effects understand. */
-function bindInput(host: HTMLElement, h: Handlers): () => void {
+/**
+ * Mouse and touch, folded into the few gestures the effects understand, and
+ * the keyboard when `keys` (the band; a card is a link, and its Enter opens it).
+ */
+function bindInput(host: HTMLElement, h: Handlers, keys = true): () => void {
   const touches = new Map<number, { x0: number; y0: number; x: number; y: number; t0: number }>()
   let dragging = false
   let holdTimer = 0
@@ -202,7 +223,7 @@ function bindInput(host: HTMLElement, h: Handlers): () => void {
   host.addEventListener('pointerup', up)
   host.addEventListener('pointercancel', up)
   host.addEventListener('pointerleave', leave)
-  host.addEventListener('keydown', keydown)
+  if (keys) host.addEventListener('keydown', keydown)
   window.addEventListener('pointerup', stopHold)
   return () => {
     stopHold()
@@ -216,14 +237,39 @@ function bindInput(host: HTMLElement, h: Handlers): () => void {
   }
 }
 
-/** Starts the effect on the surface; returns its teardown. */
+/** Starts the effect on the surface. */
 export function attachEffect(
   effect: PlateEffect,
   s: EffectSurface,
   opts: EffectOptions,
-): () => void {
+): EffectHandle {
   const cleanups: (() => void)[] = []
   const handlers: Handlers = {}
+  // a card's mode; the band always plays, steered by hand
+  let autopilot = opts.mode ? opts.mode === 'auto' : opts.autopilot
+  let playing = opts.mode !== 'still'
+  let pointer: (() => void) | null = null
+  let onMode: (() => void) | null = null
+  const handle: EffectHandle = {
+    detach: () => cleanups.reverse().forEach((fn) => fn()),
+    setMode(mode) {
+      autopilot = mode === 'auto'
+      playing = mode !== 'still'
+      onMode?.()
+      if (mode === 'pointer') pointer ??= bindInput(s.host, handlers, false)
+      else if (pointer) {
+        pointer()
+        pointer = null
+        handlers.leave?.()
+      }
+      if (!playing) {
+        cancelAnimationFrame(raf)
+        raf = 0
+        lastT = 0
+      } else kick()
+    },
+  }
+  cleanups.push(() => pointer?.())
   const plane = (x: number, y: number): [number, number] | null => {
     const v = s.view()
     return v ? toPlane(x, y, s.box(), v) : null
@@ -237,16 +283,25 @@ export function attachEffect(
   // ---- the frame loop: runs while the surface is visible and something moves
   let visible = false
   let raf = 0
-  let tick: ((t: number) => boolean) | null = null
+  let lastT = 0
+  // dt in seconds: everything that moves is paced by it, not by frames, so a
+  // 120Hz display does not play the effects twice as fast
+  let tick: ((t: number, dt: number) => boolean) | null = null
   const frame = (t: number) => {
     raf = 0
-    if (!visible || !tick) return
-    if (tick(t)) raf = requestAnimationFrame(frame)
+    if (!visible || !tick) {
+      lastT = 0
+      return
+    }
+    const dt = lastT ? Math.min(0.1, (t - lastT) / 1000) : 1 / 60
+    lastT = t
+    if (tick(t, dt)) raf = requestAnimationFrame(frame)
+    else lastT = 0
   }
   // Under reduced motion nothing animates on its own or eases; input that
   // places something (a lamp, a trap) still answers, as a still.
   const kick = () => {
-    if (!raf && visible && tick && s.live) raf = requestAnimationFrame(frame)
+    if (!raf && visible && tick && s.live && playing) raf = requestAnimationFrame(frame)
   }
   const io = new IntersectionObserver(([entry]) => {
     visible = entry.isIntersecting
@@ -263,7 +318,8 @@ export function attachEffect(
   if (effect === 'heartbeat' && s.trace && opts.input) {
     const trace = s.trace
     const box = () => s.box()
-    handlers.move = (x, y) => trace.trace(x, y, box())
+    // with motion reduced the path appears whole instead of being drawn out
+    handlers.move = (x, y) => trace.trace(x, y, box(), !s.live)
     handlers.leave = () => trace.clear()
     cleanups.push(() => trace.clear())
   }
@@ -296,9 +352,11 @@ export function attachEffect(
   // ---------------------------------------------------------------- layers
   if (info.kind === 'layer' && info.layer) {
     const slot = s.layer()
-    if (!slot) return () => cleanups.forEach((fn) => fn())
-    const layer = info.layer(slot.canvas, slot.view, { autopilot: opts.autopilot })
-    if (!layer) return () => cleanups.forEach((fn) => fn())
+    if (!slot) return handle
+    const layerOpts = { autopilot }
+    onMode = () => (layerOpts.autopilot = autopilot)
+    const layer = info.layer(slot.canvas, slot.view, layerOpts)
+    if (!layer) return handle
     s.showLayer(true)
     cleanups.push(
       () => s.showLayer(false),
@@ -312,22 +370,24 @@ export function attachEffect(
       handlers.move = (x, y) => layer.point?.(...frac(x, y))
       handlers.press = (x, y) => layer.press?.(...frac(x, y))
       handlers.leave = () => layer.leave?.()
-      let last = 0
-      tick = (t) => {
-        const dt = last ? (t - last) / 1000 : 1 / 60
-        last = t
-        return layer.frame(t, dt)
-      }
-    } else layer.still()
+      tick = (t, dt) => layer.frame(t, dt)
+    }
+    if (!s.live || !playing) layer.still()
+    // A ResizeObserver reports once as soon as it starts observing; only a
+    // real change of size is worth redrawing a still for.
+    let size = [slot.canvas.clientWidth, slot.canvas.clientHeight]
     const ro = new ResizeObserver(() => {
+      const next = [slot.canvas.clientWidth, slot.canvas.clientHeight]
+      if (next[0] === size[0] && next[1] === size[1]) return
+      size = next
       layer.resize()
-      if (!s.live) layer.still()
+      if (!s.live || !playing) layer.still()
     })
     ro.observe(slot.canvas)
     cleanups.push(() => ro.disconnect())
     if (opts.input) cleanups.push(bindInput(s.host, handlers))
     kick()
-    return () => cleanups.reverse().forEach((fn) => fn())
+    return handle
   }
 
   // ---------------------------------------------------------------- GL effects
@@ -341,7 +401,7 @@ export function attachEffect(
     info.mode === 'phoenix' ||
     info.mode === 'newton'
   const v0 = s.view()
-  if (!v0) return () => cleanups.forEach((fn) => fn())
+  if (!v0) return handle
 
   if (effect === 'relief') {
     // the lamp starts up and to the left, where a reader expects light
@@ -413,7 +473,9 @@ export function attachEffect(
   let held = false
   let pinchFrom = 0
   const aim = effect === 'scroll-dive' ? diveAim(v0.re, v0.im) : ([0, 0] as [number, number])
-  if (effect === 'scroll-dive') {
+  // Under reduced motion the dive cannot move, so it takes no input at all:
+  // a wheel it swallowed would only stop the page scrolling.
+  if (effect === 'scroll-dive' && s.live) {
     handlers.hold = (on) => {
       held = on
       kick()
@@ -447,12 +509,13 @@ export function attachEffect(
     cleanups.push(() => s.setLens({ spanMul: 1, off: [0, 0] }))
   }
 
-  tick = (t) => {
+  tick = (t, dt) => {
     let more = false
+    // the dive's rates are per sixtieth of a second
+    const n = dt * 60
     if (dial) {
       s.setState({ t: t / 1000 })
-      if (opts.autopilot)
-        s.setState({ q: [0.6 * Math.sin(t * 0.0005), 0.5 * Math.cos(t * 0.0004)] })
+      if (autopilot) s.setState({ q: [0.6 * Math.sin(t * 0.0005), 0.5 * Math.cos(t * 0.0004)] })
       more = true
     }
     if (effect === 'heartbeat') {
@@ -460,35 +523,35 @@ export function attachEffect(
       more = true
     }
     if (effect === 'ripple') {
-      if (opts.autopilot && (rippleT0 < 0 || t - rippleT0 > 2600)) rippleT0 = t
+      if (autopilot && (rippleT0 < 0 || t - rippleT0 > 2600)) rippleT0 = t
       if (rippleT0 >= 0) {
         const k = Math.min(1, (t - rippleT0) / RIPPLE_MS)
         s.setState({ ripple: k < 1 ? MAX_ITER * 0.42 * (1 - easeOut(k)) : -2 })
         if (k < 1) more = true
         else rippleT0 = -1
       }
-      more ||= opts.autopilot
+      more ||= autopilot
     }
     if (effect === 'scroll-dive') {
-      if (held) target = Math.min(1, target + 0.012)
-      if (opts.autopilot) target = 0.3 + 0.3 * Math.sin(t * 0.0004 - Math.PI / 2)
-      depth += (target - depth) * 0.12
+      if (held) target = Math.min(1, target + 0.012 * n)
+      if (autopilot) target = 0.3 + 0.3 * Math.sin(t * 0.0004 - Math.PI / 2)
+      depth += (target - depth) * (1 - Math.pow(1 - 0.12, n))
       // it lets go on its own, so nobody is left stuck at the bottom
-      if (!held && !pinchFrom && !opts.autopilot) target *= 0.985
+      if (!held && !pinchFrom && !autopilot) target *= Math.pow(0.985, n)
       const pull = Math.min(1, depth * 3)
       s.setLens({ spanMul: Math.pow(0.0004, depth), off: [aim[0] * pull, aim[1] * pull] })
       s.setState({ maxIter: Math.min(400, MAX_ITER + 300 * depth) })
-      more = held || opts.autopilot || Math.abs(target - depth) > 1e-4 || depth > 1e-3
+      more = held || autopilot || Math.abs(target - depth) > 1e-4 || depth > 1e-3
     }
     if (
-      opts.autopilot &&
+      autopilot &&
       (effect === 'relief' || effect === 'field-lines' || effect === 'orbit-traps')
     ) {
       const p = wander(t)
       if (p) s.setState({ p })
       more = true
     }
-    if (opts.autopilot && effect === 'cursor') {
+    if (autopilot && effect === 'cursor') {
       s.setLens({ bend: [0.035 * Math.cos(t * 0.0005), 0.03 * Math.sin(t * 0.0007)] })
       more = true
     }
@@ -498,6 +561,6 @@ export function attachEffect(
   s.develop(state)
   cleanups.push(() => s.develop(null))
   if (opts.input) cleanups.push(bindInput(s.host, handlers))
-  if (s.live) kick()
-  return () => cleanups.reverse().forEach((fn) => fn())
+  kick()
+  return handle
 }

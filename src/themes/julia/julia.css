@@ -64,23 +64,28 @@
    it lives in the band at the top and scrolls away with the page, so it is
    pinned to the top of the document instead of the window. Everything readable
    sits above it. */
-@property --j-band-end {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 300vh;
-}
 
 .j-stage {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Where the stage's picture ends. Off the bottom of the page by default; on
-     the projects pages, just under the band, with a soft fade, and it moves
-     there as the set travels in. */
-  --j-band-end: 300vh;
-  mask-image: linear-gradient(to bottom, black calc(var(--j-band-end) - 4rem), transparent var(--j-band-end));
-  transition: --j-band-end 900ms cubic-bezier(0.65, 0, 0.35, 1);
+  overflow: hidden;
+}
+
+/* Where the stage's picture ends. Below the stage by default; on the projects
+   pages, just under the band, with a soft fade, and it moves there as the set
+   travels in (Backdrop.tsx sets the transform). It is the page's own ground
+   drawn over the picture, and it moves by transform, so the compositor carries
+   it rather than a mask being repainted every frame. */
+.j-stage-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, transparent, var(--j-bg) 4rem);
+  transform: translateY(100%);
+  transition: transform 950ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
 }
 
 .j-stage[data-band] {
@@ -235,10 +240,14 @@
   }
 }
 
-/* With motion reduced the effects hold still, so the band only says what it is. */
+/* With motion reduced the effects hold still, so the band only says what it is,
+   and the stage's edge cuts to the band instead of sliding there. */
 @media (prefers-reduced-motion: reduce) {
   .j-band-how {
     display: none;
+  }
+  .j-stage-curtain {
+    transition: none;
   }
 }
 
@@ -457,14 +466,24 @@
     inset 0 0 0 1px var(--j-line),
     0 0 0 999px rgba(10, 11, 13, 0.35);
   pointer-events: none;
-  transition: box-shadow 220ms ease;
 }
 
-.j-theme-panel[data-landed] .j-theme-window {
+/* The landing glow is its own layer whose opacity fades in: animating the
+   box-shadow itself would repaint the whole 999px dimmer every frame. */
+.j-theme-window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   box-shadow:
     inset 0 0 0 1px var(--j-accent),
-    0 0 24px -4px color-mix(in srgb, var(--j-accent) 60%, transparent),
-    0 0 0 999px rgba(10, 11, 13, 0.35);
+    0 0 24px -4px color-mix(in srgb, var(--j-accent) 60%, transparent);
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out-strong);
+}
+
+.j-theme-panel[data-landed] .j-theme-window::after {
+  opacity: 1;
 }
 
 .j-theme-side {
@@ -511,8 +530,11 @@
   width: 2px;
   border-radius: 2px;
   background: var(--j-ember);
-  transform: scaleY(0);
-  transition: transform 160ms var(--ease-out-strong);
+  transform: scaleY(0.4);
+  opacity: 0;
+  transition:
+    transform 160ms var(--ease-out-strong),
+    opacity 160ms var(--ease-out-strong);
 }
 
 .j-theme-item[data-shown] {
@@ -521,6 +543,7 @@
 
 .j-theme-item[data-shown]::before {
   transform: scaleY(1);
+  opacity: 1;
 }
 
 .j-theme-item[data-highlight] {
@@ -1329,11 +1352,6 @@
   margin-top: 0.4rem;
 }
 
-/* Opened from the projects page, the text waits for the set to arrive. */
-.j-enter-late {
-  animation-delay: 500ms;
-}
-
 @media (max-width: 900px) {
   .j-project {
     grid-template-columns: 1fr;
@@ -1410,7 +1428,8 @@
   cursor: pointer;
   transition:
     color 160ms var(--ease-out-strong),
-    border-color 160ms var(--ease-out-strong);
+    border-color 160ms var(--ease-out-strong),
+    transform 160ms var(--ease-out-strong);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1603,8 +1622,7 @@
     transition: none;
   }
   .j-nav-link::after,
-  .j-big-links a::after,
-  a.j-project-title::after {
+  .j-big-links a::after {
     transition: none;
   }
 }

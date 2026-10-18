@@ -1,4 +1,4 @@
-import { emberLut, fitCanvas, lutIndex, type LayerFactory } from './layer'
+import { emberLut, fitCanvas, lutIndex, pacer, type LayerFactory } from './layer'
 
 // A Clifford attractor: x' = sin(a·y) + c·cos(a·x), y' = sin(b·x) + d·cos(b·y).
 // Thousands of points follow it at once and leave a fading density, while the
@@ -62,9 +62,11 @@ export const attractor: LayerFactory = (canvas, _view, opts) => {
     ctx.putImageData(img!, 0, 0)
   }
 
+  const steps = pacer()
   return {
-    frame(now) {
-      run(now / 1000, 24, 0.94)
+    frame(now, dt) {
+      const n = steps(dt)
+      if (n) run(now / 1000, 24 * n, Math.pow(0.94, n))
       return true
     },
     still() {
