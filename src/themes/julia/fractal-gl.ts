@@ -9,7 +9,7 @@ import type { JuliaParams } from './fractal'
 // webviews) compile shaders fine and then draw garbage. A failed WebGL init must
 // never touch the real canvas: it would permanently block the 2D fallback context.
 
-const VERT = `#version 300 es
+export const VERT = `#version 300 es
 void main() {
   vec2 p = vec2(-1.0, -1.0);
   if (gl_VertexID == 1) p = vec2(3.0, -1.0);
@@ -17,17 +17,8 @@ void main() {
   gl_Position = vec4(p, 0.0, 1.0);
 }`
 
-const FRAG = `#version 300 es
-precision highp float;
-out vec4 outColor;
-uniform vec2 uRes;
-uniform vec2 uC;
-uniform float uSpan;
-uniform vec2 uCenter;
-uniform float uAngle;
-uniform int uMax;
-
-vec3 pal(float v) {
+/** The ember palette as GLSL, shared by every julia shader so they all agree with the CPU one. */
+export const PALETTE = `vec3 pal(float v) {
   vec3 s0 = vec3(10.0, 11.0, 13.0);
   vec3 s1 = vec3(70.0, 12.0, 16.0);
   vec3 s2 = vec3(188.0, 38.0, 22.0);
@@ -41,8 +32,19 @@ vec3 pal(float v) {
   c = mix(c, s4, clamp(t - 3.0, 0.0, 1.0));
   c = mix(c, s5, clamp(t - 4.0, 0.0, 1.0));
   return c / 255.0;
-}
+}`
 
+const FRAG = `#version 300 es
+precision highp float;
+out vec4 outColor;
+uniform vec2 uRes;
+uniform vec2 uC;
+uniform float uSpan;
+uniform vec2 uCenter;
+uniform float uAngle;
+uniform int uMax;
+
+${PALETTE}
 void main() {
   float scale = uSpan / min(uRes.x, uRes.y);
   vec2 d = vec2(
@@ -74,7 +76,7 @@ export interface GlJulia {
   dispose: () => void
 }
 
-const CTX_OPTS: WebGLContextAttributes = {
+export const CTX_OPTS: WebGLContextAttributes = {
   antialias: false,
   depth: false,
   stencil: false,
@@ -132,7 +134,7 @@ function buildPipeline(gl: WebGL2RenderingContext): GlPipeline | null {
 
 let glCapable: boolean | null = null
 
-function probeGl(): boolean {
+export function probeGl(): boolean {
   if (glCapable !== null) return glCapable
   glCapable = false
   try {

@@ -4,6 +4,7 @@ import { FEATURES } from '../../content/meta'
 import type { InterestSection, Project, SiteContent } from '../../content/types'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { FractalCanvas } from './FractalCanvas'
+import { PlateEffect } from './PlateEffect'
 import { paramsFor, projectC } from './fractal'
 
 type Nav = ThemeProps['navigate']
@@ -255,7 +256,7 @@ export function ProjectPage({
         <h1>{project.title}</h1>
         {project.builtWithAI && <p className="j-ai-flag">Built with AI</p>}
       </header>
-      <FractalCanvas params={{ ...projectC(project), span: 2.1 }} live="bloom" className="j-hero" />
+      <PlateEffect project={project} />
       <dl className="j-facts">
         {facts.map(([k, v]) => (
           <div key={k}>

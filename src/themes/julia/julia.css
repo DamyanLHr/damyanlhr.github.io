@@ -69,7 +69,10 @@
   pointer-events: none;
 }
 
-.j-stage-canvas {
+.j-stage-canvas,
+.j-stage-trace {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -653,12 +656,47 @@
   letter-spacing: -0.025em;
 }
 
-.j-hero {
-  width: 100%;
+/* The project plate (PlateEffect.tsx): the project's own set with its own
+   effect, fading at the edges into the dimmed stage behind it. */
+.j-plate {
+  margin: 0 0 1.4rem;
+}
+
+.j-plate-art {
+  position: relative;
   height: clamp(180px, 32vw, 300px);
   border-radius: var(--j-r);
-  margin-bottom: 1.4rem;
+  overflow: hidden;
   mask-image: radial-gradient(85% 130% at 50% 50%, black 50%, transparent 98%);
+}
+
+.j-plate-main,
+.j-plate-trace {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.j-plate-trace {
+  pointer-events: none;
+}
+
+.j-plate-note {
+  max-width: 62ch;
+  margin: 0.4rem 0 0;
+  color: var(--j-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+/* The how-to is for a pointer. On touch, and with motion reduced, the plate
+   holds still, so the caption only says what it is. */
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .j-plate-how {
+    display: none;
+  }
 }
 
 /* Every section head used to be an uppercase letterspaced label, which is the

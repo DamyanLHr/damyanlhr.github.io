@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { projects } from '../../content/projects'
 import { interests } from '../../content/interests'
-import { C_POOL, paramsFor } from './fractal'
+import { C_POOL, EFFECTS, effectFor, paramsFor } from './fractal'
 
 // Every project's fractal is its identity on this theme: it is the card art in
 // the mosaic and the hero on its own page. Two projects resolving to the same
@@ -16,9 +16,7 @@ import { C_POOL, paramsFor } from './fractal'
 const MIN_SEPARATION = 0.02
 
 const projectParams = projects.map((p) => [p.slug, paramsFor(p.slug)] as const)
-const interestParams = interests.map(
-  (s, i) => [s.id, paramsFor(s.id, i * 3 + 1)] as const,
-)
+const interestParams = interests.map((s, i) => [s.id, paramsFor(s.id, i * 3 + 1)] as const)
 
 /**
  * Only compared within a group, on purpose. Project cards share one mosaic and
@@ -77,5 +75,24 @@ describe('paramsFor', () => {
     }
     // No single curated constant may carry more than a third of the roster.
     expect(Math.max(...used.values())).toBeLessThanOrEqual(Math.ceil(projects.length / 3))
+  })
+})
+
+describe('plate effects', () => {
+  // A plate effect is part of a project's identity the same way its constant
+  // is. Two released projects sharing one while another sits unused is a
+  // roster that could have told them apart and didn't.
+  it('gives every released project its own effect while any are left', () => {
+    const released = projects.filter((p) => p.status === 'released')
+    const used = released.map(effectFor)
+    const unused = EFFECTS.filter((e) => !used.includes(e))
+    const shared = used.filter((e, i) => used.indexOf(e) !== i)
+    if (unused.length > 0) expect(shared).toEqual([])
+  })
+
+  it('derives one for a project that does not pin it', () => {
+    const fx = effectFor({ ...projects[0], slug: 'a-new-project', art: undefined })
+    expect(EFFECTS).toContain(fx)
+    expect(effectFor({ ...projects[0], slug: 'a-new-project', art: undefined })).toBe(fx)
   })
 })

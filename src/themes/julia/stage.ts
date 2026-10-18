@@ -1,6 +1,7 @@
 import { renderJulia } from './fractal'
 import { createGlJulia } from './fractal-gl'
 import { easeInOut, easeOut, travelPose, type Pose } from './travel'
+import type { PlaneView } from './effects/view'
 
 // julia's persistent stage: one canvas for the whole visit. Pages never get
 // their own backdrop; each one hands the stage a pose, and the set travels
@@ -15,6 +16,8 @@ export interface Stage {
   setPose: (pose: Pose, opts?: { travel?: boolean }) => void
   /** Pointer follow and ambient drift, for the home hero only. */
   setFollow: (on: boolean) => void
+  /** The plane as it was last drawn, for anything drawn over it. */
+  view: () => PlaneView | null
   dispose: () => void
 }
 
@@ -186,6 +189,18 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
         tgt.spanMul = 1
       }
       wake()
+    },
+    view() {
+      if (!shown) return null
+      return {
+        re: shown.re + cur.dre,
+        im: shown.im + cur.dim,
+        span: shown.span * cur.spanMul,
+        cx: shown.x,
+        cy: shown.y,
+        angle: shown.angle,
+        off: [0, 0],
+      }
     },
     dispose() {
       disposed = true

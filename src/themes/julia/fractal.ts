@@ -1,7 +1,7 @@
 // Julia-set renderer for the julia theme — 2D canvas, no GPU, floor-friendly.
 // Direction A "obsidian gallery": ember palette on near-black (Gate 2a).
 
-import type { Project } from '../../content/types'
+import type { PlateEffect, Project } from '../../content/types'
 
 export interface JuliaParams {
   re: number
@@ -102,6 +102,24 @@ export function projectC(project: Project): JuliaParams {
     if (re !== undefined && im !== undefined) return { re, im }
   }
   return paramsFor(project.slug, project.art?.seed)
+}
+
+/** Every plate effect, in the order a slug's hash indexes them. Append only. */
+export const EFFECTS: readonly PlateEffect[] = [
+  'relief',
+  'ripple',
+  'cursor',
+  'stardust',
+  'field-lines',
+  'orbit-traps',
+  'ridgelines',
+  'scroll-dive',
+  'heartbeat',
+]
+
+/** A project's plate effect: the one its content pins, else one its slug derives. */
+export function effectFor(project: Project): PlateEffect {
+  return project.art?.effect ?? EFFECTS[mix(hashString(project.slug) ^ 0x51ed27) % EFFECTS.length]
 }
 
 // Heated ember stops (accent #ff6a00 family)

@@ -1,6 +1,19 @@
 // Theme-agnostic content model — the "data" side of the content ⇄ theme decoupling
 // (TECHNOLOGY.md §3.1). Content files may import ONLY from src/content/.
 
+/** The live effect on a project's plate in the julia theme. Other themes may read
+ * it as a hint about the project's character, or ignore it. */
+export type PlateEffect =
+  | 'relief'
+  | 'ripple'
+  | 'cursor'
+  | 'stardust'
+  | 'field-lines'
+  | 'orbit-traps'
+  | 'ridgelines'
+  | 'scroll-dive'
+  | 'heartbeat'
+
 /** Per-project / per-route visual identity ("art DNA"). Facets are an offer to
  * themes, never an obligation: a theme reads what it understands, ignores the rest. */
 export interface ArtDNA {
@@ -13,6 +26,8 @@ export interface ArtDNA {
     /** 1:1 Mandelbulber parameter file in assets/fractals/ */
     fractFile?: string
   }
+  /** Pinned so it never moves when the roster changes; unset derives one from the slug. */
+  effect?: PlateEffect
 }
 
 export interface LinkRef {
