@@ -159,6 +159,60 @@ a click on the closed button only opens it (touch, keyboard); a click once it is
 runs a ~1 s roulette and lands on a random theme this device can run, never the current
 one; picking an entry switches to it directly. Previews are small webp screenshots in
 `src/shared/previews/`, regenerated with `npm run previews`.
+Each theme draws the dropdown as a reel: a strip of previews behind a window that runs
+to the entry under the pointer and spins for the random pick. The mechanics are shared
+in `src/shared/useReel.ts` (WAAPI, always animating from the strip's current transform,
+so it can be interrupted at any point); the frame, strip and landing are the theme's.
+
+**julia's stage (2026-10-18).** julia mounts one WebGL canvas in its Root
+(`Backdrop.tsx` → `stage.ts`) for the whole visit. Pages hand it a pose and its
+constant travels along the main cardioid's edge to the next (`travel.ts`, pure and
+tested). On the projects pages the stage is pinned to the top of the document and the
+set is fitted into the page's band (`fit.ts`); on a project page the same canvas
+develops into the project's effect, from one fragment shader with a mode uniform and a
+develop amount, or a 2D layer for stardust and ridgelines. `effects/controller.ts`
+drives an effect on either surface (the band, or a card drawn by the shared renderer in
+`effects/thumbs.ts`) and folds mouse, touch and keyboard into the same few gestures.
+Every effect is described once in `effects/registry.ts`: a mode of the band's shader, or
+a layer (`effects/layers/`) drawn on a canvas over the band. The simulations ping-pong
+float textures in the cards' shared context (`layers/sims.ts`) and fall back to a small
+CPU grid. The gallery at `/projects/gallery` is julia's own page.
+
+**Share tags and the CV PDF (2026-10-18).** `npm run og` renders each page at
+1200×630 into `public/og/` and records its title and description in
+`public/og/meta.json`; `scripts/postbuild.mjs` writes a copy of `index.html` per page
+with those tags (link previews never run scripts), plus `sitemap.xml`. `npm run cv-pdf`
+prints julia's CV through its print stylesheet into `public/cv.pdf`, sized to fit one
+A4 page (the print root font sets the whole scale; check `pdfinfo` says one page after a
+CV change). Both are run by hand and committed, like the theme previews.
+
+**Motion budget (julia).** Nothing heavy may land while the set travels, and nothing
+may move faster on a faster screen:
+- The cards' shared WebGL context is warmed in idle time on the first page, and its
+  programs (and the simulations') compile with `KHR_parallel_shader_compile`:
+  `buildProgram` never asks for a compile status until the driver says it is done, and
+  a surface simply skips frames until `ready()`.
+- Card stills go through `effects/idle-queue.ts`: one task per idle moment with room
+  in it, held until the stage's `eta()` has passed.
+- ResizeObservers act only on a real change of size (they fire once on observe).
+- A card's effect is built once; `EffectHandle.setMode` switches it between still,
+  pointer and autopilot without rebuilding, so leaving a card keeps its last frame.
+- Everything that moves is paced by `dt`: layers step at sixty a second through
+  `pacer()`, eases use `1 - (1 - r)^(dt·60)`.
+- The edge under the band is `.j-stage-curtain`, the page's ground moved by a transform
+  transition, not an animated mask; once the set has landed the stage scissors its
+  draw to the band (`Stage.setClip`).
+- The set's dim is drawn in the shader (`uDim`), not written to the canvas's opacity
+  every frame.
+
+**Layer resolution.** The layer effects size their canvas with `fitCanvas(canvas, cap,
+dprCap)`; caps sit near band width (1100 to 1800 px) so the band is not stretched. CPU
+layers colour pixels through `emberLut()` rather than `ember()`, which allocates. The
+simulations run on a fixed grid and their show passes blend the four nearest cells by
+hand (float textures cannot be filtered on most GPUs), so a 640×360 grid still reads
+smooth across a 1800 px band.
+Math themes after julia should keep the pattern: one persistent scene that pages pose,
+rather than a canvas per page.
 
 ### 3.4 Theme roster (concepts locked July 2026)
 

@@ -1,6 +1,9 @@
 // Julia-set renderer for the julia theme — 2D canvas, no GPU, floor-friendly.
 // Direction A "obsidian gallery": ember palette on near-black (Gate 2a).
 
+import type { PlateEffect, Project } from '../../content/types'
+import { constantForEffect } from './effects/view'
+
 export interface JuliaParams {
   re: number
   im: number
@@ -84,6 +87,65 @@ export function paramsFor(slug: string, seed?: number): JuliaParams {
   }
 }
 
+/** Per-route fractal identities: the constant the stage travels to on each page. */
+export const ROUTE_C = {
+  home: { re: -0.7269, im: 0.1889 },
+  cv: { re: -0.8, im: 0.156 },
+  // long and spiralled, so it fills the wide band on the projects page
+  projects: { re: -0.8, im: 0.18 },
+  interests: { re: -0.4, im: 0.6 },
+  notFound: { re: -0.835, im: -0.2321 },
+} satisfies Record<string, JuliaParams>
+
+/** A project's constant: the one its content names, else the one its slug derives. */
+export function projectC(project: Project): JuliaParams {
+  if (project.art?.fractal?.type === 'julia' && project.art.fractal.params) {
+    const { re, im } = project.art.fractal.params
+    if (re !== undefined && im !== undefined) return { re, im }
+  }
+  return paramsFor(project.slug, project.art?.seed)
+}
+
+/** Every plate effect, in the order a slug's hash indexes them. Append only. */
+export const EFFECTS: readonly PlateEffect[] = [
+  'relief',
+  'ripple',
+  'cursor',
+  'stardust',
+  'field-lines',
+  'orbit-traps',
+  'ridgelines',
+  'scroll-dive',
+  'heartbeat',
+  'root-bloom',
+  'quintic-braid',
+  'shape-shifter',
+  'mandel-julia',
+  'pendulum',
+  'life',
+  'ship-tricorn',
+  'newton',
+  'phoenix',
+  'buddhabrot',
+  'attractor',
+  'coral',
+  'murmuration',
+]
+
+/** A project's plate effect: the one its content pins, else one its slug derives. */
+export function effectFor(project: Project): PlateEffect {
+  return project.art?.effect ?? EFFECTS[mix(hashString(project.slug) ^ 0x51ed27) % EFFECTS.length]
+}
+
+/**
+ * The constant a project is shown with wherever its effect runs: its band, its
+ * card, and the band's preview when its card is pointed at. The same as
+ * `projectC`, except where the effect needs a different neighbourhood.
+ */
+export function effectConstant(project: Project): { re: number; im: number } {
+  return constantForEffect(projectC(project), effectFor(project))
+}
+
 // Heated ember stops (accent #ff6a00 family)
 const EMBER: [number, number, number][] = [
   [10, 11, 13],
@@ -94,7 +156,7 @@ const EMBER: [number, number, number][] = [
   [255, 236, 200],
 ]
 
-function ember(v: number): [number, number, number] {
+export function ember(v: number): [number, number, number] {
   const t = Math.min(0.999, Math.max(0, v)) * (EMBER.length - 1)
   const i = Math.floor(t)
   const f = t - i
@@ -129,17 +191,25 @@ export function renderJulia(canvas: HTMLCanvasElement, params: JuliaParams, qual
       let zr = dx * cosA - dy * sinA
       let zi = dx * sinA + dy * cosA
       let i = 0
+      let mn = 1e9
       while (i < max && zr * zr + zi * zi < 16) {
         const t = zr * zr - zi * zi + re
         zi = 2 * zr * zi + im
         zr = t
+        mn = Math.min(mn, zr * zr + zi * zi)
         i++
       }
       let c: [number, number, number]
       if (i === max) {
-        // interior: faint ember-tinged depth instead of a flat void
+        // interior: shaded by how close the orbit comes to zero, a dim ember
+        // relief instead of a flat void (matches fractal-gl.ts)
         const v2 = Math.min(4, zr * zr + zi * zi)
-        c = [14 + v2 * 9, 8 + v2 * 3, 9 + v2 * 1.5]
+        const lit = ember(0.05 + 0.26 * Math.exp(-2.2 * Math.sqrt(mn)))
+        c = [
+          Math.max(14 + v2 * 9, lit[0] * 0.85),
+          Math.max(8 + v2 * 3, lit[1] * 0.85),
+          Math.max(9 + v2 * 1.5, lit[2] * 0.85),
+        ]
       } else {
         c = ember(((i - Math.log2(Math.log2(zr * zr + zi * zi))) / max) * 2.2)
       }

@@ -71,6 +71,12 @@ edit `body` text and add `links` (Steam, Spotify already there). Filling the
 Files: `src/content/meta.ts` (name, tagline, main URLs) and the `socials` list in
 `src/content/index.ts` — add LinkedIn there when it exists.
 
+Every theme shows a social link as its brand mark (`src/shared/social-icons.tsx`,
+marks from Simple Icons, CC0), named by its `label` for screen readers and on hover.
+GitHub, itch.io, Steam, Spotify and LinkedIn are known; the mark is picked from the
+label or the address. A link to anything else shows as its label, so to give a new
+site a mark, add its path to `social-icons.tsx` and its name to `social-brand.ts`.
+
 ## Where things show up
 
 | Content | Landing | Projects page | Own page |

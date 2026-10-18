@@ -35,7 +35,6 @@
 .julia .j-meta,
 .julia .j-chip,
 .julia .j-facts dt,
-.julia .j-upnext-tag,
 .julia .j-eyebrow,
 .julia .j-ticker-tag {
   font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
@@ -56,6 +55,200 @@
 
 @media (prefers-reduced-transparency: reduce) {
   .julia::after { display: none; }
+}
+
+/* ---------- the stage ---------- */
+
+/* One set for every page (Backdrop.tsx). On home and the CV it is fixed, so
+   a long page scrolls over it like copy over a lit wall. On the projects pages
+   it lives in the band at the top and scrolls away with the page, so it is
+   pinned to the top of the document instead of the window. Everything readable
+   sits above it. */
+
+.j-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Where the stage's picture ends. Below the stage by default; on the projects
+   pages, just under the band, with a soft fade, and it moves there as the set
+   travels in (Backdrop.tsx sets the transform). It is the page's own ground
+   drawn over the picture, and it moves by transform, so the compositor carries
+   it rather than a mask being repainted every frame. */
+.j-stage-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, transparent, var(--j-bg) 4rem);
+  transform: translateY(100%);
+  transition: transform 950ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+
+.j-stage[data-band] {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100lvh;
+}
+
+.j-stage-canvas,
+.j-stage-trace {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Stardust and ridgelines are drawn here, laid exactly over the band. Their
+   edges fade out, so the layer never ends on a line where the render stops. */
+.j-stage-layer {
+  position: absolute;
+  display: block;
+  opacity: 0;
+  transition: opacity 500ms var(--ease-out-strong);
+  mask-image:
+    linear-gradient(to right, transparent, black 6%, black 94%, transparent),
+    linear-gradient(to bottom, transparent, black 8%, black 92%, transparent);
+  mask-composite: intersect;
+}
+
+.j-stage-layer[data-on='true'] {
+  opacity: 1;
+}
+
+.j-stage-canvas {
+  transition: opacity 500ms var(--ease-out-strong);
+}
+
+.j-stage[data-layer='on'] .j-stage-canvas {
+  opacity: 0 !important;
+}
+
+/* On reading pages the set is turned down, and this veil takes the last of it
+   off the text column. Home has its own scrim shaped around the hero copy. */
+.j-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  transition: opacity 600ms var(--ease-out-strong);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(10, 11, 13, 0.62) calc(50% - 30rem),
+    rgba(10, 11, 13, 0.62) calc(50% + 30rem),
+    transparent 100%
+  );
+}
+
+.j-stage[data-pose='home']::after,
+.j-stage[data-pose='projects']::after,
+.j-stage[data-pose='project']::after,
+.j-stage[data-pose='gallery']::after {
+  opacity: 0;
+}
+
+.j-home,
+.j-page,
+.j-project,
+.j-band,
+.j-foot {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- the band ---------- */
+
+/* The band is the room the set lives in on the projects pages: an empty strip
+   at the top of the page that the stage fits the set into, glow and all. It
+   takes the set's input. On touch it only claims taps and sideways drags, so
+   swiping up or down still scrolls the page. */
+.j-band {
+  height: 40svh;
+  min-height: 15rem;
+  touch-action: pan-y;
+}
+
+.j-band-tall {
+  height: 50svh;
+  min-height: 18rem;
+}
+
+/* The gallery's band is the exhibit itself, so it takes most of the screen:
+   room for the wide effects to spread and the tall ones to stand. */
+.j-band-gallery {
+  height: 74svh;
+  min-height: 26rem;
+}
+
+@media (max-width: 40rem) {
+  .j-band-gallery {
+    height: 62svh;
+    min-height: 22rem;
+  }
+}
+
+.j-band-note {
+  position: absolute;
+  left: clamp(1.2rem, 4vw, 3rem);
+  bottom: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  margin: 0;
+  max-width: calc(100% - 2.4rem);
+  pointer-events: none;
+  font-size: 0.8rem;
+  color: var(--j-muted);
+}
+
+.j-band-name {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--j-accent-soft);
+}
+
+.j-band-credit {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: var(--j-muted);
+}
+
+/* The band is a stop in the tab order on effect pages; its ring sits inside,
+   above the picture, so it is never clipped by the page edge. */
+.j-band:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--j-accent-rule);
+}
+
+.j-how-touch {
+  display: none;
+}
+
+@media (hover: none) {
+  .j-how-pointer {
+    display: none;
+  }
+  .j-how-touch {
+    display: inline;
+  }
+}
+
+/* With motion reduced the effects hold still, so the band only says what it is,
+   and the stage's edge cuts to the band instead of sliding there. */
+@media (prefers-reduced-motion: reduce) {
+  .j-band-how {
+    display: none;
+  }
+  .j-stage-curtain {
+    transition: none;
+  }
 }
 
 /* ---------- navigation ---------- */
@@ -169,26 +362,33 @@
   outline-offset: 2px;
 }
 
-/* Grows out of the button it belongs to: origin top right, 160ms strong
-   ease-out from .97. Seen a few times a visit, so it animates, but briefly. */
+/* The reel is the one bold thing in the panel; the index beside it stays
+   quiet. The panel grows out of its button: origin top right, 180 ms strong
+   ease-out from .97. */
 .j-theme-panel {
-  max-height: calc(100dvh - 5rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
   z-index: 30;
-  width: min(390px, calc(100vw - 2rem));
-  padding: 0.4rem;
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.75rem;
   background: var(--j-raise);
   border: 1px solid var(--j-line);
   border-radius: var(--j-r);
-  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--j-fg) 6%, transparent) inset,
+    0 24px 60px -18px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(0, 0, 0, 0.4);
   transform-origin: top right;
   transition:
-    opacity 160ms var(--ease-out-strong),
-    transform 160ms var(--ease-out-strong);
+    opacity 180ms var(--ease-out-strong),
+    transform 180ms var(--ease-out-strong);
 }
 
 @starting-style {
@@ -198,90 +398,183 @@
   }
 }
 
-.j-theme-panel ul {
+/* A length of film: the strip runs behind a window, fading out above and
+   below so it reads as passing through rather than cut off. */
+.j-theme-reel {
+  position: relative;
+  height: 17rem;
+  overflow: hidden;
+  border-radius: calc(var(--j-r) - 3px);
+  background: #050506;
+  -webkit-mask: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+  mask: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+}
+
+/* sprocket holes down both edges of the film */
+.j-theme-reel::before,
+.j-theme-reel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 6px,
+    color-mix(in srgb, var(--j-accent) 30%, transparent) 6px 11px
+  );
+  border-radius: 2px;
+}
+
+.j-theme-reel::before {
+  left: 4px;
+}
+
+.j-theme-reel::after {
+  right: 4px;
+}
+
+.j-theme-strip {
+  position: absolute;
+  inset: 0 16px auto;
+  display: grid;
+  gap: 8px;
+  will-change: transform;
+}
+
+.j-theme-strip img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+/* the window: the frame the picked world stops in */
+.j-theme-window {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  aspect-ratio: 16 / 10;
+  width: calc(100% - 24px);
+  border-radius: 5px;
+  box-shadow:
+    inset 0 0 0 1px var(--j-line),
+    0 0 0 999px rgba(10, 11, 13, 0.35);
+  pointer-events: none;
+}
+
+/* The landing glow is its own layer whose opacity fades in: animating the
+   box-shadow itself would repaint the whole 999px dimmer every frame. */
+.j-theme-window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--j-accent),
+    0 0 24px -4px color-mix(in srgb, var(--j-accent) 60%, transparent);
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out-strong);
+}
+
+.j-theme-panel[data-landed] .j-theme-window::after {
+  opacity: 1;
+}
+
+.j-theme-side {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.j-theme-side ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 2px;
+  gap: 1px;
 }
 
 .j-theme-item {
-  display: grid;
-  grid-template-columns: 112px 1fr;
-  gap: 0.85rem;
-  align-items: center;
-  width: 100%;
-  font: inherit;
-  text-align: left;
-  color: var(--j-fg);
-  background: transparent;
-  border: 0;
-  border-radius: calc(var(--j-r) - 2px);
-  padding: 0.45rem;
-  cursor: pointer;
-}
-
-.j-theme-item img {
-  display: block;
-  width: 112px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 0 0 1px var(--j-line);
-  filter: saturate(0.85) brightness(0.86);
-  transition: filter 160ms ease;
-}
-
-.j-theme-text {
-  display: grid;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.j-theme-item-name {
+  position: relative;
   display: flex;
   align-items: baseline;
-  gap: 0.55rem;
-  font-weight: 500;
-  font-size: 0.95rem;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  font: inherit;
+  font-size: 0.94rem;
+  text-align: left;
+  color: var(--j-muted);
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--j-r) - 3px);
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+/* the entry on the reel: an ember rule grows in from the left */
+.j-theme-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--j-ember);
+  transform: scaleY(0.4);
+  opacity: 0;
+  transition:
+    transform 160ms var(--ease-out-strong),
+    opacity 160ms var(--ease-out-strong);
+}
+
+.j-theme-item[data-shown] {
+  color: var(--j-fg);
+}
+
+.j-theme-item[data-shown]::before {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+.j-theme-item[data-highlight] {
+  background: var(--j-accent-wash);
 }
 
 .j-theme-now {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.68rem;
-  font-weight: 400;
+  font-size: 0.66rem;
   color: var(--j-accent-soft);
 }
 
-.j-theme-desc {
-  font-size: 0.78rem;
-  line-height: 1.4;
+.j-theme-caption {
+  margin: 0 0.65rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
   color: var(--j-muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  text-wrap: pretty;
+  transition: opacity 160ms ease;
 }
 
-/* The roulette's cursor. No transition: each step is a jump, which is what
-   makes it read as a wheel ticking past entries rather than a fade. */
-.j-theme-item[data-highlight] {
-  background: var(--j-accent-wash);
-  box-shadow: inset 0 0 0 1px var(--j-accent-edge);
-}
-
-.j-theme-item[data-highlight] img {
-  filter: none;
-  transition: none;
+/* while the reel spins the caption would describe the wrong world */
+.j-theme-panel[data-rolling]:not([data-landed]) .j-theme-caption {
+  opacity: 0;
 }
 
 .j-theme-hint {
-  margin: 0.35rem 0.45rem 0.25rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--j-line);
+  margin: 0 0.65rem 0.1rem;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
   color: var(--j-muted);
 }
 
@@ -299,30 +592,31 @@
     border-color: var(--j-accent-rule);
   }
   .j-theme-panel:not([data-rolling]) .j-theme-item:hover {
-    background: color-mix(in srgb, var(--j-fg) 5%, transparent);
-  }
-  .j-theme-panel:not([data-rolling]) .j-theme-item:hover img {
-    filter: none;
+    color: var(--j-fg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .j-theme-panel {
-    transition: opacity 160ms ease;
+    transition: opacity 180ms ease;
     transform: none;
   }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.j-theme-panel[data-instant] {
+  transition: none;
 }
 
 @media (max-width: 560px) {
   .j-theme-label {
     display: none;
   }
-  .j-theme-item {
-    grid-template-columns: 84px 1fr;
+  .j-theme-panel {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .j-theme-item img {
-    width: 84px;
-    height: 53px;
+  .j-theme-reel {
+    height: 12rem;
   }
 }
 
@@ -334,13 +628,6 @@
   align-content: center;
   min-height: calc(100dvh - 64px);
   overflow: hidden;
-}
-
-.j-home-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
 }
 
 /* The scrim's job is to make the copy readable, not to dim the artwork. The old
@@ -527,14 +814,6 @@
   letter-spacing: -0.025em;
 }
 
-.j-hero {
-  width: 100%;
-  height: clamp(180px, 32vw, 300px);
-  border-radius: var(--j-r);
-  margin-bottom: 1.4rem;
-  mask-image: radial-gradient(85% 130% at 50% 50%, black 50%, transparent 98%);
-}
-
 /* Every section head used to be an uppercase letterspaced label, which is the
    most templated rhythm a page can have. The page keeps exactly two of those
    (the hero eyebrow and the card chips) and section heads are real headings
@@ -612,47 +891,13 @@
 /* ---------- projects: up-next + mosaic ---------- */
 
 .j-page-wide {
-  max-width: 64rem;
-}
-
-.j-upnext {
-  border: 1px solid var(--j-accent-edge);
-  border-radius: var(--j-r);
-  background: linear-gradient(120deg, var(--j-accent-wash), transparent 62%);
-  padding: 1.1rem 1.3rem 1.2rem;
-  margin-bottom: 1.6rem;
-}
-
-.j-upnext-tag {
-  margin: 0 0 0.7rem;
-  color: var(--j-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.22em;
-  font-size: 0.7rem;
-}
-
-.j-upnext-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 1.1rem;
-}
-
-.j-upnext-items h2 {
-  margin: 0 0 0.25rem;
-  font-size: 1.08rem;
-  font-weight: 500;
-}
-
-.j-upnext-items p {
-  margin: 0;
-  color: var(--j-muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
+  max-width: 88rem;
+  padding-top: clamp(0.6rem, 1.6vw, 1.2rem);
 }
 
 .j-mosaic {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.9rem;
 }
 
@@ -660,7 +905,7 @@
   position: relative;
   display: block;
   overflow: hidden;
-  min-height: 16rem;
+  min-height: 18rem;
   border: 1px solid var(--j-line);
   border-radius: var(--j-r);
   color: var(--j-fg);
@@ -670,10 +915,115 @@
     border-color 200ms var(--ease-out-strong);
 }
 
+.j-span-1 { grid-column: span 1; }
 .j-span-2 { grid-column: span 2; }
-.j-span-3 { grid-column: span 3; }
-.j-span-4 { grid-column: span 4; }
-.j-span-6 { grid-column: span 6; min-height: 13rem; }
+
+/* Work and Gallery: the two halves of the projects section. The heading keeps
+   its weight; the tabs sit on its baseline as a quiet switch. */
+.j-page-head-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem 1.6rem;
+}
+
+.j-tabs {
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border: 1px solid var(--j-line);
+  border-radius: 999px;
+}
+
+.j-tab {
+  padding: 0.38rem 0.95rem;
+  border-radius: 999px;
+  color: var(--j-muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition:
+    color 160ms var(--ease-out-strong),
+    background-color 160ms var(--ease-out-strong);
+}
+
+.j-tab-on {
+  color: var(--j-fg);
+  background: var(--j-accent-wash);
+  box-shadow: inset 0 0 0 1px var(--j-accent-edge);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .j-tab:not(.j-tab-on):hover {
+    color: var(--j-fg);
+  }
+}
+
+.j-tab:focus-visible {
+  outline: 2px solid var(--j-accent-soft);
+  outline-offset: 2px;
+}
+
+.j-gallery-lede {
+  max-width: 62ch;
+  margin: -0.6rem 0 1.6rem;
+  color: var(--j-muted);
+}
+
+/* gallery tiles: every one the same size, the chosen one ringed */
+.j-gallery .j-tile {
+  grid-column: span 1;
+  min-height: 15rem;
+}
+
+.j-gallery .j-tile-wide {
+  grid-column: span 2;
+}
+
+.j-credits a {
+  color: var(--j-accent-soft);
+}
+
+.j-tile-on {
+  border-color: var(--j-accent-rule);
+  box-shadow: inset 0 0 0 1px var(--j-accent-rule);
+}
+
+.j-credits {
+  margin-top: 1rem;
+}
+
+.j-credit-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.j-credit-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--j-line);
+}
+
+/* In progress reads as a state, not a category: no accent, just a quiet fill. */
+.j-chip-soon {
+  color: var(--j-muted);
+  border-color: var(--j-line);
+}
+
+/* Two columns between phone and laptop; dense packing lets a single card fill
+   the gap a wide one leaves. */
+@media (max-width: 1100px) and (min-width: 761px) {
+  .j-mosaic {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: dense;
+  }
+}
 
 .j-card:active {
   transform: scale(0.985);
@@ -941,9 +1291,78 @@
   position: relative;
 }
 
+/* ---------- a project ---------- */
+
+/* Under the band: a rail with the name, the way in (links) and the facts,
+   beside the story at a reading width. The rail is where the eye lands first
+   after the set, so the play button is never more than a glance away. */
+.j-project {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 2fr);
+  gap: clamp(1.6rem, 4vw, 4rem);
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 2vw, 1.6rem) clamp(1.2rem, 4vw, 3rem) 4rem;
+}
+
+.j-rail {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.j-rail .j-back {
+  margin: 0;
+}
+
+.j-project-title {
+  margin: 0;
+  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.j-rail .j-actions {
+  margin: 0.2rem 0 0;
+}
+
+.j-rail .j-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0.4rem 0 0;
+}
+
+.j-story {
+  display: grid;
+  gap: 1.2rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.j-lead {
+  margin: 0;
+  max-width: 62ch;
+  font-size: clamp(1.08rem, 1.5vw, 1.3rem);
+  line-height: 1.55;
+  color: var(--j-fg);
+}
+
+.j-story .j-body {
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 900px) {
+  .j-project {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- 404 & footer ---------- */
 
 .j-404 {
+  /* the stage holds the set up top; the words sit under it */
+  padding-top: max(16rem, 50dvh);
   text-align: center;
 }
 
@@ -969,6 +1388,183 @@
   border-top: 1px solid var(--j-line);
   color: var(--j-muted);
   font-size: 0.82rem;
+}
+
+.j-foot-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+}
+
+.j-cv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.2rem;
+}
+
+.j-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.82rem;
+  color: var(--j-fg);
+}
+
+.j-email-address {
+  user-select: all;
+}
+
+.j-email-copy {
+  font: inherit;
+  font-size: 0.72rem;
+  color: var(--j-muted);
+  background: none;
+  border: 1px solid var(--j-line);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-out-strong),
+    border-color 160ms var(--ease-out-strong),
+    transform 160ms var(--ease-out-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .j-email-copy:hover {
+    color: var(--j-accent-soft);
+    border-color: var(--j-accent-rule);
+  }
+}
+
+.j-email-copy:focus-visible {
+  outline: 2px solid var(--j-accent-soft);
+  outline-offset: 2px;
+}
+
+.j-email-copy:active {
+  transform: scale(0.96);
+}
+
+/* ---------- print: the CV as a document ---------- */
+
+/* What scripts/cv-pdf.mjs prints: ink on paper, no stage, no chrome. */
+.j-print-only {
+  display: none;
+}
+
+@page {
+  size: A4;
+  margin: 11mm 13mm;
+}
+
+/* One page if it fits: the whole type scale shrinks with the root size (the
+   theme is set in rem), the screen's generous section spacing closes up, and
+   the proficiencies sit in two columns. Ink on paper, no stage, no chrome. */
+@media print {
+  html {
+    font-size: 9.3pt;
+  }
+  .julia .j-print-only {
+    display: block;
+  }
+  .julia .j-prose {
+    max-width: none;
+  }
+  .julia .j-print-name {
+    margin: 0;
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #111;
+  }
+  .julia {
+    background: #fff !important;
+    color: #111 !important;
+    min-height: 0;
+    line-height: 1.38;
+  }
+  .julia::after,
+  .j-stage,
+  .j-nav,
+  .j-foot,
+  .j-cv-actions .j-btn,
+  .j-email-copy {
+    display: none !important;
+  }
+  .julia .j-page {
+    max-width: none;
+    padding: 0;
+  }
+  .julia .j-enter {
+    animation: none;
+  }
+  /* the name leads; "CV" and the address sit beside it as a byline */
+  .julia .j-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 1.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .julia .j-page-head h1 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #555;
+  }
+  .julia .j-h2 {
+    margin: 1.2rem 0 0.45rem;
+    font-size: 1.2rem;
+    color: #111;
+  }
+  .julia .j-h2::after {
+    background: #bbb;
+  }
+  .julia .j-entry {
+    margin-bottom: 0.7rem;
+    break-inside: avoid;
+  }
+  .julia .j-entry h3 {
+    margin: 0 0 0.1rem;
+    font-size: 1.05rem;
+    color: #111;
+  }
+  .julia .j-entry p {
+    margin: 0.15rem 0;
+  }
+  .julia .j-entry ul {
+    margin: 0.2rem 0 0;
+    line-height: 1.32;
+  }
+  .julia .j-entry li {
+    margin-bottom: 0.05rem;
+  }
+  .julia .j-prose {
+    margin: 0.2rem 0;
+  }
+  .julia .j-profs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1.6rem;
+  }
+  .julia .j-email {
+    color: #111;
+    font-size: 0.95rem;
+  }
+  .julia .j-meta,
+  .julia .j-prose,
+  .julia .j-entry p,
+  .julia .j-entry li {
+    color: #333;
+  }
+  .julia a,
+  .julia .j-out {
+    color: #111;
+    text-decoration: none;
+    border-bottom: 0;
+  }
 }
 
 .j-foot-links {
@@ -1026,8 +1622,7 @@
     transition: none;
   }
   .j-nav-link::after,
-  .j-big-links a::after,
-  a.j-project-title::after {
+  .j-big-links a::after {
     transition: none;
   }
 }
@@ -1056,16 +1651,24 @@
   .j-mosaic {
     grid-template-columns: 1fr;
   }
+  .j-span-1,
   .j-span-2,
-  .j-span-3,
-  .j-span-4,
-  .j-span-6 {
+  .j-gallery .j-tile-wide {
     grid-column: auto;
-    min-height: 14rem;
+    min-height: 16rem;
   }
 }
 
-/* opened from the keyboard: keyboard actions never animate */
-.j-theme-panel[data-instant] {
-  transition: none;
+/* Profile links are brand marks now (shared/social-icons.tsx), drawn in the
+   link colour; an icon needs no underline, and a little padding makes it an
+   easier target without moving it. */
+.j-socials a[aria-label],
+.j-foot-links a[aria-label] {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.15rem;
+  border-bottom: 0;
+  padding: 0.3rem;
+  margin: -0.3rem;
+  text-decoration: none;
 }

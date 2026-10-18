@@ -1,68 +1,51 @@
-import type { MouseEvent, ReactNode } from 'react'
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import Markdown from 'react-markdown'
 import { FEATURES } from '../../content/meta'
 import type { InterestSection, Project, SiteContent } from '../../content/types'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { FractalCanvas } from './FractalCanvas'
-import { paramsFor, type JuliaParams } from './fractal'
+import { EffectCard } from './EffectCard'
+import type { StageBus } from './stage-bus'
+import { EFFECT_INFO } from './effects/registry'
+import { GALLERY_SLUG } from './gallery-slug'
+import { effectConstant, effectFor, paramsFor } from './fractal'
+import { SocialLink } from '../../shared/social-icons'
 
 type Nav = ThemeProps['navigate']
-
-// Per-route fractal identities (route-level art facets can override later).
-const ROUTE_C: Record<string, JuliaParams> = {
-  home: { re: -0.7269, im: 0.1889 },
-  cv: { re: -0.8, im: 0.156 },
-  projects: { re: 0.285, im: 0.01, span: 2.6 },
-  interests: { re: -0.4, im: 0.6 },
-  notFound: { re: -0.835, im: -0.2321 },
-}
 
 export function InternalLink({
   to,
   navigate,
   className,
   children,
+  current,
 }: {
   to: string
   navigate: Nav
   className?: string
   children: ReactNode
+  /** marks the link as the page you are on */
+  current?: boolean
 }) {
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
     navigate(to)
   }
   return (
-    <a href={to} className={className} onClick={onClick}>
+    <a
+      href={to}
+      className={className}
+      onClick={onClick}
+      aria-current={current ? 'page' : undefined}
+    >
       {children}
     </a>
   )
 }
 
-function projectC(project: Project): JuliaParams {
-  if (project.art?.fractal?.type === 'julia' && project.art.fractal.params) {
-    const { re, im } = project.art.fractal.params
-    if (re !== undefined && im !== undefined) return { re, im }
-  }
-  return paramsFor(project.slug, project.art?.seed)
-}
-
 export function Home({ content, navigate }: { content: SiteContent; navigate: Nav }) {
-  const narrow = window.matchMedia('(max-width: 760px)').matches
   return (
     <section className="j-home">
-      <FractalCanvas
-        params={
-          narrow
-            ? { ...ROUTE_C.home, span: 2.7, centerX: 0.5, centerY: 0.22, angle: -0.7 }
-            : // Pushed right of centre so the set sits beside the name instead of
-              // behind it. It used to bloom straight through the title, which is
-              // why the scrim had to be heavy enough to dim the whole picture.
-              { ...ROUTE_C.home, span: 2.25, centerX: 0.66, centerY: 0.46, angle: -0.7 }
-        }
-        live="hero"
-        className="j-home-canvas"
-      />
       <div className="j-home-scrim" aria-hidden="true" />
       <div className="j-home-copy j-enter">
         <p className="j-eyebrow">{content.profile.tagline}</p>
@@ -90,9 +73,7 @@ export function Home({ content, navigate }: { content: SiteContent; navigate: Na
         </nav>
         <div className="j-socials">
           {content.profile.socials.map((s) => (
-            <a key={s.url} href={s.url}>
-              {s.label}
-            </a>
+            <SocialLink key={s.url} link={s} />
           ))}
         </div>
       </div>
@@ -113,7 +94,18 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
   return (
     <section className="j-page j-enter">
       <header className="j-page-head">
+        <p className="j-print-only j-print-name">
+          {content.profile.name} · {content.profile.url.replace(/^https?:\/\//, '')}
+        </p>
         <h1>CV</h1>
+        <div className="j-cv-actions">
+          {content.profile.cvPdf && (
+            <a className="j-btn j-btn-primary" href={content.profile.cvPdf} download>
+              Download CV (PDF)
+            </a>
+          )}
+          {content.profile.email && <Email address={content.profile.email} />}
+        </div>
       </header>
 
       <h2 className="j-h2">Education</h2>
@@ -163,38 +155,43 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
       <p className="j-prose">
         {cv.proficiencies.spoken.map((s) => `${s.language} (${s.level})`).join(' · ')}
       </p>
-      {[...cv.proficiencies.programming, ...cv.proficiencies.expanding].map((p) => (
-        <article className="j-entry" key={p.name}>
-          <h3>{p.name}</h3>
-          <p>{p.evidence}</p>
-          <p className="j-meta">
-            proven by:{' '}
-            {p.projectSlugs.map((slug, i) => (
-              <span key={slug}>
-                {i > 0 && ' · '}
-                <InternalLink to={`/projects/${slug}`} navigate={navigate}>
-                  {content.projects.find((pr) => pr.slug === slug)?.title ?? slug}
-                </InternalLink>
-              </span>
-            ))}
-          </p>
-        </article>
-      ))}
+      <div className="j-profs">
+        {[...cv.proficiencies.programming, ...cv.proficiencies.expanding].map((p) => (
+          <article className="j-entry" key={p.name}>
+            <h3>{p.name}</h3>
+            <p>{p.evidence}</p>
+            <p className="j-meta">
+              proven by:{' '}
+              {p.projectSlugs.map((slug, i) => (
+                <span key={slug}>
+                  {i > 0 && ' · '}
+                  <InternalLink to={`/projects/${slug}`} navigate={navigate}>
+                    {content.projects.find((pr) => pr.slug === slug)?.title ?? slug}
+                  </InternalLink>
+                </span>
+              ))}
+            </p>
+          </article>
+        ))}
+      </div>
     </section>
   )
 }
 
-// Mosaic weights, in released order, so every row of the six-column grid fills
-// exactly: (3+3)(6)(4+2)(6). A slug missing here falls back to 3 and leaves a
-// ragged row, so this map has to move whenever a project ships.
+// Mosaic weights for the four-column grid, in roster order, so every row fills
+// exactly: (2+1+1)(1+2+1)(1+2+1). A slug missing here falls back to 1, which
+// can leave a ragged row, so this map moves whenever a project is added.
 const CARD_SPAN: Record<string, number> = {
-  'this-site': 6,
-  'dont-break-glass': 3,
-  'kill-bunny': 3,
-  'five-more-minutes': 6,
-  'digital-twinning-suspension': 4,
-  'blood-of-hedon': 2,
-  'olympian-onslaught': 6,
+  'this-site': 2,
+  'dont-break-glass': 1,
+  'kill-bunny': 1,
+  'five-more-minutes': 1,
+  'digital-twinning-suspension': 2,
+  'blood-of-hedon': 1,
+  'olympian-onslaught': 1,
+  // the flyover needs room to read as a landscape
+  'extensible-terrain-generation': 2,
+  'davincis-black-market-bird-dealer': 1,
 }
 
 const CHIP: Record<Project['category'], string> = {
@@ -203,58 +200,168 @@ const CHIP: Record<Project['category'], string> = {
   university: 'university',
 }
 
-export function ProjectsIndex({ content, navigate }: { content: SiteContent; navigate: Nav }) {
+/** Released work first, in roster order, then what is in progress. */
+function roster(content: SiteContent) {
   const released = content.projects.filter((p) => p.status === 'released')
+  const coming = content.projects.filter((p) => p.status !== 'released')
+  return [...released, ...coming]
+}
+
+export function ProjectsIndex({
+  content,
+  navigate,
+  bus,
+}: {
+  content: SiteContent
+  navigate: Nav
+  bus: StageBus
+}) {
+  const projects = roster(content)
+  const [liveSlug, setLiveSlug] = useState<string | null>(null)
+  const mosaic = useRef<HTMLDivElement>(null)
+  const timers = useRef({ intent: 0, leave: 0 })
+
+  // Pointing at a card sends the band's set to that card's constant after a
+  // short intent, so sweeping across the grid does not set it running about.
+  const point = (p: Project, on: boolean) => {
+    const t = timers.current
+    window.clearTimeout(t.intent)
+    window.clearTimeout(t.leave)
+    if (on) t.intent = window.setTimeout(() => bus.preview(effectConstant(p)), 120)
+    else t.leave = window.setTimeout(() => bus.preview(null), 600)
+  }
+  useEffect(() => {
+    const t = timers.current
+    return () => {
+      window.clearTimeout(t.intent)
+      window.clearTimeout(t.leave)
+    }
+  }, [])
+
+  // On a phone nothing hovers, so the card in the middle of the screen is the
+  // live one, and it changes as you scroll.
+  useEffect(() => {
+    const grid = mosaic.current
+    if (!grid || window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setLiveSlug((e.target as HTMLElement).dataset.slug ?? null)
+        }
+      },
+      { rootMargin: '-45% 0px -45% 0px' },
+    )
+    grid.querySelectorAll('.j-card').forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+
   return (
-    <section className="j-page j-page-wide j-enter">
-      <header className="j-page-head">
-        <h1>Projects</h1>
-      </header>
+    <>
+      <div className="j-band" aria-hidden="true" />
+      <section className="j-page j-page-wide j-enter">
+        <header className="j-page-head j-page-head-tabs">
+          <h1>Projects</h1>
+          <WorkTabs current="work" navigate={navigate} />
+        </header>
 
-      <div className="j-upnext">
-        <p className="j-upnext-tag">Up next</p>
-        <div className="j-upnext-items">
-          {content.announcements.map((a) => (
-            <article key={a.id}>
-              <h2>{a.title}</h2>
-              <p>{a.body}</p>
-            </article>
-          ))}
+        <div className="j-mosaic" ref={mosaic}>
+          {projects.map((p) => {
+            const coming = p.status !== 'released'
+            const to = `/projects/${p.slug}`
+            return (
+              <EffectCard
+                key={p.slug}
+                effect={effectFor(p)}
+                c={effectConstant(p)}
+                slug={p.slug}
+                live={liveSlug === p.slug}
+                onPoint={(on) => point(p, on)}
+                href={to}
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigate(to)
+                }}
+                className={`j-card j-span-${CARD_SPAN[p.slug] ?? 1}`}
+              >
+                <span className="j-card-scrim" aria-hidden="true" />
+                <span className="j-card-body">
+                  <span className="j-chips">
+                    {coming && <span className="j-chip j-chip-soon">in progress</span>}
+                    <span className="j-chip">{CHIP[p.category]}</span>
+                    {/* The disclosure travels with the card, not just the page it
+                        links to: a reader who never opens the project still sees it. */}
+                    {p.builtWithAI && <span className="j-chip j-chip-ai">built with AI</span>}
+                  </span>
+                  <span className="j-card-title">{p.title}</span>
+                  <span className="j-meta">
+                    {[p.year, p.event, p.role].filter(Boolean).join(' · ')}
+                  </span>
+                  <span className="j-card-summary">{p.summary}</span>
+                </span>
+              </EffectCard>
+            )
+          })}
         </div>
-      </div>
+      </section>
+    </>
+  )
+}
 
-      <div className="j-mosaic">
-        {released.map((p) => (
-          <InternalLink
-            key={p.slug}
-            to={`/projects/${p.slug}`}
-            navigate={navigate}
-            className={`j-card j-span-${CARD_SPAN[p.slug] ?? 3}`}
-          >
-            <FractalCanvas
-              params={{ ...projectC(p), span: 2.0, centerX: 0.64, centerY: 0.42 }}
-              live="hover"
-              hoverHost="a"
-              className="j-card-art"
-            />
-            <span className="j-card-scrim" aria-hidden="true" />
-            <span className="j-card-body">
-              <span className="j-chips">
-                <span className="j-chip">{CHIP[p.category]}</span>
-                {/* The disclosure travels with the card, not just the page it
-                    links to: a reader who never opens the project still sees it. */}
-                {p.builtWithAI && <span className="j-chip j-chip-ai">built with AI</span>}
-              </span>
-              <span className="j-card-title">{p.title}</span>
-              <span className="j-meta">
-                {[p.year, p.event, p.role].filter(Boolean).join(' · ')}
-              </span>
-              <span className="j-card-summary">{p.summary}</span>
-            </span>
-          </InternalLink>
-        ))}
-      </div>
-    </section>
+/**
+ * An email address as text you can select, with a button that copies it. A
+ * bare mailto link does nothing for anyone without a mail app set up, which
+ * is most people on a laptop.
+ */
+export function Email({ address }: { address: string }) {
+  const [copied, setCopied] = useState(false)
+  const text = useRef<HTMLSpanElement>(null)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(address)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // no clipboard: select the address so a copy shortcut works
+      const r = document.createRange()
+      if (text.current) r.selectNodeContents(text.current)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(r)
+    }
+  }
+  return (
+    <span className="j-email">
+      <span ref={text} className="j-email-address">
+        {address}
+      </span>
+      <button type="button" className="j-email-copy" onClick={copy} aria-live="polite">
+        {copied ? 'Copied' : 'Copy'}
+      </button>
+    </span>
+  )
+}
+
+/** Work and Gallery: the two halves of the projects section, in this theme. */
+export function WorkTabs({ current, navigate }: { current: 'work' | 'gallery'; navigate: Nav }) {
+  return (
+    <nav className="j-tabs" aria-label="Projects">
+      <InternalLink
+        to="/projects"
+        navigate={navigate}
+        className={current === 'work' ? 'j-tab j-tab-on' : 'j-tab'}
+        current={current === 'work'}
+      >
+        Work
+      </InternalLink>
+      <InternalLink
+        to={`/projects/${GALLERY_SLUG}`}
+        navigate={navigate}
+        className={current === 'gallery' ? 'j-tab j-tab-on' : 'j-tab'}
+        current={current === 'gallery'}
+      >
+        Gallery
+      </InternalLink>
+    </nav>
   )
 }
 
@@ -276,40 +383,60 @@ export function ProjectPage({
   if (project.duration) facts.push(['Duration', project.duration])
   if (project.team?.size) facts.push(['Team', `${project.team.size} people`])
   if (project.tools.length > 0) facts.push(['Tools', project.tools.join(', ')])
+  const note = EFFECT_INFO[effectFor(project)]
   return (
-    <section className="j-page j-enter">
-      <InternalLink to="/projects" navigate={navigate} className="j-back">
-        &larr; all projects
-      </InternalLink>
-      <header className="j-page-head">
-        <h1>{project.title}</h1>
-        {project.builtWithAI && <p className="j-ai-flag">Built with AI</p>}
-      </header>
-      <FractalCanvas params={{ ...projectC(project), span: 2.1 }} live="bloom" className="j-hero" />
-      <dl className="j-facts">
-        {facts.map(([k, v]) => (
-          <div key={k}>
-            <dt>{k}</dt>
-            <dd>{v}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className="j-prose">{project.summary}</p>
-      {project.body && (
-        <div className="j-body">
-          <Markdown>{project.body}</Markdown>
-        </div>
-      )}
-      {project.team?.members && <p className="j-meta">with {project.team.members.join(', ')}</p>}
-      <div className="j-actions">
-        {project.links.map((l, i) => (
-          <a key={l.url} href={l.url} className={i === 0 ? 'j-btn j-btn-primary' : 'j-btn'}>
-            {l.label}
-          </a>
-        ))}
-        {project.links.length === 0 && <p className="j-meta">links land here once it ships</p>}
+    <>
+      <div className="j-band j-band-tall">
+        <p className="j-band-note">
+          <span className="j-band-name">{note.name}</span>
+          <span className="j-band-how j-how-pointer">{note.pointer}</span>
+          <span className="j-band-how j-how-touch">{note.touch}</span>
+        </p>
       </div>
-    </section>
+      <section className="j-project j-enter">
+        <div className="j-rail">
+          <InternalLink to="/projects" navigate={navigate} className="j-back">
+            &larr; all projects
+          </InternalLink>
+          <h1 className="j-project-title">{project.title}</h1>
+          <span className="j-chips">
+            {project.status !== 'released' && (
+              <span className="j-chip j-chip-soon">in progress</span>
+            )}
+            <span className="j-chip">{CHIP[project.category]}</span>
+            {project.builtWithAI && <span className="j-chip j-chip-ai">built with AI</span>}
+          </span>
+          <div className="j-actions">
+            {project.links.map((l, i) => (
+              <a key={l.url} href={l.url} className={i === 0 ? 'j-btn j-btn-primary' : 'j-btn'}>
+                {l.label}
+              </a>
+            ))}
+            {project.links.length === 0 && <p className="j-meta">links land here once it ships</p>}
+          </div>
+          <dl className="j-facts">
+            {facts.map(([k, v]) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div className="j-story">
+          {project.builtWithAI && <p className="j-ai-flag">Built with AI</p>}
+          <p className="j-lead">{project.summary}</p>
+          {project.body && (
+            <div className="j-body">
+              <Markdown>{project.body}</Markdown>
+            </div>
+          )}
+          {project.team?.members && (
+            <p className="j-meta">with {project.team.members.join(', ')}</p>
+          )}
+        </div>
+      </section>
+    </>
   )
 }
 
@@ -344,7 +471,6 @@ export function Interests({ content }: { content: SiteContent }) {
 export function NotFound({ path, navigate }: { path: string; navigate: Nav }) {
   return (
     <section className="j-page j-enter j-404">
-      <FractalCanvas params={{ ...ROUTE_C.notFound, span: 2.1 }} live="bloom" className="j-hero" />
       <h1>Nothing at this address</h1>
       <p className="j-meta">{path} escaped the set.</p>
       <InternalLink to="/" navigate={navigate} className="j-btn j-btn-primary">

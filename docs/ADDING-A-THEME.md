@@ -27,7 +27,8 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
    `src/content/types.ts`, route helpers from `src/shared/routes.ts`. CSS lives inside
    the folder and is imported by the theme entry (it code-splits with the theme).
 
-2. **Cover every route.** `route.kind` is `home | cv | projects | project | interests |
+2. **Cover every route.** (`/projects/gallery` is julia's own page; another theme may
+   show its not-found page there, or a gallery of its own.) `route.kind` is `home | cv | projects | project | interests |
    notFound`. The micro-router owns what the URL *is*; your theme owns what navigation
    *feels* like. Internal links: render `<a href={path}>` and call
    `navigate(path)` in onClick with preventDefault (see `InternalLink` in julia for the
@@ -41,13 +42,19 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
    wrapper, `triggerProps` on the button, `panelProps` on the dropdown, `menuProps`
    on the list and `itemProps(i)` on each entry; style `[data-highlight]` (the
    roulette cursor) and `[data-instant]` (opened from the keyboard: no transition).
+   The dropdown is a reel: call `useThemeMenu(themeMenu, { reel: true })`, hand the
+   result to `useReel(m, count)` from `src/shared/useReel.ts`, and render
+   `REEL_REPEAT` copies of the previews in the strip it animates
+   (`src/themes/julia/ThemeMenu.tsx` is the shortest example). Style
+   `[data-rolling]` while it spins and `[data-landed]` once it stops.
    If the theme can fail (no GPU), the bar must stay above the failure screen.
 
 4. **Surface the required content.** Non-negotiable minimums:
    - All projects (with their links) and the CV data.
    - **`content.announcements` ("Up next") on the landing AND projects pages** — this
      site is a blog; the pulse must show in every world.
-   - Socials on the landing.
+   - Socials on the landing, drawn with `SocialLink` from `src/shared/social-icons.tsx`
+     so they show as brand marks.
    - A project's `body` (markdown, via react-markdown) on its page, and the
      `builtWithAI` disclosure on both its card and its page.
    - Art DNA (`project.art`, `content.routeArt`) is an *offer*: interpret the facets

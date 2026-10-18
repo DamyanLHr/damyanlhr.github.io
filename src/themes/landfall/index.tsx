@@ -24,6 +24,7 @@ import { createScene, HEIGHT, PLANE, type Scene } from './scene'
 import { drawRelief, reliefPoint } from './relief2d'
 import './landfall.css'
 import { ThemeMenu } from './ThemeMenu'
+import { SocialLink } from '../../shared/social-icons'
 
 // landfall — the eroded island, settled.
 //
@@ -905,9 +906,7 @@ function Hero({
       </p>
       <div className="lf-socials">
         {content.profile.socials.map((s) => (
-          <a key={s.url} href={s.url}>
-            {s.label}
-          </a>
+          <SocialLink key={s.url} link={s} />
         ))}
       </div>
       {content.announcements.length > 0 && (

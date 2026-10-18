@@ -155,7 +155,7 @@
 }
 
 .s-theme-trigger[aria-expanded='true'] {
-  border-color: color-mix(in srgb, var(--s-accent) 45%, transparent);
+  border-color: var(--s-accent-rule);
 }
 
 .s-theme-trigger:active {
@@ -168,25 +168,30 @@
   outline-offset: 2px;
 }
 
-/* the content panels' glass, grown from the button */
+/* the content panels' glass, holding a strip of worlds lit from behind */
 .s-theme-panel {
-  max-height: calc(100dvh - 5rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: min(24rem, calc(100vw - 1.6rem));
-  padding: 0.45rem;
-  border-radius: 14px;
-  background: linear-gradient(150deg, var(--s-glass), rgba(7, 8, 10, 0.86));
+  width: min(33rem, calc(100vw - 1.6rem));
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.7rem;
+  border-radius: var(--s-r);
+  background: linear-gradient(150deg, var(--s-glass), rgba(7, 8, 10, 0.9));
   border: 1px solid var(--s-line);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 20px 50px -16px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 24px 60px -18px rgba(0, 0, 0, 0.85);
   transform-origin: top right;
   transition:
-    opacity 160ms var(--ease-out-strong),
-    transform 160ms var(--ease-out-strong);
+    opacity 180ms var(--ease-out-strong),
+    transform 180ms var(--ease-out-strong);
 }
 
 @starting-style {
@@ -196,7 +201,77 @@
   }
 }
 
-.s-theme-panel ul {
+/* a light table behind the strip: an ember glow the frames pass over */
+.s-theme-reel {
+  position: relative;
+  height: 17rem;
+  overflow: hidden;
+  border-radius: var(--s-r-in);
+  background: radial-gradient(60% 50% at 50% 50%, rgba(255, 106, 0, 0.16), transparent 70%), #050506;
+  -webkit-mask: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+  mask: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+}
+
+.s-theme-strip {
+  position: absolute;
+  inset: 0 14px auto;
+  display: grid;
+  gap: 10px;
+  will-change: transform;
+}
+
+.s-theme-strip img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 6px;
+  opacity: 0.82;
+}
+
+/* the viewport the chosen world stops in, rimmed in ember light */
+.s-theme-port {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  aspect-ratio: 16 / 10;
+  width: calc(100% - 20px);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--s-accent) 22%, transparent),
+    0 0 0 999px rgba(7, 8, 10, 0.4);
+  pointer-events: none;
+}
+
+/* The landing glow is its own layer whose opacity fades in: animating the
+   box-shadow itself would repaint the whole 999px dimmer every frame. */
+.s-theme-port::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--s-accent-rule),
+    0 0 30px -4px color-mix(in srgb, var(--s-accent) 75%, transparent);
+  opacity: 0;
+  transition: opacity 260ms var(--ease-out-strong);
+}
+
+.s-theme-panel[data-landed] .s-theme-port::after {
+  opacity: 1;
+}
+
+.s-theme-side {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.s-theme-side ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -205,74 +280,63 @@
 }
 
 .s-theme-item {
-  display: grid;
-  grid-template-columns: 112px 1fr;
-  gap: 0.85rem;
-  align-items: center;
-  width: 100%;
-  padding: 0.42rem;
-  font: inherit;
-  text-align: left;
-  color: var(--s-fg);
-  background: transparent;
-  border: 0;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.s-theme-item img {
-  display: block;
-  width: 112px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 7px;
-  box-shadow: 0 0 0 1px var(--s-line);
-}
-
-.s-theme-text {
-  display: grid;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.s-theme-name {
   display: flex;
   align-items: baseline;
-  gap: 0.55rem;
-  font-size: 0.95rem;
-  font-weight: 500;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  font: inherit;
+  font-size: 0.94rem;
+  text-align: left;
+  color: var(--s-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--s-r-in);
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background 140ms ease;
 }
 
-.s-theme-name em {
+.s-theme-item[data-shown] {
+  color: var(--s-fg);
+  background: color-mix(in srgb, var(--s-fg) 6%, transparent);
+}
+
+.s-theme-item[data-highlight] {
+  color: var(--s-fg);
+  background: var(--s-accent-wash);
+  box-shadow: inset 0 0 0 1px var(--s-accent-rule);
+}
+
+.s-theme-panel[data-rolling] .s-theme-item {
+  transition: none;
+}
+
+.s-theme-item em {
   font-style: normal;
-  font-size: 0.7rem;
-  font-weight: 400;
+  font-size: 0.68rem;
   color: var(--s-accent-soft);
 }
 
-.s-theme-desc {
-  font-size: 0.78rem;
-  line-height: 1.4;
+.s-theme-caption {
+  margin: 0 0.65rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
   color: var(--s-muted);
+  text-wrap: pretty;
+  transition: opacity 160ms ease;
 }
 
-/* the roulette cursor glows the way the bulb's hot rims do */
-.s-theme-item[data-highlight] {
-  background: color-mix(in srgb, var(--s-accent) 9%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s-accent) 40%, transparent);
-}
-
-.s-theme-item[data-highlight] img {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--s-accent) 60%, transparent),
-    0 0 18px -4px color-mix(in srgb, var(--s-accent) 70%, transparent);
+.s-theme-panel[data-rolling]:not([data-landed]) .s-theme-caption {
+  opacity: 0;
 }
 
 .s-theme-hint {
-  margin: 0.35rem 0.45rem 0.25rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--s-line);
+  margin: 0 0.65rem 0.1rem;
   font-size: 0.72rem;
+  line-height: 1.45;
   color: var(--s-muted);
 }
 
@@ -287,30 +351,31 @@
 
 @media (hover: hover) and (pointer: fine) {
   .s-theme-trigger:hover {
-    border-color: color-mix(in srgb, var(--s-accent) 45%, transparent);
-  }
-  .s-theme-panel:not([data-rolling]) .s-theme-item:hover {
-    background: color-mix(in srgb, var(--s-fg) 6%, transparent);
+    border-color: var(--s-accent-rule);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .s-theme-panel {
-    transition: opacity 160ms ease;
+    transition: opacity 180ms ease;
     transform: none;
   }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.s-theme-panel[data-instant] {
+  transition: none;
 }
 
 @media (max-width: 560px) {
   .s-theme-label {
     display: none;
   }
-  .s-theme-item {
-    grid-template-columns: 84px 1fr;
+  .s-theme-panel {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .s-theme-item img {
-    width: 84px;
-    height: 53px;
+  .s-theme-reel {
+    height: 12rem;
   }
 }
 
@@ -872,7 +937,15 @@
   }
 }
 
-/* opened from the keyboard: keyboard actions never animate */
-.s-theme-panel[data-instant] {
-  transition: none;
+/* Profile links are brand marks now (shared/social-icons.tsx), drawn in the
+   link colour; an icon needs no underline, and a little padding makes it an
+   easier target without moving it. */
+.s-socials a[aria-label] {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.15rem;
+  border-bottom: 0;
+  padding: 0.3rem;
+  margin: -0.3rem;
+  text-decoration: none;
 }

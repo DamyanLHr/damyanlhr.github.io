@@ -52,7 +52,7 @@ export function pickRandom(
 /** Total time the highlight spends travelling before it settles, in ms. */
 export const ROULETTE_MS = 1000
 /** How long the winner stays highlighted before the site switches. */
-export const ROULETTE_HOLD_MS = 240
+export const ROULETTE_HOLD_MS = 320
 
 /**
  * The highlight's path: at least one full lap from `from`, ending on `to`, with
@@ -74,6 +74,28 @@ export function rouletteSteps(
   return weights.map((w, k) => ({ index: (start + k + 1) % count, ms: (w / sum) * totalMs }))
 }
 
+/** How long a reel spins before it settles on the winner. */
+export const SPIN_MS = 1400
+
+/**
+ * Where a reel strip lands for a spin: `laps` full turns past the current
+ * slot, then on to `to`. The strip repeats its entries, so the returned slot
+ * shows the same picture as `to` itself; after the spin the strip jumps back
+ * to `to` with no visible change.
+ */
+export function reelSpinTarget(to: number, count: number, laps = 3): number {
+  return laps * count + to
+}
+
+/**
+ * The strip's vertical offset that centres slot `slot` in the window, given
+ * the distance from one cell to the next (`pitch`), a cell's own height and
+ * the window's height.
+ */
+export function reelOffset(slot: number, pitch: number, cellH: number, windowH: number): number {
+  return windowH / 2 - slot * pitch - cellH / 2
+}
+
 /** A pointer passing over the bar on its way to a link should not open it. */
 const HOVER_INTENT_MS = 90
 /** A click this soon after a hover-open still counts as the opening click. */
@@ -89,11 +111,26 @@ function reducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export function useThemeMenu(menu: ThemeMenu) {
+export interface ThemeMenuOptions {
+  /**
+   * The random pick is a reel spin the theme animates itself (`spin` tells it
+   * where to and for how long) rather than a highlight stepping down the list.
+   */
+  reel?: boolean
+}
+
+export function useThemeMenu(menu: ThemeMenu, options: ThemeMenuOptions = {}) {
   const { entries, activeId, pick } = menu
+  const reel = options.reel ?? false
+  /** The reel spin in progress: the entry it lands on and how long it takes. */
+  const [spin, setSpin] = useState<{ to: number; ms: number } | null>(null)
   const [open, setOpen] = useState(false)
   const [rolling, setRolling] = useState(false)
+  /** The roulette has stopped on its winner and is holding before the switch. */
+  const [landed, setLanded] = useState(false)
   const [highlight, setHighlight] = useState(-1)
+  /** The entry the pointer or focus is on, for the theme's preview lens. */
+  const [hover, setHover] = useState(-1)
   const [status, setStatus] = useState('')
   /** Opened from the keyboard: show it at once, keyboard actions never animate. */
   const [instant, setInstant] = useState(false)
@@ -108,6 +145,9 @@ export function useThemeMenu(menu: ThemeMenu) {
   const rollTimers = useRef<number[]>([])
   /** Item to focus once the panel has rendered (keyboard opening). */
   const pendingFocus = useRef<number | null>(null)
+  /** Lands a running spin: called when the theme's strip has actually stopped. */
+  const landSpin = useRef<(() => void) | null>(null)
+  const spun = useCallback(() => landSpin.current?.(), [])
 
   const clearRoll = useCallback(() => {
     for (const t of rollTimers.current) window.clearTimeout(t)
@@ -130,43 +170,64 @@ export function useThemeMenu(menu: ThemeMenu) {
       window.clearTimeout(openTimer.current)
       clearRoll()
       setRolling(false)
+      setLanded(false)
+      setSpin(null)
       setHighlight(-1)
+      setHover(-1)
       setOpen(false)
       if (returnFocus) triggerRef.current?.focus()
     },
     [clearRoll],
   )
 
-  const roll = useCallback(() => {
-    const winner = pickRandom(entries, activeId)
-    if (!winner) return
-    const to = entries.findIndex((e) => e.id === winner.id)
-    const from = entries.findIndex((e) => e.id === activeId)
-    setRolling(true)
-    setStatus(`Picking a theme at random`)
+  const roll = useCallback(
+    (fromKeyboard = false) => {
+      const winner = pickRandom(entries, activeId)
+      if (!winner) return
+      const to = entries.findIndex((e) => e.id === winner.id)
+      const from = entries.findIndex((e) => e.id === activeId)
+      setRolling(true)
+      setStatus(`Picking a theme at random`)
 
-    const land = () => {
-      setHighlight(to)
-      setStatus(`Switching to ${winner.name}`)
-      rollTimers.current.push(window.setTimeout(() => pick(winner.id), ROULETTE_HOLD_MS))
-    }
+      let landed = false
+      const land = () => {
+        if (landed) return
+        landed = true
+        landSpin.current = null
+        setHighlight(to)
+        setLanded(true)
+        setStatus(`Switching to ${winner.name}`)
+        rollTimers.current.push(window.setTimeout(() => pick(winner.id), ROULETTE_HOLD_MS))
+      }
 
-    if (reducedMotion()) {
-      land()
-      return
-    }
-    let at = 0
-    const steps = rouletteSteps(entries.length, from, to)
-    steps.forEach((s, k) => {
-      rollTimers.current.push(
-        window.setTimeout(() => {
-          if (k === steps.length - 1) land()
-          else setHighlight(s.index)
-        }, at),
-      )
-      at += s.ms
-    })
-  }, [entries, activeId, pick])
+      // keyboard actions never animate, and reduced motion only shows the result
+      if (reducedMotion() || fromKeyboard) {
+        land()
+        return
+      }
+      if (reel) {
+        // The theme spins its strip for SPIN_MS and lands the list when the
+        // strip has stopped (spun), so the highlight never arrives early on a
+        // frame that came late. The timer is only a backstop.
+        landSpin.current = land
+        setSpin({ to, ms: SPIN_MS })
+        rollTimers.current.push(window.setTimeout(land, SPIN_MS + 500))
+        return
+      }
+      let at = 0
+      const steps = rouletteSteps(entries.length, from, to)
+      steps.forEach((s, k) => {
+        rollTimers.current.push(
+          window.setTimeout(() => {
+            if (k === steps.length - 1) land()
+            else setHighlight(s.index)
+          }, at),
+        )
+        at += s.ms
+      })
+    },
+    [entries, activeId, pick, reel],
+  )
 
   // outside press and Escape close; leaving focus closes
   useEffect(() => {
@@ -267,7 +328,8 @@ export function useThemeMenu(menu: ThemeMenu) {
         else show()
         return
       }
-      roll()
+      // keyboard activation (Enter/Space) arrives as a click with no pointer
+      roll(e.detail === 0)
     },
     onKeyDown: (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -281,6 +343,7 @@ export function useThemeMenu(menu: ThemeMenu) {
   /** The panel around the list: room for a heading or a hint. */
   const panelProps = {
     'data-rolling': rolling || undefined,
+    'data-landed': landed || undefined,
     'data-instant': instant || undefined,
   }
 
@@ -304,6 +367,13 @@ export function useThemeMenu(menu: ThemeMenu) {
     },
   }
 
+  const activeIndex = entries.findIndex((e) => e.id === activeId)
+  /**
+   * Which entry a preview lens should show: the roulette's cursor while it
+   * runs, else whatever the visitor is pointing at, else the current theme.
+   */
+  const shown = highlight >= 0 ? highlight : hover >= 0 ? hover : activeIndex
+
   const itemProps = (i: number) => {
     const entry = entries[i]
     return {
@@ -316,6 +386,16 @@ export function useThemeMenu(menu: ThemeMenu) {
       tabIndex: -1,
       'data-highlight': highlight === i || undefined,
       'data-active': entry.id === activeId || undefined,
+      'data-shown': shown === i || undefined,
+      onPointerEnter: (e: ReactPointerEvent) => {
+        if (e.pointerType !== 'mouse' || rolling) return
+        // the mouse is back: its moves slide again, even after a keyboard open
+        setInstant(false)
+        setHover(i)
+      },
+      onFocus: () => {
+        if (!rolling) setHover(i)
+      },
       onClick: () => {
         if (rolling) return
         if (entry.id === activeId) {
@@ -331,6 +411,11 @@ export function useThemeMenu(menu: ThemeMenu) {
     open,
     rolling,
     highlight,
+    shown,
+    spin,
+    spun,
+    landed,
+    instant,
     status,
     rootProps,
     triggerProps,

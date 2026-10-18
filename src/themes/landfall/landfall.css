@@ -442,10 +442,17 @@
     transform 140ms var(--lf-ease);
 }
 
-.lf-theme-trigger i {
+.lf-theme-trigger i,
+.lf-theme-tag i,
+.lf-theme-item i {
+  flex: none;
   width: 7px;
   height: 7px;
   border-radius: 50%;
+  background: var(--lf-accent);
+}
+
+.lf-theme-trigger i {
   background: var(--lf-accent-warm);
 }
 
@@ -469,26 +476,29 @@
   outline-offset: 3px;
 }
 
-/* The hero card's glass, opening from the marker that owns it. */
+/* The hero card's glass, holding a stack of postcards. */
 .lf-theme-panel {
-  max-height: calc(100dvh - 5rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: min(23rem, calc(100vw - 2rem));
-  padding: 0.45rem;
+  width: min(33rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 0.7rem;
   border-radius: var(--lf-r);
   background: var(--lf-glass);
   border: 1px solid rgba(16, 22, 28, 0.14);
-  box-shadow: 0 18px 50px rgba(8, 16, 22, 0.3);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 22px 60px -14px rgba(8, 16, 22, 0.45);
+  backdrop-filter: blur(12px);
   color: var(--lf-ink);
   transform-origin: top right;
   transition:
-    opacity 170ms var(--lf-ease),
-    transform 170ms var(--lf-ease);
+    opacity 180ms var(--lf-ease),
+    transform 180ms var(--lf-ease);
 }
 
 @starting-style {
@@ -498,7 +508,103 @@
   }
 }
 
-.lf-theme-panel ul {
+/* the stack: postcards slide up past the slot, fading at top and bottom */
+.lf-theme-reel {
+  position: relative;
+  height: 17rem;
+  overflow: hidden;
+  border-radius: var(--lf-r-in);
+  background: color-mix(in srgb, var(--lf-sky) 70%, var(--lf-paper));
+  -webkit-mask: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+  mask: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+}
+
+.lf-theme-strip {
+  position: absolute;
+  inset: 0 14px auto;
+  display: grid;
+  gap: 10px;
+  will-change: transform;
+}
+
+.lf-theme-card {
+  display: block;
+  aspect-ratio: 16 / 10;
+  border: 4px solid #fff;
+  border-radius: 6px;
+  background: var(--lf-sky);
+  box-shadow:
+    0 1px 2px rgba(8, 16, 22, 0.18),
+    0 8px 18px -8px rgba(8, 16, 22, 0.45);
+  overflow: hidden;
+}
+
+.lf-theme-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* the slot the chosen postcard stops in, named like a town on the map */
+.lf-theme-slot {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  aspect-ratio: 16 / 10;
+  width: calc(100% - 20px);
+  border-radius: 8px;
+  box-shadow: 0 0 0 999px rgba(244, 242, 236, 0.32);
+  pointer-events: none;
+}
+
+/* The landing glow is its own layer whose opacity fades in: animating the
+   box-shadow itself would repaint the whole 999px dimmer every frame. */
+.lf-theme-slot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 2px var(--lf-accent-warm);
+  opacity: 0;
+  transition: opacity 220ms var(--lf-ease);
+}
+
+.lf-theme-panel[data-landed] .lf-theme-slot::after {
+  opacity: 1;
+}
+
+.lf-theme-tag {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.5rem 0.12rem 0.36rem;
+  border-radius: 999px;
+  background: var(--lf-glass);
+  border: 1px solid rgba(16, 22, 28, 0.18);
+  box-shadow: 0 2px 10px rgba(8, 16, 22, 0.28);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.lf-theme-panel[data-landed] .lf-theme-tag i {
+  background: var(--lf-accent-warm);
+}
+
+.lf-theme-side {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.lf-theme-side ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -506,69 +612,72 @@
   gap: 2px;
 }
 
+/* the places you could sail to: a marker and a name each */
 .lf-theme-item {
-  display: grid;
-  grid-template-columns: 104px 1fr;
-  gap: 0.8rem;
+  display: flex;
   align-items: center;
+  gap: 0.55rem;
   width: 100%;
-  padding: 0.4rem;
+  padding: 0.45rem 0.55rem;
   border: 1px solid transparent;
   border-radius: var(--lf-r-in);
   background: transparent;
   font: inherit;
+  font-size: 0.9rem;
   text-align: left;
-  color: inherit;
+  color: var(--lf-ink);
   cursor: pointer;
 }
 
-.lf-theme-item img {
-  display: block;
-  width: 104px;
-  height: 65px;
-  object-fit: cover;
-  border-radius: 5px;
-  box-shadow: 0 0 0 1px rgba(16, 22, 28, 0.16);
+.lf-theme-item i {
+  background: var(--lf-muted);
+  opacity: 0.6;
 }
 
-.lf-theme-text {
-  display: grid;
-  gap: 0.18rem;
-  min-width: 0;
+.lf-theme-item[data-active] i {
+  background: var(--lf-accent-warm);
+  opacity: 1;
 }
 
-.lf-theme-name {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.lf-theme-name em {
+.lf-theme-item em {
+  margin-left: auto;
   font-style: normal;
-  font-size: 0.68rem;
-  font-weight: 400;
+  font-size: 0.66rem;
   color: var(--lf-accent-warm);
 }
 
-.lf-theme-desc {
-  font-size: 0.76rem;
-  line-height: 1.4;
-  color: var(--lf-muted);
+.lf-theme-item[data-shown] {
+  background: rgba(255, 255, 255, 0.6);
 }
 
-/* The keyboard tour's "you are here" ring, reused as the roulette cursor. */
+.lf-theme-item[data-shown] i {
+  background: var(--lf-accent);
+  opacity: 1;
+}
+
+/* The keyboard tour's "you are here" ring, reused for the landing. */
 .lf-theme-item[data-highlight] {
   background: var(--lf-paper);
   border-color: var(--lf-accent-warm);
 }
 
+.lf-theme-caption {
+  margin: 0 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--lf-muted);
+  text-wrap: pretty;
+  transition: opacity 160ms ease;
+}
+
+.lf-theme-panel[data-rolling]:not([data-landed]) .lf-theme-caption {
+  opacity: 0;
+}
+
 .lf-theme-hint {
-  margin: 0.35rem 0.4rem 0.2rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(16, 22, 28, 0.12);
+  margin: 0 0.55rem 0.15rem;
   font-size: 0.72rem;
+  line-height: 1.45;
   color: var(--lf-muted);
 }
 
@@ -577,28 +686,29 @@
     background: var(--lf-paper);
     border-color: var(--lf-accent-warm);
   }
-  .lf-theme-panel:not([data-rolling]) .lf-theme-item:hover {
-    background: rgba(255, 255, 255, 0.55);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lf-theme-panel {
-    transition: opacity 170ms ease;
+    transition: opacity 180ms ease;
     transform: none;
   }
+}
+
+/* opened from the keyboard: keyboard actions never animate */
+.lf-theme-panel[data-instant] {
+  transition: none;
 }
 
 @media (max-width: 700px) {
   .lf-theme-label {
     display: none;
   }
-  .lf-theme-item {
-    grid-template-columns: 80px 1fr;
+  .lf-theme-panel {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .lf-theme-item img {
-    width: 80px;
-    height: 50px;
+  .lf-theme-reel {
+    height: 12rem;
   }
 }
 
@@ -1093,7 +1203,15 @@
   }
 }
 
-/* opened from the keyboard: keyboard actions never animate */
-.lf-theme-panel[data-instant] {
-  transition: none;
+/* Profile links are brand marks now (shared/social-icons.tsx), drawn in the
+   link colour; an icon needs no underline, and a little padding makes it an
+   easier target without moving it. */
+.lf-socials a[aria-label] {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.15rem;
+  border-bottom: 0;
+  padding: 0.3rem;
+  margin: -0.3rem;
+  text-decoration: none;
 }

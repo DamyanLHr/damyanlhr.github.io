@@ -11,6 +11,7 @@ import { routePath, TOP_LEVEL_ROUTES } from '../../shared/routes'
 import { createBulb, type Bulb, type BulbPalette, type BulbPose } from './bulb'
 import './singularity.css'
 import { ThemeMenu } from './ThemeMenu'
+import { SocialLink } from '../../shared/social-icons'
 
 // singularity — the flagship theme (PLAN Phase 4). The site is one raymarched
 // BoxFoldBulbPow2 world; navigation flies the camera between authored poses and
@@ -240,14 +241,12 @@ function Home({ content, navigate }: { content: SiteContent; navigate: ThemeProp
           Hristov
         </h1>
         <p className="s-sub">
-          Game development, engines and graphics. Computer Science and Engineering at TU/e,
-          class of 2027.
+          Game development, engines and graphics. Computer Science and Engineering at TU/e, class of
+          2027.
         </p>
         <div className="s-socials">
           {content.profile.socials.map((s) => (
-            <a key={s.url} href={s.url}>
-              {s.label}
-            </a>
+            <SocialLink key={s.url} link={s} />
           ))}
         </div>
         <p className="s-hint">scroll to dive · drag to look · links fly the camera</p>
@@ -263,9 +262,7 @@ function Home({ content, navigate }: { content: SiteContent; navigate: ThemeProp
 }
 
 function Panel({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
-  return (
-    <section className={`s-panel s-enter${wide ? ' s-panel-wide' : ''}`}>{children}</section>
-  )
+  return <section className={`s-panel s-enter${wide ? ' s-panel-wide' : ''}`}>{children}</section>
 }
 
 function Cv({ content, navigate }: { content: SiteContent; navigate: ThemeProps['navigate'] }) {

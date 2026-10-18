@@ -493,7 +493,108 @@ other theme comes up to Julia's standard.
       body were styled with a `--lf-fg` token that never existed; atlas lost its
       visible em dashes and colon reveals, and stopped describing interest isles
       that are switched off; an ungated hover and two missing focus rings fixed.
+- [x] **Dropdown, second pass** (Damyan: "more visually appealing, use the
+      skills"; `frontend-design`, `impeccable` polish, `emil-design-eng`;
+      superseded by the reel below). Each panel was mostly picture: a large lens shows the theme under the pointer
+      (or the roulette's cursor) beside a compact list, framed in each theme's own
+      way: julia an obsidian plate with an ember rule on the shown entry, landfall
+      a postcard labelled with a town marker, atlas an engraved double-ruled plate
+      printed in sepia that comes up in full colour with a rubric frame when the
+      roulette lands, singularity a viewport that flares with ember light,
+      debug a plain box. Hover crossfades in 180 ms (blur-bridged on the 2D
+      themes, opacity only over the GPU scenes); the roulette cuts between
+      previews without fading and settles once on the winner; previews went
+      from 560 to 720 px wide for the larger lens.
+- [x] **The reel** (Damyan picked it from three menu concepts, "every theme, own
+      style"). The lens became a vertical strip of previews behind a window:
+      pointing at a name runs the strip to it (240 ms, strong ease-out, picked up
+      from wherever it is), and the random pick is a slot-machine spin, three
+      laps with a light blur that clears as it slows into the winner (~1.4 s),
+      then the window takes its landed treatment. Shared mechanics in
+      `src/shared/useReel.ts`; julia's strip is obsidian film with ember
+      sprockets, landfall's postcards drop past a marked slot, atlas turns plates
+      in a folio, singularity's strip is backlit, debug keeps its stepping cursor.
 - **GATE — "theme menu approved":** live review on Damyan's hardware.
+
+### Phase 5f — julia in motion *(2026-10-18)*
+Damyan: Julia should be "even more interactive with the animations of the julia set",
+tastefully, and the same goes for every math theme after it. From three demos he
+picked one set for the whole visit, the orbit trace on the hero and the plates, and a
+different live effect on every project plate.
+
+- [x] **One set, many poses.** `Backdrop.tsx` mounts one stage (`stage.ts`) in
+      Root that outlives every route. Each page gives it a pose (place, size,
+      angle, brightness, constant; `poseFor` in `travel.ts`), and the constant
+      travels there along the edge of the Mandelbrot set's main cardioid, where
+      every set on the road is a detailed one (~950 ms, interruptible). The first
+      arrival condenses out of the plane, 2 → 170 iterations. The home hero canvas
+      and the 404 plate are gone; the CV dims the set and veils the text column.
+      CPU path and reduced motion: a still pose per page.
+- [x] **The band** (Damyan's second review: the set must not just sit in the
+      background, and no band may ever cut its set short; answers 1A 2C 3A 4B 5B
+      6A 7A 8A 9A). On the projects pages the set moves into a band across the
+      top (40% of the screen on Projects, half on a project) and scrolls away
+      with the page. `fit.ts` measures each set, glow included, and fits it
+      along its long axis as large as the band allows; a test holds every
+      constant inside its band and at least 70% across it. Projects gets a long
+      constant so it fills the wide band, and a soft mask fades anything that
+      reaches past the band before the text. Pointing at a card sends the set to
+      that project's constant.
+- [x] **The set becomes the effect.** Opening a project, the set travels, then
+      develops into the project's effect in place (one shader, `uAmount`), then
+      the text rises: a title rail (name, links, facts) beside the story, using
+      the width. Stardust and ridgelines draw on a layer laid over the band;
+      ridgelines lift out of the flat plane. Back dissolves the effect first.
+- [x] **Effects everywhere, by hand or by finger.** One effect per project,
+      pinned with `art.effect` (Don't Break Glass beats, Kill Bunny ripples, 5
+      More Minutes! is stardust, Digital Twinning Suspension is lit relief, Blood
+      of Hedon traps, Olympian Onslaught field lines, this site dives, Extensible
+      Terrain Generation is ridgelines, Davinci's Black Market Bird Dealer bends
+      under the pointer); in-progress projects now have cards. Cards show a still
+      of their effect, drawn by one shared WebGL context, and come alive under the
+      mouse, or, on a phone, while centred on screen. On touch the band takes a
+      tap or a sideways drag and leaves vertical swipes to the page; the dive is
+      a hold or a pinch. The orbit trace stays only on the home hero and
+      heartbeat.
+- **GATE — "julia motion approved":** live review on Damyan's hardware.
+
+### Phase 5g — the gallery, thirteen new effects, and the site's loose ends *(2026-10-18)*
+Damyan, from the proposal page: all twelve new effects plus murmuration for Davinci,
+ridgelines as a flyover on a wider card, swaptube as a submodule, the gallery as a tab
+under Projects, and the improvements that need nothing from him; then
+`/review-animations` and the merge to main.
+
+- [x] **Gallery.** "Work · Gallery" under the Projects heading opens `/projects/gallery`
+      (julia only). The band plays the chosen effect, picked from a grid of live tiles
+      with their own addresses (`#coral`). Every effect is described once, in
+      `effects/registry.ts`, which the bands, cards and gallery read.
+- [x] **Thirteen new effects.** Root bloom, quintic braid, shape-shifter, Mandelbrot to
+      Julia, pendulum chaos, life on the edge and ship-and-tricorn follow 2swap's
+      swaptube (a pinned submodule at `vendor/swaptube`, credited in `CREDITS.md`, the
+      gallery and each module); Newton's basins, Phoenix, Buddhabrot ember, strange
+      attractor, coral and murmuration are new. Five are modes of the band's shader;
+      the rest are layers, the simulations running in the cards' shared WebGL context
+      with a CPU floor. Davinci's Black Market Bird Dealer flies a murmuration.
+- [x] **Ridgelines, flown.** The terrain streams toward the viewer a row at a time from
+      a drifting constant; Extensible Terrain Generation's card is two columns wide.
+- [x] **Loose ends.** Set interiors shaded by how close their orbits come to zero; the
+      band plays from the keyboard; an email line with a copy button on the CV and in
+      the footer; a print stylesheet and `public/cv.pdf` (`npm run cv-pdf`); share
+      images and per-page share tags (`npm run og`, written out by `postbuild`), with
+      `robots.txt` and a sitemap; cards drawn only as they near the screen, one per
+      idle moment; fresh theme previews.
+- [x] **Second pass.** Social links drawn as brand marks in every theme
+      (`src/shared/social-icons.tsx`, LinkedIn ready for when it exists); the CV prints
+      on one A4 page; the gallery's band takes most of the screen; the layer effects
+      and simulations render near the band's own resolution, the simulations blending
+      their cells instead of stretching them.
+- [x] **`/review-animations`.** Opening Projects no longer stalls: the card renderer
+      compiles off the main thread ahead of time, stills wait for the set to land and
+      run once each, and the band's edge moves on the compositor. The murmuration flies
+      calmer, evenly in both directions, and every effect keeps its pace on 120Hz
+      screens. Hovering a card no longer restarts it; reduced motion no longer
+      swallows the wheel on the dive; keyboard spins of the theme reel land at once.
+- **GATE — "gallery approved"**, after `/review-animations`, then merge to main.
 
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*
 - [ ] Style tile: 2–3 industrial treatments (teenage.engineering register: spec grids,

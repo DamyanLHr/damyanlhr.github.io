@@ -3,6 +3,7 @@ import type { Project } from './types'
 export const projects: Project[] = [
   {
     slug: 'extensible-terrain-generation',
+    art: { effect: 'ridgelines' },
     title: 'Extensible Terrain Generation',
     category: 'personal',
     status: 'coming-soon',
@@ -13,6 +14,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'this-site',
+    art: { effect: 'scroll-dive' },
     title: 'This Portfolio Site',
     category: 'personal',
     status: 'released',
@@ -131,6 +133,7 @@ Vulkan are the current case and are being learned directly.
   },
   {
     slug: 'dont-break-glass',
+    art: { effect: 'heartbeat' },
     title: "Don't Break Glass",
     category: 'jam',
     status: 'released',
@@ -152,6 +155,7 @@ Vulkan are the current case and are being learned directly.
   },
   {
     slug: 'kill-bunny',
+    art: { effect: 'ripple' },
     title: 'Kill Bunny',
     category: 'jam',
     status: 'released',
@@ -173,6 +177,7 @@ Vulkan are the current case and are being learned directly.
   },
   {
     slug: 'five-more-minutes',
+    art: { effect: 'stardust' },
     title: '5 More Minutes!',
     category: 'jam',
     status: 'released',
@@ -195,6 +200,7 @@ Vulkan are the current case and are being learned directly.
   },
   {
     slug: 'davincis-black-market-bird-dealer',
+    art: { effect: 'murmuration' },
     title: "Davinci's Black Market Bird Dealer",
     category: 'university',
     status: 'coming-soon',
@@ -205,6 +211,7 @@ Vulkan are the current case and are being learned directly.
   },
   {
     slug: 'digital-twinning-suspension',
+    art: { effect: 'relief' },
     title: 'Digital Twinning Suspension',
     category: 'university',
     status: 'released',
@@ -225,6 +232,7 @@ Vulkan are the current case and are being learned directly.
   },
   {
     slug: 'blood-of-hedon',
+    art: { effect: 'orbit-traps' },
     title: 'Blood of Hedon',
     category: 'university',
     status: 'released',
@@ -245,6 +253,7 @@ Vulkan are the current case and are being learned directly.
   },
   {
     slug: 'olympian-onslaught',
+    art: { effect: 'field-lines' },
     title: 'Olympian Onslaught',
     category: 'university',
     status: 'released',
