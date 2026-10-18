@@ -1,12 +1,14 @@
 import { useThemeMenu, type ThemeMenu as Menu } from '../../shared/theme-menu'
+import { REEL_REPEAT, useReel } from '../../shared/useReel'
 
-// The theme button, julia's way: a quiet pill in the bar, and a panel that is
-// mostly picture. One large plate shows whichever world you point at; the
-// names sit beside it as a short index. During the random pick the plate cuts
-// from world to world and settles on the winner.
+// The theme button, julia's way: a quiet pill in the bar, and a reel of
+// obsidian film behind a window ticked with ember sprockets. Pointing at a
+// name runs the strip to that world; the random pick spins it and lets it
+// slow into the winner.
 
 export function ThemeMenu({ menu }: { menu: Menu }) {
-  const m = useThemeMenu(menu)
+  const m = useThemeMenu(menu, { reel: true })
+  const reel = useReel(m, menu.entries.length)
   const active = menu.entries.find((e) => e.id === menu.activeId)
   const shown = menu.entries[m.shown] ?? active
   return (
@@ -17,25 +19,23 @@ export function ThemeMenu({ menu }: { menu: Menu }) {
       </button>
       {m.open && (
         <div className="j-theme-panel" {...m.panelProps}>
-          <figure className="j-theme-lens" aria-hidden="true">
-            <span className="j-theme-plate">
-              {menu.entries.map((e, i) => (
-                <img
-                  key={e.id}
-                  src={e.preview}
-                  alt=""
-                  width={360}
-                  height={225}
-                  decoding="async"
-                  data-shown={m.shown === i || undefined}
-                />
-              ))}
-            </span>
-            <figcaption>
-              <span className="j-theme-lens-name">{shown?.name}</span>
-              <span className="j-theme-lens-desc">{shown?.description}</span>
-            </figcaption>
-          </figure>
+          <div className="j-theme-reel" ref={reel.windowRef} aria-hidden="true">
+            <div className="j-theme-strip" ref={reel.stripRef}>
+              {Array.from({ length: REEL_REPEAT }, (_, lap) =>
+                menu.entries.map((e) => (
+                  <img
+                    key={`${lap}-${e.id}`}
+                    src={e.preview}
+                    alt=""
+                    width={320}
+                    height={200}
+                    decoding="async"
+                  />
+                )),
+              )}
+            </div>
+            <span className="j-theme-window" />
+          </div>
           <div className="j-theme-side">
             <ul {...m.menuProps}>
               {menu.entries.map((e, i) => (
@@ -48,7 +48,10 @@ export function ThemeMenu({ menu }: { menu: Menu }) {
                 </li>
               ))}
             </ul>
-            <p className="j-theme-hint">Press Theme again for a random one.</p>
+            <p className="j-theme-caption" aria-hidden="true">
+              {shown?.description}
+            </p>
+            <p className="j-theme-hint">Press Theme again to spin for a random one.</p>
           </div>
         </div>
       )}

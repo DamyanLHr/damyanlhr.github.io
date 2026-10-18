@@ -317,88 +317,89 @@
 
 .a-theme-body {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
   gap: 1.1rem;
 }
 
-.a-theme-lens {
-  margin: 0;
+.a-theme-folio {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.35rem;
   align-content: start;
+  text-align: center;
 }
 
-/* the plate itself: an engraved double frame, the world printed in its ink */
-.a-theme-plate {
+/* the folio: plates turning past an engraved frame, fading under the paper
+   above and below */
+.a-theme-reel {
   position: relative;
+  height: 16rem;
+  overflow: hidden;
+  -webkit-mask: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+  mask: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+}
+
+.a-theme-strip {
+  position: absolute;
+  inset: 0 14px auto;
+  display: grid;
+  gap: 12px;
+  will-change: transform;
+}
+
+/* every plate is printed in the same ink as everything else */
+.a-theme-plate {
   display: block;
   aspect-ratio: 16 / 10;
-  padding: 5px;
+  padding: 4px;
   border: 1px solid var(--a-ink);
-  outline: 1px solid var(--a-ink);
-  outline-offset: 3px;
-  margin: 4px;
   background: var(--a-paper);
 }
 
 .a-theme-plate img {
-  position: absolute;
-  inset: 5px;
-  width: calc(100% - 10px);
-  height: calc(100% - 10px);
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  opacity: 0;
-  filter: sepia(0.4) saturate(0.8) contrast(1.04) blur(1.5px);
-  transition:
-    opacity 200ms ease,
-    filter 200ms ease;
+  filter: sepia(0.45) saturate(0.75) contrast(1.04);
+  mix-blend-mode: multiply;
 }
 
-.a-theme-plate img[data-shown] {
-  opacity: 1;
-  filter: sepia(0.4) saturate(0.8) contrast(1.04);
+/* the frame the chosen plate stops in: the neatline's double rule */
+.a-theme-frame {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  aspect-ratio: 16 / 10;
+  width: calc(100% - 16px);
+  border: 1px solid var(--a-ink);
+  outline: 1px solid var(--a-ink);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 999px rgba(236, 227, 208, 0.45);
+  pointer-events: none;
 }
 
-/* the roulette turns plates over, it does not dissolve them */
-.a-theme-panel[data-rolling] .a-theme-plate img {
-  transition: none;
-}
-
-/* the winning plate is printed in full colour, its frame in rubric */
-.a-theme-panel[data-landed] .a-theme-plate {
+/* the winning plate comes up in rubric */
+.a-theme-panel[data-landed] .a-theme-frame {
   border-color: var(--a-rubric);
   outline-color: var(--a-rubric);
 }
 
-.a-theme-panel[data-landed] .a-theme-plate img[data-shown] {
-  filter: none;
-  animation: a-theme-settle 320ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-@keyframes a-theme-settle {
-  from {
-    transform: scale(1.03);
-  }
-}
-
-.a-theme-lens figcaption {
-  display: grid;
-  gap: 0.15rem;
-  text-align: center;
-  min-height: 3.4rem;
-}
-
 .a-theme-cap {
+  margin: 0.3rem 0 0;
   font-family: 'IM Fell Great Primer', Georgia, serif;
   font-size: 1.02rem;
 }
 
 .a-theme-desc {
+  margin: 0;
   font-style: italic;
   font-size: 0.86rem;
   line-height: 1.3;
   color: var(--a-ink-soft);
   text-wrap: balance;
+  min-height: 2.3em;
 }
 
 .a-theme-body ul {
@@ -482,12 +483,6 @@
   .a-theme-panel {
     transition: opacity 180ms ease;
     transform: none;
-  }
-  .a-theme-plate img {
-    filter: sepia(0.4) saturate(0.8) contrast(1.04);
-  }
-  .a-theme-panel[data-landed] .a-theme-plate img[data-shown] {
-    animation: none;
   }
 }
 

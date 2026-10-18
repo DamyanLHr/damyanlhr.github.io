@@ -74,6 +74,28 @@ export function rouletteSteps(
   return weights.map((w, k) => ({ index: (start + k + 1) % count, ms: (w / sum) * totalMs }))
 }
 
+/** How long a reel spins before it settles on the winner. */
+export const SPIN_MS = 1400
+
+/**
+ * Where a reel strip lands for a spin: `laps` full turns past the current
+ * slot, then on to `to`. The strip repeats its entries, so the returned slot
+ * shows the same picture as `to` itself; after the spin the strip jumps back
+ * to `to` with no visible change.
+ */
+export function reelSpinTarget(to: number, count: number, laps = 3): number {
+  return laps * count + to
+}
+
+/**
+ * The strip's vertical offset that centres slot `slot` in the window, given
+ * the distance from one cell to the next (`pitch`), a cell's own height and
+ * the window's height.
+ */
+export function reelOffset(slot: number, pitch: number, cellH: number, windowH: number): number {
+  return windowH / 2 - slot * pitch - cellH / 2
+}
+
 /** A pointer passing over the bar on its way to a link should not open it. */
 const HOVER_INTENT_MS = 90
 /** A click this soon after a hover-open still counts as the opening click. */
@@ -89,8 +111,19 @@ function reducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export function useThemeMenu(menu: ThemeMenu) {
+export interface ThemeMenuOptions {
+  /**
+   * The random pick is a reel spin the theme animates itself (`spin` tells it
+   * where to and for how long) rather than a highlight stepping down the list.
+   */
+  reel?: boolean
+}
+
+export function useThemeMenu(menu: ThemeMenu, options: ThemeMenuOptions = {}) {
   const { entries, activeId, pick } = menu
+  const reel = options.reel ?? false
+  /** The reel spin in progress: the entry it lands on and how long it takes. */
+  const [spin, setSpin] = useState<{ to: number; ms: number } | null>(null)
   const [open, setOpen] = useState(false)
   const [rolling, setRolling] = useState(false)
   /** The roulette has stopped on its winner and is holding before the switch. */
@@ -135,6 +168,7 @@ export function useThemeMenu(menu: ThemeMenu) {
       clearRoll()
       setRolling(false)
       setLanded(false)
+      setSpin(null)
       setHighlight(-1)
       setHover(-1)
       setOpen(false)
@@ -162,6 +196,12 @@ export function useThemeMenu(menu: ThemeMenu) {
       land()
       return
     }
+    if (reel) {
+      // the theme spins its strip for SPIN_MS; the list waits for the landing
+      setSpin({ to, ms: SPIN_MS })
+      rollTimers.current.push(window.setTimeout(land, SPIN_MS))
+      return
+    }
     let at = 0
     const steps = rouletteSteps(entries.length, from, to)
     steps.forEach((s, k) => {
@@ -173,7 +213,7 @@ export function useThemeMenu(menu: ThemeMenu) {
       )
       at += s.ms
     })
-  }, [entries, activeId, pick])
+  }, [entries, activeId, pick, reel])
 
   // outside press and Escape close; leaving focus closes
   useEffect(() => {
@@ -354,6 +394,9 @@ export function useThemeMenu(menu: ThemeMenu) {
     rolling,
     highlight,
     shown,
+    spin,
+    landed,
+    instant,
     status,
     rootProps,
     triggerProps,

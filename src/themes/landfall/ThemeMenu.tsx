@@ -1,13 +1,15 @@
 import { useThemeMenu, type ThemeMenu as Menu } from '../../shared/theme-menu'
+import { REEL_REPEAT, useReel } from '../../shared/useReel'
 
 // The theme button, landfall's way. It wears the island's own marker (a glass
 // pill with a dot), because that is the one control a visitor here has already
-// learned to press. The panel is the hero card's glass holding a postcard of
-// the world you point at, labelled with a marker like a town on the map; the
-// list beside it is the places you could sail to.
+// learned to press. It opens on a stack of postcards, one per world, sliding
+// behind a slot labelled like a town on the map; the random pick riffles the
+// stack and lets it settle.
 
 export function ThemeMenu({ menu }: { menu: Menu }) {
-  const m = useThemeMenu(menu)
+  const m = useThemeMenu(menu, { reel: true })
+  const reel = useReel(m, menu.entries.length)
   const active = menu.entries.find((e) => e.id === menu.activeId)
   const shown = menu.entries[m.shown] ?? active
   return (
@@ -19,26 +21,23 @@ export function ThemeMenu({ menu }: { menu: Menu }) {
       </button>
       {m.open && (
         <div className="lf-theme-panel" {...m.panelProps}>
-          <figure className="lf-theme-lens" aria-hidden="true">
-            <span className="lf-theme-card">
-              {menu.entries.map((e, i) => (
-                <img
-                  key={e.id}
-                  src={e.preview}
-                  alt=""
-                  width={360}
-                  height={225}
-                  decoding="async"
-                  data-shown={m.shown === i || undefined}
-                />
-              ))}
+          <div className="lf-theme-reel" ref={reel.windowRef} aria-hidden="true">
+            <div className="lf-theme-strip" ref={reel.stripRef}>
+              {Array.from({ length: REEL_REPEAT }, (_, lap) =>
+                menu.entries.map((e) => (
+                  <span className="lf-theme-card" key={`${lap}-${e.id}`}>
+                    <img src={e.preview} alt="" width={320} height={200} decoding="async" />
+                  </span>
+                )),
+              )}
+            </div>
+            <span className="lf-theme-slot">
               <span className="lf-theme-tag">
                 <i />
-                {shown?.name}
+                {m.rolling && !m.landed ? '…' : shown?.name}
               </span>
             </span>
-            <figcaption>{shown?.description}</figcaption>
-          </figure>
+          </div>
           <div className="lf-theme-side">
             <ul {...m.menuProps}>
               {menu.entries.map((e, i) => (
@@ -52,6 +51,9 @@ export function ThemeMenu({ menu }: { menu: Menu }) {
                 </li>
               ))}
             </ul>
+            <p className="lf-theme-caption" aria-hidden="true">
+              {shown?.description}
+            </p>
             <p className="lf-theme-hint">Press Theme again to land somewhere at random.</p>
           </div>
         </div>

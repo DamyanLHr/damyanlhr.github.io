@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { pickRandom, ROULETTE_MS, rouletteSteps, type ThemeMenuEntry } from './theme-menu'
+import {
+  pickRandom,
+  reelOffset,
+  reelSpinTarget,
+  ROULETTE_MS,
+  rouletteSteps,
+  type ThemeMenuEntry,
+} from './theme-menu'
 
 const entry = (id: string, runnable = true): ThemeMenuEntry => ({
   id,
@@ -52,5 +59,22 @@ describe('rouletteSteps', () => {
       expect(steps[k].ms).toBeGreaterThanOrEqual(steps[k - 1].ms)
     }
     expect(steps.reduce((a, s) => a + s.ms, 0)).toBeCloseTo(ROULETTE_MS)
+  })
+})
+
+describe('reel geometry', () => {
+  it('lands a spin on the same picture as the winner, laps further on', () => {
+    for (let to = 0; to < 5; to++) {
+      const slot = reelSpinTarget(to, 5)
+      expect(slot % 5).toBe(to)
+      expect(slot).toBeGreaterThanOrEqual(15)
+    }
+  })
+
+  it('centres the requested slot in the window', () => {
+    // pitch 110 = 100 px cell + 10 px gap, window 300 px
+    const y = reelOffset(2, 110, 100, 300)
+    const cellTop = 2 * 110 + y
+    expect(cellTop + 50).toBe(150)
   })
 })

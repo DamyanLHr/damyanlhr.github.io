@@ -1,14 +1,17 @@
 import { useThemeMenu, type ThemeMenu as Menu } from '../../shared/theme-menu'
+import { REEL_REPEAT, useReel } from '../../shared/useReel'
 
 // The theme button, atlas's way: one more entry in the ruled index, under its
-// own rubric heading. It opens a catalogue: the plate you point at, engraved
-// large in a double-ruled frame with its caption beneath, beside a numbered
-// list of plates. The roulette's cursor is a printer's hand.
+// own rubric heading. It opens a folio: engraved plates turning past a frame,
+// printed in sepia, with a numbered list beside them and a printer's hand on
+// the plate in view. The plate the random pick stops on comes up in full
+// colour with a rubric frame.
 
 const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
 
 export function ThemeMenu({ menu }: { menu: Menu }) {
-  const m = useThemeMenu(menu)
+  const m = useThemeMenu(menu, { reel: true })
+  const reel = useReel(m, menu.entries.length)
   const active = menu.entries.find((e) => e.id === menu.activeId)
   const shown = menu.entries[m.shown] ?? active
   const no = NUMERALS[m.shown] ?? String(m.shown + 1)
@@ -23,29 +26,28 @@ export function ThemeMenu({ menu }: { menu: Menu }) {
       </button>
       {m.open && (
         <div className="a-theme-panel" {...m.panelProps}>
-          <p className="a-theme-head">A catalogue of the plates</p>
+          <p className="a-theme-head">A folio of the plates</p>
           <div className="a-theme-body">
-            <figure className="a-theme-lens" aria-hidden="true">
-              <span className="a-theme-plate">
-                {menu.entries.map((e, i) => (
-                  <img
-                    key={e.id}
-                    src={e.preview}
-                    alt=""
-                    width={340}
-                    height={212}
-                    decoding="async"
-                    data-shown={m.shown === i || undefined}
-                  />
-                ))}
-              </span>
-              <figcaption>
-                <span className="a-theme-cap">
-                  Plate {no}. {shown?.name}
-                </span>
-                <span className="a-theme-desc">{shown?.description}</span>
-              </figcaption>
-            </figure>
+            <div className="a-theme-folio">
+              <div className="a-theme-reel" ref={reel.windowRef} aria-hidden="true">
+                <div className="a-theme-strip" ref={reel.stripRef}>
+                  {Array.from({ length: REEL_REPEAT }, (_, lap) =>
+                    menu.entries.map((e) => (
+                      <span className="a-theme-plate" key={`${lap}-${e.id}`}>
+                        <img src={e.preview} alt="" width={300} height={188} decoding="async" />
+                      </span>
+                    )),
+                  )}
+                </div>
+                <span className="a-theme-frame" />
+              </div>
+              <p className="a-theme-cap" aria-hidden="true">
+                {m.rolling && !m.landed ? ' ' : `Plate ${no}. ${shown?.name}`}
+              </p>
+              <p className="a-theme-desc" aria-hidden="true">
+                {m.rolling && !m.landed ? ' ' : shown?.description}
+              </p>
+            </div>
             <ul {...m.menuProps}>
               {menu.entries.map((e, i) => (
                 <li key={e.id} role="none">
@@ -64,7 +66,7 @@ export function ThemeMenu({ menu }: { menu: Menu }) {
               ))}
             </ul>
           </div>
-          <p className="a-theme-foot">Press the plate name again to be sent to one at random.</p>
+          <p className="a-theme-foot">Press the plate name again to turn to one at random.</p>
         </div>
       )}
       <span className="a-sr" role="status" aria-live="polite">
