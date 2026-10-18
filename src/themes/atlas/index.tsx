@@ -12,6 +12,7 @@ import { buildPlate, WORLD, type City } from './plate'
 import { useMapView } from './useMapView'
 import './atlas.css'
 import { ThemeMenu } from './ThemeMenu'
+import { SocialLink } from '../../shared/social-icons'
 
 // atlas — the résumé as territory (PLAN Phase 5, direction B "Iron Gall").
 //
@@ -453,9 +454,7 @@ function Cartouche({ content }: { content: SiteContent }) {
       </p>
       <div className="a-socials">
         {content.profile.socials.map((s) => (
-          <a key={s.url} href={s.url}>
-            {s.label}
-          </a>
+          <SocialLink key={s.url} link={s} />
         ))}
       </div>
       <p className="a-imprint">drag to travel · scroll to draw nearer</p>

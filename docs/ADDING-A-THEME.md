@@ -53,7 +53,8 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
    - All projects (with their links) and the CV data.
    - **`content.announcements` ("Up next") on the landing AND projects pages** — this
      site is a blog; the pulse must show in every world.
-   - Socials on the landing.
+   - Socials on the landing, drawn with `SocialLink` from `src/shared/social-icons.tsx`
+     so they show as brand marks.
    - A project's `body` (markdown, via react-markdown) on its page, and the
      `builtWithAI` disclosure on both its card and its page.
    - Art DNA (`project.art`, `content.routeArt`) is an *offer*: interpret the facets

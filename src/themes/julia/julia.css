@@ -173,6 +173,20 @@
   min-height: 18rem;
 }
 
+/* The gallery's band is the exhibit itself, so it takes most of the screen:
+   room for the wide effects to spread and the tall ones to stand. */
+.j-band-gallery {
+  height: 74svh;
+  min-height: 26rem;
+}
+
+@media (max-width: 40rem) {
+  .j-band-gallery {
+    height: 62svh;
+    min-height: 22rem;
+  }
+}
+
 .j-band-note {
   position: absolute;
   left: clamp(1.2rem, 4vw, 3rem);
@@ -1422,20 +1436,36 @@
   display: none;
 }
 
+@page {
+  size: A4;
+  margin: 11mm 13mm;
+}
+
+/* One page if it fits: the whole type scale shrinks with the root size (the
+   theme is set in rem), the screen's generous section spacing closes up, and
+   the proficiencies sit in two columns. Ink on paper, no stage, no chrome. */
 @media print {
+  html {
+    font-size: 9.3pt;
+  }
   .julia .j-print-only {
     display: block;
   }
+  .julia .j-prose {
+    max-width: none;
+  }
   .julia .j-print-name {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.9rem;
     font-weight: 700;
+    letter-spacing: -0.02em;
     color: #111;
   }
   .julia {
     background: #fff !important;
     color: #111 !important;
     min-height: 0;
+    line-height: 1.38;
   }
   .julia::after,
   .j-stage,
@@ -1452,11 +1482,57 @@
   .julia .j-enter {
     animation: none;
   }
-  .julia .j-h2,
-  .julia .j-entry h3,
-  .julia .j-page-head h1,
+  /* the name leads; "CV" and the address sit beside it as a byline */
+  .julia .j-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 1.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .julia .j-page-head h1 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #555;
+  }
+  .julia .j-h2 {
+    margin: 1.2rem 0 0.45rem;
+    font-size: 1.2rem;
+    color: #111;
+  }
+  .julia .j-h2::after {
+    background: #bbb;
+  }
+  .julia .j-entry {
+    margin-bottom: 0.7rem;
+    break-inside: avoid;
+  }
+  .julia .j-entry h3 {
+    margin: 0 0 0.1rem;
+    font-size: 1.05rem;
+    color: #111;
+  }
+  .julia .j-entry p {
+    margin: 0.15rem 0;
+  }
+  .julia .j-entry ul {
+    margin: 0.2rem 0 0;
+    line-height: 1.32;
+  }
+  .julia .j-entry li {
+    margin-bottom: 0.05rem;
+  }
+  .julia .j-prose {
+    margin: 0.2rem 0;
+  }
+  .julia .j-profs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1.6rem;
+  }
   .julia .j-email {
     color: #111;
+    font-size: 0.95rem;
   }
   .julia .j-meta,
   .julia .j-prose,
@@ -1464,15 +1540,11 @@
   .julia .j-entry li {
     color: #333;
   }
-  .julia .j-h2::after {
-    background: #bbb;
-  }
-  .julia a {
+  .julia a,
+  .julia .j-out {
     color: #111;
     text-decoration: none;
-  }
-  .j-entry {
-    break-inside: avoid;
+    border-bottom: 0;
   }
 }
 
@@ -1567,4 +1639,18 @@
     grid-column: auto;
     min-height: 16rem;
   }
+}
+
+/* Profile links are brand marks now (shared/social-icons.tsx), drawn in the
+   link colour; an icon needs no underline, and a little padding makes it an
+   easier target without moving it. */
+.j-socials a[aria-label],
+.j-foot-links a[aria-label] {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.15rem;
+  border-bottom: 0;
+  padding: 0.3rem;
+  margin: -0.3rem;
+  text-decoration: none;
 }

@@ -1193,3 +1193,16 @@
     left: 0.6rem;
   }
 }
+
+/* Profile links are brand marks now (shared/social-icons.tsx), drawn in the
+   link colour; an icon needs no underline, and a little padding makes it an
+   easier target without moving it. */
+.lf-socials a[aria-label] {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.15rem;
+  border-bottom: 0;
+  padding: 0.3rem;
+  margin: -0.3rem;
+  text-decoration: none;
+}

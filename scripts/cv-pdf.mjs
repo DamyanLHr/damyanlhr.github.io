@@ -19,8 +19,8 @@ try {
   await page.waitForTimeout(800)
   await page.pdf({
     path: join(process.cwd(), 'public', 'cv.pdf'),
-    format: 'A4',
-    margin: { top: '16mm', bottom: '16mm', left: '16mm', right: '16mm' },
+    // the page size and margins come from julia's @page rule
+    preferCSSPageSize: true,
     printBackground: false,
   })
   console.log('cv-pdf: public/cv.pdf')

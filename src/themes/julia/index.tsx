@@ -23,6 +23,7 @@ import {
   ProjectsIndex,
 } from './views'
 import './julia.css'
+import { SocialLink } from '../../shared/social-icons'
 
 // `julia` — the 2D-fractal floor theme, direction A "obsidian gallery" (Gate 2a):
 // near-black, ember accent, Space Grotesk, real canvas-rendered Julia sets, and the
@@ -94,9 +95,7 @@ export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
           </span>
           <span className="j-foot-links">
             {content.profile.socials.map((s) => (
-              <a key={s.url} href={s.url}>
-                {s.label}
-              </a>
+              <SocialLink key={s.url} link={s} />
             ))}
             {content.profile.cvPdf && (
               <a href={content.profile.cvPdf} download>

@@ -9,6 +9,7 @@ import type { StageBus } from './stage-bus'
 import { EFFECT_INFO } from './effects/registry'
 import { GALLERY_SLUG } from './gallery-slug'
 import { effectConstant, effectFor, paramsFor } from './fractal'
+import { SocialLink } from '../../shared/social-icons'
 
 type Nav = ThemeProps['navigate']
 
@@ -72,9 +73,7 @@ export function Home({ content, navigate }: { content: SiteContent; navigate: Na
         </nav>
         <div className="j-socials">
           {content.profile.socials.map((s) => (
-            <a key={s.url} href={s.url}>
-              {s.label}
-            </a>
+            <SocialLink key={s.url} link={s} />
           ))}
         </div>
       </div>
@@ -156,23 +155,25 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
       <p className="j-prose">
         {cv.proficiencies.spoken.map((s) => `${s.language} (${s.level})`).join(' · ')}
       </p>
-      {[...cv.proficiencies.programming, ...cv.proficiencies.expanding].map((p) => (
-        <article className="j-entry" key={p.name}>
-          <h3>{p.name}</h3>
-          <p>{p.evidence}</p>
-          <p className="j-meta">
-            proven by:{' '}
-            {p.projectSlugs.map((slug, i) => (
-              <span key={slug}>
-                {i > 0 && ' · '}
-                <InternalLink to={`/projects/${slug}`} navigate={navigate}>
-                  {content.projects.find((pr) => pr.slug === slug)?.title ?? slug}
-                </InternalLink>
-              </span>
-            ))}
-          </p>
-        </article>
-      ))}
+      <div className="j-profs">
+        {[...cv.proficiencies.programming, ...cv.proficiencies.expanding].map((p) => (
+          <article className="j-entry" key={p.name}>
+            <h3>{p.name}</h3>
+            <p>{p.evidence}</p>
+            <p className="j-meta">
+              proven by:{' '}
+              {p.projectSlugs.map((slug, i) => (
+                <span key={slug}>
+                  {i > 0 && ' · '}
+                  <InternalLink to={`/projects/${slug}`} navigate={navigate}>
+                    {content.projects.find((pr) => pr.slug === slug)?.title ?? slug}
+                  </InternalLink>
+                </span>
+              ))}
+            </p>
+          </article>
+        ))}
+      </div>
     </section>
   )
 }
