@@ -6,13 +6,15 @@ import '@fontsource/ibm-plex-mono/400.css'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { routePath } from '../../shared/routes'
 import { FEATURES } from '../../content/meta'
+import { Backdrop } from './Backdrop'
 import { ThemeMenu } from './ThemeMenu'
 import { Cv, Home, Interests, InternalLink, NotFound, ProjectPage, ProjectsIndex } from './views'
 import './julia.css'
 
 // `julia` — the 2D-fractal floor theme, direction A "obsidian gallery" (Gate 2a):
 // near-black, ember accent, Space Grotesk, real canvas-rendered Julia sets, and the
-// fractal palette as the interaction language.
+// fractal palette as the interaction language. One Julia set lives behind every
+// page (Backdrop) and travels between them; each page only gives it a pose.
 
 const NAV = [
   { to: '/cv', label: 'CV' },
@@ -24,6 +26,7 @@ export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
   const path = routePath(route)
   return (
     <div className="julia">
+      <Backdrop route={route} content={content} />
       <header className="j-nav">
         <InternalLink to="/" navigate={navigate} className="j-mark">
           DH

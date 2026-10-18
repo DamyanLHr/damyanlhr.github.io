@@ -4,18 +4,9 @@ import { FEATURES } from '../../content/meta'
 import type { InterestSection, Project, SiteContent } from '../../content/types'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { FractalCanvas } from './FractalCanvas'
-import { paramsFor, type JuliaParams } from './fractal'
+import { paramsFor, projectC } from './fractal'
 
 type Nav = ThemeProps['navigate']
-
-// Per-route fractal identities (route-level art facets can override later).
-const ROUTE_C: Record<string, JuliaParams> = {
-  home: { re: -0.7269, im: 0.1889 },
-  cv: { re: -0.8, im: 0.156 },
-  projects: { re: 0.285, im: 0.01, span: 2.6 },
-  interests: { re: -0.4, im: 0.6 },
-  notFound: { re: -0.835, im: -0.2321 },
-}
 
 export function InternalLink({
   to,
@@ -39,30 +30,9 @@ export function InternalLink({
   )
 }
 
-function projectC(project: Project): JuliaParams {
-  if (project.art?.fractal?.type === 'julia' && project.art.fractal.params) {
-    const { re, im } = project.art.fractal.params
-    if (re !== undefined && im !== undefined) return { re, im }
-  }
-  return paramsFor(project.slug, project.art?.seed)
-}
-
 export function Home({ content, navigate }: { content: SiteContent; navigate: Nav }) {
-  const narrow = window.matchMedia('(max-width: 760px)').matches
   return (
     <section className="j-home">
-      <FractalCanvas
-        params={
-          narrow
-            ? { ...ROUTE_C.home, span: 2.7, centerX: 0.5, centerY: 0.22, angle: -0.7 }
-            : // Pushed right of centre so the set sits beside the name instead of
-              // behind it. It used to bloom straight through the title, which is
-              // why the scrim had to be heavy enough to dim the whole picture.
-              { ...ROUTE_C.home, span: 2.25, centerX: 0.66, centerY: 0.46, angle: -0.7 }
-        }
-        live="hero"
-        className="j-home-canvas"
-      />
       <div className="j-home-scrim" aria-hidden="true" />
       <div className="j-home-copy j-enter">
         <p className="j-eyebrow">{content.profile.tagline}</p>
@@ -344,7 +314,6 @@ export function Interests({ content }: { content: SiteContent }) {
 export function NotFound({ path, navigate }: { path: string; navigate: Nav }) {
   return (
     <section className="j-page j-enter j-404">
-      <FractalCanvas params={{ ...ROUTE_C.notFound, span: 2.1 }} live="bloom" className="j-hero" />
       <h1>Nothing at this address</h1>
       <p className="j-meta">{path} escaped the set.</p>
       <InternalLink to="/" navigate={navigate} className="j-btn j-btn-primary">

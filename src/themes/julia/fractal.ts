@@ -1,6 +1,8 @@
 // Julia-set renderer for the julia theme — 2D canvas, no GPU, floor-friendly.
 // Direction A "obsidian gallery": ember palette on near-black (Gate 2a).
 
+import type { Project } from '../../content/types'
+
 export interface JuliaParams {
   re: number
   im: number
@@ -82,6 +84,24 @@ export function paramsFor(slug: string, seed?: number): JuliaParams {
     im: base.im + unit(g) * SPREAD * 2,
     angle: (base.angle ?? 0) + ((g >>> 12) % 360) * (Math.PI / 180),
   }
+}
+
+/** Per-route fractal identities: the constant the stage travels to on each page. */
+export const ROUTE_C = {
+  home: { re: -0.7269, im: 0.1889 },
+  cv: { re: -0.8, im: 0.156 },
+  projects: { re: 0.285, im: 0.01, span: 2.6 },
+  interests: { re: -0.4, im: 0.6 },
+  notFound: { re: -0.835, im: -0.2321 },
+} satisfies Record<string, JuliaParams>
+
+/** A project's constant: the one its content names, else the one its slug derives. */
+export function projectC(project: Project): JuliaParams {
+  if (project.art?.fractal?.type === 'julia' && project.art.fractal.params) {
+    const { re, im } = project.art.fractal.params
+    if (re !== undefined && im !== undefined) return { re, im }
+  }
+  return paramsFor(project.slug, project.art?.seed)
 }
 
 // Heated ember stops (accent #ff6a00 family)

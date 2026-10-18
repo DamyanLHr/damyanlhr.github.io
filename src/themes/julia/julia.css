@@ -58,6 +58,52 @@
   .julia::after { display: none; }
 }
 
+/* ---------- the stage ---------- */
+
+/* One set behind every page (Backdrop.tsx). It is fixed, so a long page scrolls
+   over it like copy over a lit wall, and everything readable sits above it. */
+.j-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.j-stage-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* On reading pages the set is turned down, and this veil takes the last of it
+   off the text column. Home has its own scrim shaped around the hero copy. */
+.j-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  transition: opacity 600ms var(--ease-out-strong);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(10, 11, 13, 0.62) calc(50% - 30rem),
+    rgba(10, 11, 13, 0.62) calc(50% + 30rem),
+    transparent 100%
+  );
+}
+
+.j-stage[data-pose='home']::after,
+.j-stage[data-pose='projects']::after {
+  opacity: 0;
+}
+
+.j-home,
+.j-page,
+.j-foot {
+  position: relative;
+  z-index: 1;
+}
+
 /* ---------- navigation ---------- */
 
 .j-nav {
@@ -421,13 +467,6 @@
   align-content: center;
   min-height: calc(100dvh - 64px);
   overflow: hidden;
-}
-
-.j-home-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
 }
 
 /* The scrim's job is to make the copy readable, not to dim the artwork. The old
@@ -1031,6 +1070,8 @@
 /* ---------- 404 & footer ---------- */
 
 .j-404 {
+  /* the stage holds the set up top; the words sit under it */
+  padding-top: max(16rem, 50dvh);
   text-align: center;
 }
 
