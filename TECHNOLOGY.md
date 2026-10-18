@@ -188,12 +188,14 @@ CV change). Both are run by hand and committed, like the theme previews.
 
 **Motion budget (julia).** Nothing heavy may land while the set travels, and nothing
 may move faster on a faster screen:
-- The cards' shared WebGL context is warmed in idle time on the first page, and its
+- The cards' shared WebGL context is warmed early, while the first page is read, and its
   programs (and the simulations') compile with `KHR_parallel_shader_compile`:
   `buildProgram` never asks for a compile status until the driver says it is done, and
   a surface simply skips frames until `ready()`.
-- Card stills go through `effects/idle-queue.ts`: one task per idle moment with room
-  in it, held until the stage's `eta()` has passed.
+- Card stills go through `effects/idle-queue.ts`: held until the stage's `eta()` has
+  passed, then drained in slices of about 6ms with a frame between them. Not
+  `requestIdleCallback`: a page animating every frame is rarely idle, and the cards
+  waited out its timeout one by one (about 13s for a page of them).
 - ResizeObservers act only on a real change of size (they fire once on observe).
 - A card's effect is built once; `EffectHandle.setMode` switches it between still,
   pointer and autopilot without rebuilding, so leaving a card keeps its last frame.

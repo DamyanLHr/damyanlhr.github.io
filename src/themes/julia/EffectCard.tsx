@@ -95,8 +95,8 @@ export function EffectCard({
       ([entry]) => {
         if (!entry.isIntersecting || near) return
         io.disconnect()
-        // One card per idle moment, and none while the set is travelling, so
-        // a page of stills never arrives as one long frozen task.
+        // None while the set is travelling; then in short slices, so a page
+        // of stills never arrives as one long frozen task.
         unqueue = enqueue(() => {
           near = true
           if (pointed.current) mode = 'pointer'
