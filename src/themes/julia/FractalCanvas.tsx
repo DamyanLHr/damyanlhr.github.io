@@ -59,7 +59,11 @@ export function FractalCanvas({ params, className, live = 'still', hoverHost, gl
       if (glr) {
         glr.render(p)
       } else {
-        renderJulia(canvas, { ...p, maxIter: final ? params.maxIter : 100 }, final ? 1 : cpuMotionQuality)
+        renderJulia(
+          canvas,
+          { ...p, maxIter: final ? params.maxIter : 100 },
+          final ? 1 : cpuMotionQuality,
+        )
       }
     }
 

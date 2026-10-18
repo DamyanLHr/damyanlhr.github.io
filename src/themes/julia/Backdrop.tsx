@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react'
 import type { Route } from '../../shared/routes'
-import type { SiteContent } from '../../content/types'
+import type { PlateEffect, SiteContent } from '../../content/types'
 import { effectConstant, effectFor, ROUTE_C } from './fractal'
-import { fitToBox } from './fit'
+import { fitExtent, fitToBox } from './fit'
 import { attachEffect } from './effects/controller'
 import { createOrbitTrace, type OrbitTrace } from './effects/orbit-trace'
+import { EFFECT_INFO } from './effects/registry'
 import { stageSurface } from './effects/stage-surface'
+import { constantForEffect } from './effects/view'
+import { GALLERY_SLUG, galleryEffect, useHash } from './gallery-slug'
 import { createStage, type Stage } from './stage'
 import type { StageBus } from './stage-bus'
 import { poseFor, type Complex, type Pose } from './travel'
@@ -31,22 +34,29 @@ const FALLBACK_VIEW = {
 }
 
 function kindFor(route: Route, content: SiteContent) {
+  if (route.kind === 'project' && route.slug === GALLERY_SLUG) return 'gallery'
   if (route.kind === 'project' && !content.projects.some((p) => p.slug === route.slug))
     return 'notFound'
   return route.kind
 }
 
-/** The pose that fits the set into the page's band, or null when the page has none. */
-function bandPose(c: Complex, canvas: HTMLCanvasElement): Pose | null {
+/**
+ * The pose that fits the picture into the page's band, or null when the page
+ * has none: the set itself, measured, or for a picture that is not a Julia
+ * set, the box of the plane its effect frames.
+ */
+function bandPose(
+  c: Complex,
+  canvas: HTMLCanvasElement,
+  frame?: { along: number; across: number },
+): Pose | null {
   const band = document.querySelector<HTMLElement>('.j-band')
   if (!band) return null
   const cr = canvas.getBoundingClientRect()
   const br = band.getBoundingClientRect()
-  const fit = fitToBox(
-    c,
-    { left: br.left - cr.left, top: br.top - cr.top, width: br.width, height: br.height },
-    { width: cr.width, height: cr.height },
-  )
+  const box = { left: br.left - cr.left, top: br.top - cr.top, width: br.width, height: br.height }
+  const size = { width: cr.width, height: cr.height }
+  const fit = frame ? fitExtent(frame, box, size) : fitToBox(c, box, size)
   return { re: c.re, im: c.im, ...fit, dim: 1 }
 }
 
@@ -69,12 +79,19 @@ export function Backdrop({
   const kind = kindFor(route, content)
   const project =
     route.kind === 'project' ? content.projects.find((p) => p.slug === route.slug) : undefined
-  const effect = project ? effectFor(project) : null
-  const c: Complex = project
-    ? effectConstant(project)
-    : ROUTE_C[kind === 'project' ? 'notFound' : kind]
+  // the gallery's effect follows the address, so each tile is a link
+  const hash = useHash()
+  const effect: PlateEffect | null =
+    kind === 'gallery' ? galleryEffect() : project ? effectFor(project) : null
+  const c: Complex =
+    kind === 'gallery' && effect
+      ? constantForEffect(EFFECT_INFO[effect].constant, effect)
+      : project
+        ? effectConstant(project)
+        : ROUTE_C[kind === 'project' || kind === 'gallery' ? 'notFound' : kind]
   const { re, im } = c
-  const banded = kind === 'projects' || kind === 'project'
+  const frame = effect ? EFFECT_INFO[effect].frame : undefined
+  const banded = kind === 'projects' || kind === 'project' || kind === 'gallery'
 
   // The canvases are made here rather than rendered, so a remount (StrictMode,
   // a theme switch and back) always gets fresh ones: a disposed GL context
@@ -108,7 +125,8 @@ export function Backdrop({
     const mq = window.matchMedia(NARROW)
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const pose = () =>
-      (banded ? bandPose({ re, im }, canvas) : null) ?? poseFor(kind, { re, im }, mq.matches)
+      (banded ? bandPose({ re, im }, canvas, frame) : null) ??
+      poseFor(kind === 'gallery' ? 'project' : kind, { re, im }, mq.matches)
 
     stage.setPose(pose())
     const band = document.querySelector<HTMLElement>('.j-band')
@@ -134,7 +152,7 @@ export function Backdrop({
     const attach = () => {
       detach?.()
       detach = null
-      if (kind !== 'project' || !effect || !band) return
+      if ((kind !== 'project' && kind !== 'gallery') || !effect || !band) return
       detach = attachEffect(effect, stageSurface(stage, band, canvas, layer, trace, !reduced), {
         input: true,
         autopilot: false,
@@ -177,7 +195,7 @@ export function Backdrop({
       bus.listen(null)
       detach?.()
     }
-  }, [kind, re, im, banded, effect, bus])
+  }, [kind, re, im, banded, effect, frame, bus, hash])
 
   // The hero's orbit trace: the path of the point under the mouse. Only on
   // home, where the set is the subject; on the reading pages it would be a

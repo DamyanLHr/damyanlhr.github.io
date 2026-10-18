@@ -105,7 +105,29 @@ export function fitToBox(
   canvas: { width: number; height: number },
   fill: { x: number; y: number } = { x: 0.9, y: 0.86 },
 ): Fit {
-  const shape = measureSet(c)
+  return place(measureSet(c), box, canvas, fill)
+}
+
+/**
+ * The same placement for a picture that is not a Julia set (the Mandelbrot
+ * plane, Newton's basins): a box of the plane, centred on 0, with the given
+ * half-extents along x and y.
+ */
+export function fitExtent(
+  frame: { along: number; across: number },
+  box: Box,
+  canvas: { width: number; height: number },
+  fill: { x: number; y: number } = { x: 0.9, y: 0.86 },
+): Fit {
+  return place({ axis: 0, along: frame.along, across: frame.across }, box, canvas, fill)
+}
+
+function place(
+  shape: SetShape,
+  box: Box,
+  canvas: { width: number; height: number },
+  fill: { x: number; y: number },
+): Fit {
   const wide = box.width >= box.height
   // Screen x maps to the plane direction `angle`, so laying the long axis
   // along x means turning by the axis itself; along y, a quarter turn more.

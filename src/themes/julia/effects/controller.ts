@@ -1,9 +1,8 @@
 import type { PlateEffect } from '../../../content/types'
 import { easeOut } from '../travel'
-import type { EffectState, GlMode } from './effects-gl'
+import type { EffectState } from './effects-gl'
 import type { OrbitTrace } from './orbit-trace'
-import { createRidgelines } from './ridgelines'
-import { createStardust } from './stardust'
+import { EFFECT_INFO } from './registry'
 import { attractingCycle, diveAim, toPlane, type PlaneView } from './view'
 
 // One project effect, running on a surface. The surface is either the band
@@ -16,6 +15,10 @@ import { attractingCycle, diveAim, toPlane, type PlaneView } from './view'
 // only takes taps and sideways drags (touch-action: pan-y), so an up or down
 // swipe still scrolls the page: a tap places or triggers, a sideways drag
 // plays. The dive is a press and hold, or a pinch.
+//
+// The band also plays from the keyboard: Tab to it, then the arrows move the
+// point (lamp, trap, hawk, dial), Enter or Space presses, + and - dive, and
+// Escape lets go.
 
 export interface EffectSurface {
   /** takes the input, and is the area the effect fills */
@@ -47,16 +50,6 @@ export interface EffectOptions {
   wheel?: boolean
 }
 
-const GL_MODE: Partial<Record<PlateEffect, GlMode>> = {
-  relief: 'relief',
-  ripple: 'ripple',
-  cursor: 'plain',
-  'field-lines': 'field',
-  'orbit-traps': 'traps',
-  'scroll-dive': 'plain',
-  heartbeat: 'heartbeat',
-}
-
 const RIPPLE_MS = 1600
 const MAX_ITER = 170
 const TAP_PX = 8
@@ -72,8 +65,12 @@ interface Handlers {
   hold?: (on: boolean) => void
   /** two fingers: the ratio of their spread to where it started */
   pinch?: (ratio: number) => void
+  /** the keyboard's dive: + or - */
+  zoom?: (step: number) => void
   leave?: () => void
 }
+
+const KEY_STEP = 0.05
 
 /** Mouse and touch, folded into the few gestures the effects understand. */
 function bindInput(host: HTMLElement, h: Handlers): () => void {
@@ -169,14 +166,47 @@ function bindInput(host: HTMLElement, h: Handlers): () => void {
     }
   }
 
+  // The keyboard drives a point of its own, as a fraction of the host, and
+  // turns it into the same calls a pointer would make.
+  const key = [0.5, 0.5]
+  const keyAt = () => {
+    const r = host.getBoundingClientRect()
+    return [r.left + key[0] * r.width, r.top + key[1] * r.height] as const
+  }
+  const keydown = (e: KeyboardEvent) => {
+    const arrows: Record<string, [number, number]> = {
+      ArrowLeft: [-1, 0],
+      ArrowRight: [1, 0],
+      ArrowUp: [0, -1],
+      ArrowDown: [0, 1],
+    }
+    const a = arrows[e.key]
+    if (a) {
+      key[0] = Math.min(0.98, Math.max(0.02, key[0] + a[0] * KEY_STEP))
+      key[1] = Math.min(0.98, Math.max(0.02, key[1] + a[1] * KEY_STEP))
+      h.move?.(...keyAt())
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      h.move?.(...keyAt())
+      h.press?.(...keyAt())
+    } else if (e.key === '+' || e.key === '=') h.zoom?.(1)
+    else if (e.key === '-' || e.key === '_') h.zoom?.(-1)
+    else if (e.key === 'Escape') {
+      h.leave?.()
+      host.blur()
+    } else return
+    e.preventDefault()
+  }
+
   host.addEventListener('pointerdown', down)
   host.addEventListener('pointermove', move)
   host.addEventListener('pointerup', up)
   host.addEventListener('pointercancel', up)
   host.addEventListener('pointerleave', leave)
+  host.addEventListener('keydown', keydown)
   window.addEventListener('pointerup', stopHold)
   return () => {
     stopHold()
+    host.removeEventListener('keydown', keydown)
     host.removeEventListener('pointerdown', down)
     host.removeEventListener('pointermove', move)
     host.removeEventListener('pointerup', up)
@@ -242,81 +272,74 @@ export function attachEffect(
   const wander = (t: number, phase = 0) =>
     at(0.5 + 0.34 * Math.cos(t * 0.00045 + phase), 0.42 + 0.26 * Math.sin(t * 0.00063 + phase))
 
-  // ---------------------------------------------------------------- 2D effects
-  if (effect === 'stardust' || effect === 'ridgelines') {
-    const layer = s.layer()
+  const info = EFFECT_INFO[effect]
+
+  // The band takes the keyboard: it becomes a stop in the tab order, named
+  // for what it is and how to play it.
+  if (opts.input) {
+    const host = s.host
+    const before = { tab: host.getAttribute('tabindex'), label: host.getAttribute('aria-label') }
+    host.tabIndex = 0
+    host.setAttribute('role', 'application')
+    host.setAttribute(
+      'aria-label',
+      `${info.name}. Arrow keys move, Enter acts, plus and minus dive.`,
+    )
+    cleanups.push(() => {
+      if (before.tab === null) host.removeAttribute('tabindex')
+      host.removeAttribute('role')
+      if (before.label === null) host.removeAttribute('aria-label')
+      else host.setAttribute('aria-label', before.label)
+    })
+  }
+
+  // ---------------------------------------------------------------- layers
+  if (info.kind === 'layer' && info.layer) {
+    const slot = s.layer()
+    if (!slot) return () => cleanups.forEach((fn) => fn())
+    const layer = info.layer(slot.canvas, slot.view, { autopilot: opts.autopilot })
     if (!layer) return () => cleanups.forEach((fn) => fn())
     s.showLayer(true)
-    cleanups.push(() => s.showLayer(false))
-
-    if (effect === 'stardust') {
-      const dust = createStardust(layer.canvas, layer.view)
-      if (dust) {
-        let pushUntil = 0
-        const layerPlane = (x: number, y: number): [number, number] =>
-          toPlane(x, y, layer.canvas.getBoundingClientRect(), layer.view)
-        handlers.move = (x, y) => dust.push(layerPlane(x, y))
-        handlers.press = (x, y) => {
-          dust.push(layerPlane(x, y))
-          pushUntil = performance.now() + 400
-          kick()
-        }
-        handlers.leave = () => dust.push(null)
-        if (!s.live) dust.still()
-        else {
-          tick = (t) => {
-            if (pushUntil && t > pushUntil) {
-              dust.push(null)
-              pushUntil = 0
-            }
-            dust.frame()
-            return true
-          }
-        }
-        const ro = new ResizeObserver(() =>
-          s.live ? dust.resize() : (dust.resize(), dust.still()),
-        )
-        ro.observe(layer.canvas)
-        cleanups.push(() => ro.disconnect())
-      }
-    } else {
-      const ridge = createRidgelines(layer.canvas, layer.view)
-      if (ridge) {
-        let tilt = 0
-        let lift = 0.5
-        let amp = s.live ? 0 : 1
-        const t0 = performance.now()
-        const r = () => s.host.getBoundingClientRect()
-        handlers.move = (x, y) => {
-          tilt = (x - r().left) / r().width - 0.5
-          lift = Math.min(1, Math.max(0, (y - r().top) / r().height))
-          kick()
-          if (!s.live) ridge.paint(tilt, lift, amp)
-        }
-        let rising = s.live
-        tick = (t) => {
-          // develop: the plane lifts into terrain
-          if (rising) {
-            amp = easeOut(Math.min(1, (t - t0) / 900))
-            rising = amp < 1
-          }
-          if (opts.autopilot) tilt = 0.4 * Math.sin(t * 0.0006)
-          ridge.paint(tilt, lift, amp)
-          return rising || opts.autopilot
-        }
-        ridge.paint(tilt, lift, amp)
-        const ro = new ResizeObserver(() => ridge.paint(tilt, lift, amp))
-        ro.observe(layer.canvas)
-        cleanups.push(() => ro.disconnect())
-      }
+    cleanups.push(
+      () => s.showLayer(false),
+      () => layer.dispose?.(),
+    )
+    const frac = (x: number, y: number): [number, number] => {
+      const r = slot.canvas.getBoundingClientRect()
+      return [(x - r.left) / Math.max(1, r.width), (y - r.top) / Math.max(1, r.height)]
     }
+    if (s.live) {
+      handlers.move = (x, y) => layer.point?.(...frac(x, y))
+      handlers.press = (x, y) => layer.press?.(...frac(x, y))
+      handlers.leave = () => layer.leave?.()
+      let last = 0
+      tick = (t) => {
+        const dt = last ? (t - last) / 1000 : 1 / 60
+        last = t
+        return layer.frame(t, dt)
+      }
+    } else layer.still()
+    const ro = new ResizeObserver(() => {
+      layer.resize()
+      if (!s.live) layer.still()
+    })
+    ro.observe(slot.canvas)
+    cleanups.push(() => ro.disconnect())
     if (opts.input) cleanups.push(bindInput(s.host, handlers))
     kick()
     return () => cleanups.reverse().forEach((fn) => fn())
   }
 
   // ---------------------------------------------------------------- GL effects
-  const state: EffectState = { mode: GL_MODE[effect] ?? 'plain', maxIter: MAX_ITER }
+  const state: EffectState = { mode: info.mode ?? 'plain', maxIter: MAX_ITER }
+  // the five other pictures read the pointer as a dial across the band, and
+  // all of them keep moving on their own
+  const dial =
+    info.mode === 'shape' ||
+    info.mode === 'mandjul' ||
+    info.mode === 'ship' ||
+    info.mode === 'phoenix' ||
+    info.mode === 'newton'
   const v0 = s.view()
   if (!v0) return () => cleanups.forEach((fn) => fn())
 
@@ -341,6 +364,22 @@ export function attachEffect(
   if (effect === 'heartbeat') {
     state.cycle = attractingCycle(v0.re, v0.im)
     state.t = 0
+  }
+
+  if (dial) {
+    state.q = [0, 0]
+    state.t = 0
+    handlers.move = (x, y) => {
+      const r = s.host.getBoundingClientRect()
+      const q: [number, number] = [
+        ((x - r.left) / r.width) * 2 - 1,
+        ((y - r.top) / r.height) * 2 - 1,
+      ]
+      // Newton's first root goes where the pointer is, in the plane
+      if (info.mode === 'newton') s.setState({ q, p: plane(x, y) ?? [9, 9] })
+      else s.setState({ q })
+    }
+    handlers.leave = () => s.setState({ q: [0, 0], p: [9, 9] })
   }
 
   if (effect === 'cursor') {
@@ -384,6 +423,10 @@ export function attachEffect(
       target = Math.max(0, Math.min(1, pinchFrom + Math.log(ratio) * 0.5))
       kick()
     }
+    handlers.zoom = (step) => {
+      target = Math.max(0, Math.min(1, target + step * 0.15))
+      kick()
+    }
     if (opts.input && opts.wheel) {
       const wheel = (e: WheelEvent) => {
         // At either end the wheel goes back to the page, so the band never
@@ -406,6 +449,12 @@ export function attachEffect(
 
   tick = (t) => {
     let more = false
+    if (dial) {
+      s.setState({ t: t / 1000 })
+      if (opts.autopilot)
+        s.setState({ q: [0.6 * Math.sin(t * 0.0005), 0.5 * Math.cos(t * 0.0004)] })
+      more = true
+    }
     if (effect === 'heartbeat') {
       s.setState({ t: t / 1000 })
       more = true

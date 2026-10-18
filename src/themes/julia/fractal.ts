@@ -117,6 +117,19 @@ export const EFFECTS: readonly PlateEffect[] = [
   'ridgelines',
   'scroll-dive',
   'heartbeat',
+  'root-bloom',
+  'quintic-braid',
+  'shape-shifter',
+  'mandel-julia',
+  'pendulum',
+  'life',
+  'ship-tricorn',
+  'newton',
+  'phoenix',
+  'buddhabrot',
+  'attractor',
+  'coral',
+  'murmuration',
 ]
 
 /** A project's plate effect: the one its content pins, else one its slug derives. */
@@ -143,7 +156,7 @@ const EMBER: [number, number, number][] = [
   [255, 236, 200],
 ]
 
-function ember(v: number): [number, number, number] {
+export function ember(v: number): [number, number, number] {
   const t = Math.min(0.999, Math.max(0, v)) * (EMBER.length - 1)
   const i = Math.floor(t)
   const f = t - i
@@ -178,17 +191,25 @@ export function renderJulia(canvas: HTMLCanvasElement, params: JuliaParams, qual
       let zr = dx * cosA - dy * sinA
       let zi = dx * sinA + dy * cosA
       let i = 0
+      let mn = 1e9
       while (i < max && zr * zr + zi * zi < 16) {
         const t = zr * zr - zi * zi + re
         zi = 2 * zr * zi + im
         zr = t
+        mn = Math.min(mn, zr * zr + zi * zi)
         i++
       }
       let c: [number, number, number]
       if (i === max) {
-        // interior: faint ember-tinged depth instead of a flat void
+        // interior: shaded by how close the orbit comes to zero, a dim ember
+        // relief instead of a flat void (matches fractal-gl.ts)
         const v2 = Math.min(4, zr * zr + zi * zi)
-        c = [14 + v2 * 9, 8 + v2 * 3, 9 + v2 * 1.5]
+        const lit = ember(0.05 + 0.26 * Math.exp(-2.2 * Math.sqrt(mn)))
+        c = [
+          Math.max(14 + v2 * 9, lit[0] * 0.85),
+          Math.max(8 + v2 * 3, lit[1] * 0.85),
+          Math.max(9 + v2 * 1.5, lit[2] * 0.85),
+        ]
       } else {
         c = ember(((i - Math.log2(Math.log2(zr * zr + zi * zi))) / max) * 2.2)
       }

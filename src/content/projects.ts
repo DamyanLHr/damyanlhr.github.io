@@ -200,7 +200,7 @@ Vulkan are the current case and are being learned directly.
   },
   {
     slug: 'davincis-black-market-bird-dealer',
-    art: { effect: 'cursor' },
+    art: { effect: 'murmuration' },
     title: "Davinci's Black Market Bird Dealer",
     category: 'university',
     status: 'coming-soon',

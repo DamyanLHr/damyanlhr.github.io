@@ -10,6 +10,15 @@ import type { PlaneView } from './view'
 //   field     lines of constant external angle, lit near uP
 //   traps     how close each orbit passes to a trap at uP
 //   heartbeat inside the set, rings of time-to-reach the attracting cycle
+//
+// and five that draw a different picture of the same plane, developing out
+// of the plain set as uAmount rises (the first three after 2swap's swaptube,
+// src/CUDA/mandelbrot.cu and complex_functions.cuh):
+//   shape     z <- z^x + c with the exponent x moving
+//   mandjul   each pixel sliding from being c to being the starting point
+//   ship      the Mandelbrot, Burning Ship and Tricorn switches, blended
+//   newton    Newton's method on four drifting roots; the pointer carries one
+//   phoenix   the Phoenix fractal, its memory breathing
 
 export const GL_MODES = {
   plain: 0,
@@ -18,18 +27,106 @@ export const GL_MODES = {
   field: 4,
   traps: 5,
   heartbeat: 6,
+  shape: 7,
+  mandjul: 8,
+  newton: 9,
+  phoenix: 10,
+  ship: 11,
 } as const
 export type GlMode = keyof typeof GL_MODES
 
 const FRAG = `#version 300 es
 precision highp float;
 out vec4 o;
-uniform vec2 uRes, uC, uAt, uOff, uP;
+uniform vec2 uRes, uC, uAt, uOff, uP, uQ;
 uniform float uSpan, uAngle, uMaxF, uT, uRipple, uAmount;
 uniform int uMode;
 uniform vec2 uCyc[8];
 uniform int uCycN;
 ${PALETTE}
+vec2 cmul(vec2 a, vec2 b) { return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x); }
+vec2 cinv(vec2 b) { return vec2(b.x, -b.y) / dot(b, b); }
+vec2 cpow(vec2 z, vec2 w) {
+  float r = length(z);
+  if (r < 1e-12) return vec2(0.0);
+  float th = atan(z.y, z.x), lr = log(r);
+  float nr = exp(w.x * lr - w.y * th), na = w.y * lr + w.x * th;
+  return nr * vec2(cos(na), sin(na));
+}
+vec3 escapeCol(int k, int mx, vec2 z) {
+  if (k >= mx) {
+    float v2 = clamp(dot(z, z), 0.0, 4.0);
+    return vec3(14.0 + v2 * 9.0, 8.0 + v2 * 3.0, 9.0 + v2 * 1.5) / 255.0;
+  }
+  float nu = float(k) + 1.0 - log2(max(log2(max(dot(z, z), 1.0001)), 1e-3));
+  return pal(nu / float(mx) * 2.4);
+}
+
+// The five pictures that are not the Julia set itself. p is the point of the
+// plane under the pixel; uQ is the pointer across the band, -1..1.
+vec3 another(vec2 p) {
+  float t = uT;
+  if (uMode == 7) {
+    vec2 c = p + vec2(-0.35, 0.0);
+    vec2 x = vec2(2.0 + 1.35 * (0.5 - 0.5 * cos(t * 0.33)) + uQ.x * 0.6, 0.32 * sin(t * 0.21));
+    vec2 z = vec2(0.0);
+    int k = 0;
+    for (; k < 90; k++) { z = cpow(z, x) + c; if (dot(z, z) > 16.0) break; }
+    return escapeCol(k, 90, z);
+  }
+  if (uMode == 8) {
+    // folds into the page's own Julia set, nudged by the pointer
+    float b = 0.5 - 0.5 * cos(t * 0.42);
+    vec2 cj = uC + uQ * vec2(0.12, 0.1);
+    vec2 q = p + mix(vec2(-0.55, 0.0), vec2(0.0), b);
+    vec2 z = mix(vec2(0.0), q, b), c = mix(q, cj, b);
+    int k = 0;
+    for (; k < 130; k++) { z = cmul(z, z) + c; if (dot(z, z) > 16.0) break; }
+    return escapeCol(k, 130, z);
+  }
+  if (uMode == 9) {
+    vec2 r0 = length(uP) < 5.0 ? uP : vec2(cos(t * 0.31), sin(t * 0.37)) * 0.9;
+    vec2 r1 = vec2(cos(t * 0.23 + 2.1), sin(t * 0.29 + 2.1)) * 1.05;
+    vec2 r2 = vec2(cos(-t * 0.19 + 4.0), sin(-t * 0.21 + 4.0)) * 0.8;
+    vec2 r3 = vec2(cos(t * 0.17 + 5.3), sin(t * 0.13 + 5.3)) * 1.2;
+    vec2 z = p;
+    int hit = -1, n = 0;
+    for (; n < 40; n++) {
+      vec2 s = cinv(z - r0) + cinv(z - r1) + cinv(z - r2) + cinv(z - r3);
+      z -= cinv(s);
+      if (length(z - r0) < 1e-3) hit = 0;
+      else if (length(z - r1) < 1e-3) hit = 1;
+      else if (length(z - r2) < 1e-3) hit = 2;
+      else if (length(z - r3) < 1e-3) hit = 3;
+      if (hit >= 0) break;
+    }
+    float k = float(n);
+    vec3 b = hit == 0 ? pal(0.55) : hit == 1 ? pal(0.34) : hit == 2 ? pal(0.74) : hit == 3 ? pal(0.9) : vec3(0.03);
+    // fast convergence is bright, the fractal borders where it hesitates are
+    // dark, and each extra step is a band, so the basins show their contours
+    vec3 col = b * (0.12 + 0.88 * exp(-k * 0.11)) * (0.82 + 0.18 * cos(k * 1.4));
+    float d = min(min(length(p - r0), length(p - r1)), min(length(p - r2), length(p - r3)));
+    return col + vec3(1.0, 0.85, 0.6) * (1.0 - smoothstep(0.0, 0.035, d));
+  }
+  if (uMode == 10) {
+    vec2 z = vec2(p.y, p.x), zp = vec2(0.0);
+    float pp = -0.5 + 0.07 * sin(t * 0.5) + uQ.x * 0.08;
+    int k = 0;
+    for (; k < 110; k++) { vec2 zn = cmul(z, z) + vec2(0.5667, 0.0) + pp * zp; zp = z; z = zn; if (dot(z, z) > 16.0) break; }
+    return escapeCol(k, 110, z);
+  }
+  float a = clamp(0.5 - 0.5 * cos(t * 0.27) + uQ.x * 0.3, 0.0, 1.0);
+  float cj = clamp(0.5 - 0.5 * cos(t * 0.19 + 1.3) + uQ.y * 0.3, 0.0, 1.0);
+  vec2 c = p + vec2(-0.45, -0.15), z = vec2(0.0);
+  int k = 0;
+  for (; k < 110; k++) {
+    float zr = mix(z.x, abs(z.x), a), zi = mix(z.y, abs(z.y), a);
+    z = vec2(zr * zr - zi * zi, 2.0 * zr * zi * (1.0 - 2.0 * cj)) + c;
+    if (dot(z, z) > 16.0) break;
+  }
+  return escapeCol(k, 110, z);
+}
+
 void main() {
   float scale = uSpan / min(uRes.x, uRes.y);
   vec2 d = vec2(gl_FragCoord.x - uAt.x * uRes.x, (uRes.y - gl_FragCoord.y) - uAt.y * uRes.y) * scale;
@@ -40,10 +137,12 @@ void main() {
   int it = mx;
   int conv = mx;
   float trap = 1e9;
+  float mn = 1e9;
   for (int k = 0; k < 400; k++) {
     if (k >= mx) break;
     dz = 2.0 * vec2(z.x * dz.x - z.y * dz.y, z.x * dz.y + z.y * dz.x);
     z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + uC;
+    mn = min(mn, dot(z, z));
     if (uMode == 5) trap = min(trap, length(z - uP));
     if (uMode == 6 && conv == mx) {
       for (int j = 0; j < 8; j++) {
@@ -60,8 +159,10 @@ void main() {
   float v = nu / min(uMaxF, 170.0) * 2.2;
   vec3 base;
   if (it >= mx) {
+    // the inside, shaded by how close its orbit comes to zero (as fractal-gl.ts)
     float v2 = clamp(dot(z, z), 0.0, 4.0);
-    col = vec3(14.0 + v2 * 9.0, 8.0 + v2 * 3.0, 9.0 + v2 * 1.5) / 255.0;
+    vec3 deep = vec3(14.0 + v2 * 9.0, 8.0 + v2 * 3.0, 9.0 + v2 * 1.5) / 255.0;
+    col = max(deep, pal(0.05 + 0.26 * exp(-2.2 * sqrt(mn))) * 0.85);
     base = col;
     if (uMode == 6) {
       float f = float(conv) * 0.55 - uT * 3.2;
@@ -97,6 +198,7 @@ void main() {
     float g = exp(-trap * 3.5);
     col = mix(col * 0.55, pal(0.35 + 0.6 * g), 0.75 * g) + vec3(1.0, 0.8, 0.55) * pow(g, 8.0) * 0.4;
   }
+  if (uMode >= 7) col = another(p);
   // uAmount develops the effect out of the plain set: 0 is the set alone.
   o = vec4(mix(base, col, uAmount), 1.0);
 }`
@@ -108,6 +210,8 @@ export interface EffectState {
   maxIter?: number
   /** the pointer's lamp, trap or field-line focus, in the plane */
   p?: [number, number]
+  /** the pointer across the surface, -1..1 each way, for effects that read it as a dial */
+  q?: [number, number]
   t?: number
   /** the ripple's front, in escape-time units; below zero for none */
   ripple?: number
@@ -133,6 +237,7 @@ const NAMES = [
   'uAt',
   'uOff',
   'uP',
+  'uQ',
   'uSpan',
   'uAngle',
   'uMaxF',
@@ -187,10 +292,20 @@ export function createEffectGl(
         h = Math.round(canvas.clientHeight * dpr)
       }
       if (!w || !h) return
-      if (canvas.width !== w || canvas.height !== h) {
+      if (size && 'width' in size) {
+        // An offscreen canvas shared by many sizes only ever grows; the frame
+        // goes in its bottom-left corner, where `copyTo` reads it from.
+        if (canvas.width < w || canvas.height < h) {
+          canvas.width = Math.max(canvas.width, w)
+          canvas.height = Math.max(canvas.height, h)
+        }
+      } else if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w
         canvas.height = h
       }
+      // the context may be shared with the simulations, so claim it each time
+      gl.useProgram(program)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
       gl.viewport(0, 0, w, h)
       gl.uniform2f(u.uRes, w, h)
       gl.uniform2f(u.uC, v.re, v.im)
@@ -199,6 +314,7 @@ export function createEffectGl(
       gl.uniform1f(u.uSpan, v.span)
       gl.uniform1f(u.uAngle, v.angle)
       gl.uniform2f(u.uP, ...(s.p ?? [9, 9]))
+      gl.uniform2f(u.uQ, ...(s.q ?? [0, 0]))
       gl.uniform1f(u.uMaxF, Math.min(400, s.maxIter ?? 170))
       gl.uniform1f(u.uT, s.t ?? 0)
       gl.uniform1f(u.uRipple, s.ripple ?? -2)

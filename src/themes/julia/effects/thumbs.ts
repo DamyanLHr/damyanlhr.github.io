@@ -8,15 +8,36 @@ import type { PlaneView } from './view'
 // offscreen context and copied into the card's own 2D canvas. Only one card is
 // ever live at a time, so one context is plenty.
 
+// The simulations (pendulum, life, coral) run in the same context, so the
+// whole site holds at most two: the stage's and this one.
+
 let shared: { canvas: HTMLCanvasElement; gl: EffectGl | null } | null = null
 
-function sharedGl() {
+export function sharedGl() {
   if (!shared) {
     const canvas = document.createElement('canvas')
     const forceCpu = new URLSearchParams(window.location.search).has('cpufractal')
     shared = { canvas, gl: forceCpu ? null : createEffectGl(canvas, { preserve: true }) }
   }
   return shared
+}
+
+/** The shared context itself, for the simulations; null without WebGL. */
+export function sharedContext(): WebGL2RenderingContext | null {
+  const s = sharedGl()
+  return s.gl ? s.canvas.getContext('webgl2') : null
+}
+
+/**
+ * Copies the frame just drawn (w by h, in the bottom-left corner of the shared
+ * canvas, which only ever grows) into a target canvas of the same size.
+ */
+export function copyTo(target: HTMLCanvasElement, w: number, h: number) {
+  const { canvas } = sharedGl()
+  const ctx = target.getContext('2d')
+  if (!ctx) return
+  ctx.imageSmoothingEnabled = true
+  ctx.drawImage(canvas, 0, canvas.height - h, w, h, 0, 0, target.width, target.height)
 }
 
 /** A card as an effect surface: the effect is drawn into `canvas`, framed by `base`. */
@@ -26,7 +47,7 @@ export function cardSurface(
   base: PlaneView,
   live: boolean,
 ): EffectSurface {
-  const { canvas: off, gl } = sharedGl()
+  const { gl } = sharedGl()
   let fx: EffectState | null = null
   const lens = { spanMul: 1, off: [0, 0] as [number, number], bend: [0, 0] as [number, number] }
   let queued = 0
@@ -56,16 +77,12 @@ export function cardSurface(
     const d = Math.min(window.devicePixelRatio || 1, 2)
     const width = Math.max(2, Math.round(canvas.clientWidth * d))
     const height = Math.max(2, Math.round(canvas.clientHeight * d))
-    if (off.width !== width || off.height !== height) {
-      off.width = width
-      off.height = height
-    }
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width
       canvas.height = height
     }
     gl.render(v, fx ?? { mode: 'plain' }, { width, height })
-    canvas.getContext('2d')?.drawImage(off, 0, 0)
+    copyTo(canvas, width, height)
   }
   const request = () => {
     if (!queued) queued = requestAnimationFrame(render)

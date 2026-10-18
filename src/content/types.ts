@@ -13,6 +13,19 @@ export type PlateEffect =
   | 'ridgelines'
   | 'scroll-dive'
   | 'heartbeat'
+  | 'root-bloom'
+  | 'quintic-braid'
+  | 'shape-shifter'
+  | 'mandel-julia'
+  | 'pendulum'
+  | 'life'
+  | 'ship-tricorn'
+  | 'newton'
+  | 'phoenix'
+  | 'buddhabrot'
+  | 'attractor'
+  | 'coral'
+  | 'murmuration'
 
 /** Per-project / per-route visual identity ("art DNA"). Facets are an offer to
  * themes, never an obligation: a theme reads what it understands, ignores the rest. */

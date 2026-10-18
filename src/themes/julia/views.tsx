@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import Markdown from 'react-markdown'
 import { FEATURES } from '../../content/meta'
-import type { InterestSection, PlateEffect, Project, SiteContent } from '../../content/types'
+import type { InterestSection, Project, SiteContent } from '../../content/types'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { FractalCanvas } from './FractalCanvas'
 import { EffectCard } from './EffectCard'
 import type { StageBus } from './stage-bus'
+import { EFFECT_INFO } from './effects/registry'
+import { GALLERY_SLUG } from './gallery-slug'
 import { effectConstant, effectFor, paramsFor } from './fractal'
 
 type Nav = ThemeProps['navigate']
@@ -15,18 +17,26 @@ export function InternalLink({
   navigate,
   className,
   children,
+  current,
 }: {
   to: string
   navigate: Nav
   className?: string
   children: ReactNode
+  /** marks the link as the page you are on */
+  current?: boolean
 }) {
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
     navigate(to)
   }
   return (
-    <a href={to} className={className} onClick={onClick}>
+    <a
+      href={to}
+      className={className}
+      onClick={onClick}
+      aria-current={current ? 'page' : undefined}
+    >
       {children}
     </a>
   )
@@ -157,7 +167,7 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
 }
 
 // Mosaic weights for the four-column grid, in roster order, so every row fills
-// exactly: (2+1+1)(1+2+1)(2+1+1). A slug missing here falls back to 1, which
+// exactly: (2+1+1)(1+2+1)(1+2+1). A slug missing here falls back to 1, which
 // can leave a ragged row, so this map moves whenever a project is added.
 const CARD_SPAN: Record<string, number> = {
   'this-site': 2,
@@ -166,8 +176,9 @@ const CARD_SPAN: Record<string, number> = {
   'five-more-minutes': 1,
   'digital-twinning-suspension': 2,
   'blood-of-hedon': 1,
-  'olympian-onslaught': 2,
-  'extensible-terrain-generation': 1,
+  'olympian-onslaught': 1,
+  // the flyover needs room to read as a landscape
+  'extensible-terrain-generation': 2,
   'davincis-black-market-bird-dealer': 1,
 }
 
@@ -236,8 +247,9 @@ export function ProjectsIndex({
     <>
       <div className="j-band" aria-hidden="true" />
       <section className="j-page j-page-wide j-enter">
-        <header className="j-page-head">
+        <header className="j-page-head j-page-head-tabs">
           <h1>Projects</h1>
+          <WorkTabs current="work" navigate={navigate} />
         </header>
 
         <div className="j-mosaic" ref={mosaic}>
@@ -247,7 +259,9 @@ export function ProjectsIndex({
             return (
               <EffectCard
                 key={p.slug}
-                project={p}
+                effect={effectFor(p)}
+                c={effectConstant(p)}
+                slug={p.slug}
                 live={liveSlug === p.slug}
                 onPoint={(on) => point(p, on)}
                 href={to}
@@ -281,53 +295,28 @@ export function ProjectsIndex({
   )
 }
 
-/** What the band is doing, and how to play with it, for a pointer and for a finger. */
-const BAND_NOTE: Record<PlateEffect, { name: string; pointer: string; touch: string }> = {
-  relief: {
-    name: 'Relief light',
-    pointer: 'Move to carry the lamp.',
-    touch: 'Tap or drag sideways to move the lamp.',
-  },
-  ripple: {
-    name: 'Equipotential ripple',
-    pointer: 'Click to send a wave through the field.',
-    touch: 'Tap to send a wave through the field.',
-  },
-  cursor: {
-    name: 'Every point holds a different set',
-    pointer: 'Move to bend this one.',
-    touch: 'Drag sideways to bend it.',
-  },
-  stardust: {
-    name: 'Stardust',
-    pointer: 'Sweep through to scatter it.',
-    touch: 'Tap or drag sideways to scatter it.',
-  },
-  'field-lines': {
-    name: 'Field lines',
-    pointer: 'The lines near the pointer light up.',
-    touch: 'Tap or drag sideways to light the lines.',
-  },
-  'orbit-traps': {
-    name: 'Orbit traps',
-    pointer: 'Move to carry the trap.',
-    touch: 'Tap or drag sideways to move the trap.',
-  },
-  ridgelines: {
-    name: 'Ridgelines',
-    pointer: 'Move to tilt the terrain.',
-    touch: 'Drag sideways to tilt the terrain.',
-  },
-  'scroll-dive': {
-    name: 'Scroll dive',
-    pointer: 'Scroll or hold to fall in.',
-    touch: 'Hold or pinch to fall in.',
-  },
-  heartbeat: {
-    name: 'Heartbeat',
-    pointer: 'Point anywhere to watch its path settle into the beat.',
-    touch: 'Tap anywhere to watch its path settle into the beat.',
-  },
+/** Work and Gallery: the two halves of the projects section, in this theme. */
+export function WorkTabs({ current, navigate }: { current: 'work' | 'gallery'; navigate: Nav }) {
+  return (
+    <nav className="j-tabs" aria-label="Projects">
+      <InternalLink
+        to="/projects"
+        navigate={navigate}
+        className={current === 'work' ? 'j-tab j-tab-on' : 'j-tab'}
+        current={current === 'work'}
+      >
+        Work
+      </InternalLink>
+      <InternalLink
+        to={`/projects/${GALLERY_SLUG}`}
+        navigate={navigate}
+        className={current === 'gallery' ? 'j-tab j-tab-on' : 'j-tab'}
+        current={current === 'gallery'}
+      >
+        Gallery
+      </InternalLink>
+    </nav>
+  )
 }
 
 export function ProjectPage({
@@ -351,7 +340,7 @@ export function ProjectPage({
   if (project.duration) facts.push(['Duration', project.duration])
   if (project.team?.size) facts.push(['Team', `${project.team.size} people`])
   if (project.tools.length > 0) facts.push(['Tools', project.tools.join(', ')])
-  const note = BAND_NOTE[effectFor(project)]
+  const note = EFFECT_INFO[effectFor(project)]
   return (
     <>
       <div className="j-band j-band-tall">

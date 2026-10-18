@@ -1,0 +1,3 @@
+[submodule "vendor/swaptube"]
+	path = vendor/swaptube
+	url = https://github.com/2swap/swaptube

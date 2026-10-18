@@ -9,6 +9,8 @@ import { routePath } from '../../shared/routes'
 import { FEATURES } from '../../content/meta'
 import { Backdrop } from './Backdrop'
 import { createStageBus } from './stage-bus'
+import { Gallery } from './Gallery'
+import { GALLERY_SLUG } from './gallery-slug'
 import { ThemeMenu } from './ThemeMenu'
 import { Cv, Home, Interests, InternalLink, NotFound, ProjectPage, ProjectsIndex } from './views'
 import './julia.css'
@@ -68,7 +70,8 @@ export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
       {route.kind === 'projects' && (
         <ProjectsIndex content={content} navigate={navigate} bus={bus} />
       )}
-      {route.kind === 'project' && (
+      {route.kind === 'project' && route.slug === GALLERY_SLUG && <Gallery navigate={navigate} />}
+      {route.kind === 'project' && route.slug !== GALLERY_SLUG && (
         <ProjectPage content={content} slug={route.slug} navigate={navigate} late={late} />
       )}
       {route.kind === 'interests' && <Interests content={content} />}

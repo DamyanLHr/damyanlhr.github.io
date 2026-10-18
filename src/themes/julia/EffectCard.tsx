@@ -1,12 +1,12 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import type { Project } from '../../content/types'
-import { effectConstant, effectFor } from './fractal'
-import { fitToBox } from './fit'
+import type { PlateEffect } from '../../content/types'
+import { fitExtent, fitToBox } from './fit'
+import { EFFECT_INFO } from './effects/registry'
 import { attachEffect } from './effects/controller'
 import { cardSurface } from './effects/thumbs'
 import type { PlaneView } from './effects/view'
 
-// A project card that shows the project's own effect. At rest it is a still
+// A card that shows an effect: a project's own, or a gallery tile's. At rest it is a still
 // of that effect. Under the mouse it comes alive and answers the pointer; on a
 // phone the card nearest the middle of the screen plays itself. Only one card
 // is ever live, and all of them are drawn by one shared renderer.
@@ -15,7 +15,9 @@ import type { PlaneView } from './effects/view'
 const ART = 0.56
 
 export function EffectCard({
-  project,
+  effect,
+  c,
+  slug,
   live,
   onPoint,
   className,
@@ -23,7 +25,11 @@ export function EffectCard({
   href,
   onClick,
 }: {
-  project: Project
+  effect: PlateEffect
+  /** the constant the effect is shown with */
+  c: { re: number; im: number }
+  /** names the card for the phone's centred-card tracking */
+  slug: string
   /** play on its own (the phone's centred card) */
   live: boolean
   /** the mouse arrived (true) or left (false) */
@@ -37,8 +43,8 @@ export function EffectCard({
   const art = useRef<HTMLCanvasElement>(null)
   const pointed = useRef(false)
   const swap = useRef<((mode: 'still' | 'pointer' | 'auto') => void) | null>(null)
-  const effect = effectFor(project)
-  const { re, im } = effectConstant(project)
+  const { re, im } = c
+  const frame = EFFECT_INFO[effect].frame
 
   useEffect(() => {
     const host = card.current
@@ -55,16 +61,20 @@ export function EffectCard({
       // block wraps to, so the two never overlap.
       const body = host.querySelector<HTMLElement>('.j-card-body')
       const room = body ? Math.max(h * 0.4, body.offsetTop - 4) : h * ART
-      const fit = fitToBox(
-        { re, im },
-        { left: 0, top: 0, width: w, height: room },
-        { width: w, height: h },
-        { x: 0.86, y: 0.84 },
-      )
+      const box = { left: 0, top: 0, width: w, height: room }
+      const fill = { x: 0.86, y: 0.84 }
+      const fit = frame
+        ? fitExtent(frame, box, { width: w, height: h }, fill)
+        : fitToBox({ re, im }, box, { width: w, height: h }, fill)
       return { re, im, span: fit.span, cx: fit.x, cy: fit.y, angle: fit.angle, off: [0, 0] }
     }
+    // Nothing is drawn until the card comes near the screen: a page of
+    // twenty stills, each a few hundred thousand iterations, would otherwise
+    // all render at once on arrival.
+    let near = false
     const run = (next: typeof mode) => {
       mode = next
+      if (!near) return
       detach?.()
       const playing = next !== 'still' && motion
       detach = attachEffect(effect, cardSurface(host, canvas, base(), playing), {
@@ -73,7 +83,16 @@ export function EffectCard({
       })
     }
     swap.current = run
-    run(pointed.current ? 'pointer' : 'still')
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || near) return
+        near = true
+        io.disconnect()
+        run(pointed.current ? 'pointer' : mode)
+      },
+      { rootMargin: '300px 0px' },
+    )
+    io.observe(host)
 
     let resizeTimer = 0
     const ro = new ResizeObserver(() => {
@@ -82,12 +101,13 @@ export function EffectCard({
     })
     ro.observe(canvas)
     return () => {
+      io.disconnect()
       window.clearTimeout(resizeTimer)
       ro.disconnect()
       detach?.()
       swap.current = null
     }
-  }, [effect, re, im])
+  }, [effect, re, im, frame])
 
   useEffect(() => {
     if (!pointed.current) swap.current?.(live ? 'auto' : 'still')
@@ -100,7 +120,7 @@ export function EffectCard({
       onClick={onClick}
       className={className}
       data-effect={effect}
-      data-slug={project.slug}
+      data-slug={slug}
       onPointerEnter={(e) => {
         if (e.pointerType !== 'mouse') return
         pointed.current = true
