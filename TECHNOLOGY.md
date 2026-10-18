@@ -164,11 +164,15 @@ to the entry under the pointer and spins for the random pick. The mechanics are 
 in `src/shared/useReel.ts` (WAAPI, always animating from the strip's current transform,
 so it can be interrupted at any point); the frame, strip and landing are the theme's.
 
-**julia's stage (2026-10-18).** julia mounts one fixed WebGL canvas in its Root
+**julia's stage (2026-10-18).** julia mounts one WebGL canvas in its Root
 (`Backdrop.tsx` → `stage.ts`) for the whole visit. Pages hand it a pose and its
 constant travels along the main cardioid's edge to the next (`travel.ts`, pure and
-tested). Project plates run per-project effects from `src/themes/julia/effects/`, all
-from one fragment shader with a mode uniform or a 2D canvas, each gated on visibility.
+tested). On the projects pages the stage is pinned to the top of the document and the
+set is fitted into the page's band (`fit.ts`); on a project page the same canvas
+develops into the project's effect, from one fragment shader with a mode uniform and a
+develop amount, or a 2D layer for stardust and ridgelines. `effects/controller.ts`
+drives an effect on either surface (the band, or a card drawn by the shared renderer in
+`effects/thumbs.ts`) and folds mouse and touch into the same few gestures.
 Math themes after julia should keep the pattern: one persistent scene that pages pose,
 rather than a canvas per page.
 

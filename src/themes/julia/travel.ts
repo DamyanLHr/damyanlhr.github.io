@@ -22,10 +22,10 @@ export interface Pose extends Complex {
 export type PoseKind = 'home' | 'cv' | 'projects' | 'project' | 'interests' | 'notFound'
 
 /**
- * The pose for a page. Home is the hero, standing beside the name. The reading
- * pages turn it down and push it off the text column: the CV drifts right, the
- * project index recedes behind the mosaic, and a project page keeps its own
- * constant on the right, under its plate.
+ * The pose for a page. Home is the hero, standing beside the name; the CV
+ * turns it down and pushes it off the text column. The projects pages fit the
+ * set into their band instead (`fit.ts`, from Backdrop); the poses here are
+ * only their fallback when a page has no band to measure.
  */
 export function poseFor(kind: PoseKind, c: Complex, narrow: boolean): Pose {
   const { re, im } = c

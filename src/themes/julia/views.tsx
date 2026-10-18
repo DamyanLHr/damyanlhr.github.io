@@ -1,11 +1,12 @@
-import type { MouseEvent, ReactNode } from 'react'
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import Markdown from 'react-markdown'
 import { FEATURES } from '../../content/meta'
-import type { InterestSection, Project, SiteContent } from '../../content/types'
+import type { InterestSection, PlateEffect, Project, SiteContent } from '../../content/types'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { FractalCanvas } from './FractalCanvas'
-import { PlateEffect } from './PlateEffect'
-import { paramsFor, projectC } from './fractal'
+import { EffectCard } from './EffectCard'
+import type { StageBus } from './stage-bus'
+import { effectConstant, effectFor, paramsFor } from './fractal'
 
 type Nav = ThemeProps['navigate']
 
@@ -155,17 +156,19 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
   )
 }
 
-// Mosaic weights, in released order, so every row of the six-column grid fills
-// exactly: (3+3)(6)(4+2)(6). A slug missing here falls back to 3 and leaves a
-// ragged row, so this map has to move whenever a project ships.
+// Mosaic weights for the four-column grid, in roster order, so every row fills
+// exactly: (2+1+1)(1+2+1)(2+1+1). A slug missing here falls back to 1, which
+// can leave a ragged row, so this map moves whenever a project is added.
 const CARD_SPAN: Record<string, number> = {
-  'this-site': 6,
-  'dont-break-glass': 3,
-  'kill-bunny': 3,
-  'five-more-minutes': 6,
-  'digital-twinning-suspension': 4,
-  'blood-of-hedon': 2,
-  'olympian-onslaught': 6,
+  'this-site': 2,
+  'dont-break-glass': 1,
+  'kill-bunny': 1,
+  'five-more-minutes': 1,
+  'digital-twinning-suspension': 2,
+  'blood-of-hedon': 1,
+  'olympian-onslaught': 2,
+  'extensible-terrain-generation': 1,
+  'davincis-black-market-bird-dealer': 1,
 }
 
 const CHIP: Record<Project['category'], string> = {
@@ -174,69 +177,170 @@ const CHIP: Record<Project['category'], string> = {
   university: 'university',
 }
 
-export function ProjectsIndex({ content, navigate }: { content: SiteContent; navigate: Nav }) {
+/** Released work first, in roster order, then what is in progress. */
+function roster(content: SiteContent) {
   const released = content.projects.filter((p) => p.status === 'released')
+  const coming = content.projects.filter((p) => p.status !== 'released')
+  return [...released, ...coming]
+}
+
+export function ProjectsIndex({
+  content,
+  navigate,
+  bus,
+}: {
+  content: SiteContent
+  navigate: Nav
+  bus: StageBus
+}) {
+  const projects = roster(content)
+  const [liveSlug, setLiveSlug] = useState<string | null>(null)
+  const mosaic = useRef<HTMLDivElement>(null)
+  const timers = useRef({ intent: 0, leave: 0 })
+
+  // Pointing at a card sends the band's set to that card's constant after a
+  // short intent, so sweeping across the grid does not set it running about.
+  const point = (p: Project, on: boolean) => {
+    const t = timers.current
+    window.clearTimeout(t.intent)
+    window.clearTimeout(t.leave)
+    if (on) t.intent = window.setTimeout(() => bus.preview(effectConstant(p)), 120)
+    else t.leave = window.setTimeout(() => bus.preview(null), 600)
+  }
+  useEffect(() => {
+    const t = timers.current
+    return () => {
+      window.clearTimeout(t.intent)
+      window.clearTimeout(t.leave)
+    }
+  }, [])
+
+  // On a phone nothing hovers, so the card in the middle of the screen is the
+  // live one, and it changes as you scroll.
+  useEffect(() => {
+    const grid = mosaic.current
+    if (!grid || window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setLiveSlug((e.target as HTMLElement).dataset.slug ?? null)
+        }
+      },
+      { rootMargin: '-45% 0px -45% 0px' },
+    )
+    grid.querySelectorAll('.j-card').forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+
   return (
-    <section className="j-page j-page-wide j-enter">
-      <header className="j-page-head">
-        <h1>Projects</h1>
-      </header>
+    <>
+      <div className="j-band" aria-hidden="true" />
+      <section className="j-page j-page-wide j-enter">
+        <header className="j-page-head">
+          <h1>Projects</h1>
+        </header>
 
-      <div className="j-upnext">
-        <p className="j-upnext-tag">Up next</p>
-        <div className="j-upnext-items">
-          {content.announcements.map((a) => (
-            <article key={a.id}>
-              <h2>{a.title}</h2>
-              <p>{a.body}</p>
-            </article>
-          ))}
+        <div className="j-mosaic" ref={mosaic}>
+          {projects.map((p) => {
+            const coming = p.status !== 'released'
+            const to = `/projects/${p.slug}`
+            return (
+              <EffectCard
+                key={p.slug}
+                project={p}
+                live={liveSlug === p.slug}
+                onPoint={(on) => point(p, on)}
+                href={to}
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigate(to)
+                }}
+                className={`j-card j-span-${CARD_SPAN[p.slug] ?? 1}`}
+              >
+                <span className="j-card-scrim" aria-hidden="true" />
+                <span className="j-card-body">
+                  <span className="j-chips">
+                    {coming && <span className="j-chip j-chip-soon">in progress</span>}
+                    <span className="j-chip">{CHIP[p.category]}</span>
+                    {/* The disclosure travels with the card, not just the page it
+                        links to: a reader who never opens the project still sees it. */}
+                    {p.builtWithAI && <span className="j-chip j-chip-ai">built with AI</span>}
+                  </span>
+                  <span className="j-card-title">{p.title}</span>
+                  <span className="j-meta">
+                    {[p.year, p.event, p.role].filter(Boolean).join(' · ')}
+                  </span>
+                  <span className="j-card-summary">{p.summary}</span>
+                </span>
+              </EffectCard>
+            )
+          })}
         </div>
-      </div>
-
-      <div className="j-mosaic">
-        {released.map((p) => (
-          <InternalLink
-            key={p.slug}
-            to={`/projects/${p.slug}`}
-            navigate={navigate}
-            className={`j-card j-span-${CARD_SPAN[p.slug] ?? 3}`}
-          >
-            <FractalCanvas
-              params={{ ...projectC(p), span: 2.0, centerX: 0.64, centerY: 0.42 }}
-              live="hover"
-              hoverHost="a"
-              className="j-card-art"
-            />
-            <span className="j-card-scrim" aria-hidden="true" />
-            <span className="j-card-body">
-              <span className="j-chips">
-                <span className="j-chip">{CHIP[p.category]}</span>
-                {/* The disclosure travels with the card, not just the page it
-                    links to: a reader who never opens the project still sees it. */}
-                {p.builtWithAI && <span className="j-chip j-chip-ai">built with AI</span>}
-              </span>
-              <span className="j-card-title">{p.title}</span>
-              <span className="j-meta">
-                {[p.year, p.event, p.role].filter(Boolean).join(' · ')}
-              </span>
-              <span className="j-card-summary">{p.summary}</span>
-            </span>
-          </InternalLink>
-        ))}
-      </div>
-    </section>
+      </section>
+    </>
   )
+}
+
+/** What the band is doing, and how to play with it, for a pointer and for a finger. */
+const BAND_NOTE: Record<PlateEffect, { name: string; pointer: string; touch: string }> = {
+  relief: {
+    name: 'Relief light',
+    pointer: 'Move to carry the lamp.',
+    touch: 'Tap or drag sideways to move the lamp.',
+  },
+  ripple: {
+    name: 'Equipotential ripple',
+    pointer: 'Click to send a wave through the field.',
+    touch: 'Tap to send a wave through the field.',
+  },
+  cursor: {
+    name: 'Every point holds a different set',
+    pointer: 'Move to bend this one.',
+    touch: 'Drag sideways to bend it.',
+  },
+  stardust: {
+    name: 'Stardust',
+    pointer: 'Sweep through to scatter it.',
+    touch: 'Tap or drag sideways to scatter it.',
+  },
+  'field-lines': {
+    name: 'Field lines',
+    pointer: 'The lines near the pointer light up.',
+    touch: 'Tap or drag sideways to light the lines.',
+  },
+  'orbit-traps': {
+    name: 'Orbit traps',
+    pointer: 'Move to carry the trap.',
+    touch: 'Tap or drag sideways to move the trap.',
+  },
+  ridgelines: {
+    name: 'Ridgelines',
+    pointer: 'Move to tilt the terrain.',
+    touch: 'Drag sideways to tilt the terrain.',
+  },
+  'scroll-dive': {
+    name: 'Scroll dive',
+    pointer: 'Scroll or hold to fall in.',
+    touch: 'Hold or pinch to fall in.',
+  },
+  heartbeat: {
+    name: 'Heartbeat',
+    pointer: 'Point anywhere to watch its path settle into the beat.',
+    touch: 'Tap anywhere to watch its path settle into the beat.',
+  },
 }
 
 export function ProjectPage({
   content,
   slug,
   navigate,
+  late,
 }: {
   content: SiteContent
   slug: string
   navigate: Nav
+  /** arriving from the projects page: the text waits for the set to arrive */
+  late: boolean
 }) {
   const project = content.projects.find((p) => p.slug === slug)
   if (!project) return <NotFound path={`/projects/${slug}`} navigate={navigate} />
@@ -247,40 +351,60 @@ export function ProjectPage({
   if (project.duration) facts.push(['Duration', project.duration])
   if (project.team?.size) facts.push(['Team', `${project.team.size} people`])
   if (project.tools.length > 0) facts.push(['Tools', project.tools.join(', ')])
+  const note = BAND_NOTE[effectFor(project)]
   return (
-    <section className="j-page j-enter">
-      <InternalLink to="/projects" navigate={navigate} className="j-back">
-        &larr; all projects
-      </InternalLink>
-      <header className="j-page-head">
-        <h1>{project.title}</h1>
-        {project.builtWithAI && <p className="j-ai-flag">Built with AI</p>}
-      </header>
-      <PlateEffect project={project} />
-      <dl className="j-facts">
-        {facts.map(([k, v]) => (
-          <div key={k}>
-            <dt>{k}</dt>
-            <dd>{v}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className="j-prose">{project.summary}</p>
-      {project.body && (
-        <div className="j-body">
-          <Markdown>{project.body}</Markdown>
-        </div>
-      )}
-      {project.team?.members && <p className="j-meta">with {project.team.members.join(', ')}</p>}
-      <div className="j-actions">
-        {project.links.map((l, i) => (
-          <a key={l.url} href={l.url} className={i === 0 ? 'j-btn j-btn-primary' : 'j-btn'}>
-            {l.label}
-          </a>
-        ))}
-        {project.links.length === 0 && <p className="j-meta">links land here once it ships</p>}
+    <>
+      <div className="j-band j-band-tall">
+        <p className="j-band-note">
+          <span className="j-band-name">{note.name}</span>
+          <span className="j-band-how j-how-pointer">{note.pointer}</span>
+          <span className="j-band-how j-how-touch">{note.touch}</span>
+        </p>
       </div>
-    </section>
+      <section className={late ? 'j-project j-enter j-enter-late' : 'j-project j-enter'}>
+        <div className="j-rail">
+          <InternalLink to="/projects" navigate={navigate} className="j-back">
+            &larr; all projects
+          </InternalLink>
+          <h1 className="j-project-title">{project.title}</h1>
+          <span className="j-chips">
+            {project.status !== 'released' && (
+              <span className="j-chip j-chip-soon">in progress</span>
+            )}
+            <span className="j-chip">{CHIP[project.category]}</span>
+            {project.builtWithAI && <span className="j-chip j-chip-ai">built with AI</span>}
+          </span>
+          <div className="j-actions">
+            {project.links.map((l, i) => (
+              <a key={l.url} href={l.url} className={i === 0 ? 'j-btn j-btn-primary' : 'j-btn'}>
+                {l.label}
+              </a>
+            ))}
+            {project.links.length === 0 && <p className="j-meta">links land here once it ships</p>}
+          </div>
+          <dl className="j-facts">
+            {facts.map(([k, v]) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div className="j-story">
+          {project.builtWithAI && <p className="j-ai-flag">Built with AI</p>}
+          <p className="j-lead">{project.summary}</p>
+          {project.body && (
+            <div className="j-body">
+              <Markdown>{project.body}</Markdown>
+            </div>
+          )}
+          {project.team?.members && (
+            <p className="j-meta">with {project.team.members.join(', ')}</p>
+          )}
+        </div>
+      </section>
+    </>
   )
 }
 

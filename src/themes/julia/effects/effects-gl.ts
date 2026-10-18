@@ -25,7 +25,7 @@ const FRAG = `#version 300 es
 precision highp float;
 out vec4 o;
 uniform vec2 uRes, uC, uAt, uOff, uP;
-uniform float uSpan, uAngle, uMaxF, uT, uRipple;
+uniform float uSpan, uAngle, uMaxF, uT, uRipple, uAmount;
 uniform int uMode;
 uniform vec2 uCyc[8];
 uniform int uCycN;
@@ -58,9 +58,11 @@ void main() {
   // Coloured against the base count, not the live one: a dive raises the
   // count to keep the boundary sharp, and dividing by it would dim everything.
   float v = nu / min(uMaxF, 170.0) * 2.2;
+  vec3 base;
   if (it >= mx) {
     float v2 = clamp(dot(z, z), 0.0, 4.0);
     col = vec3(14.0 + v2 * 9.0, 8.0 + v2 * 3.0, 9.0 + v2 * 1.5) / 255.0;
+    base = col;
     if (uMode == 6) {
       float f = float(conv) * 0.55 - uT * 3.2;
       float beat = 0.5 + 0.5 * sin(f);
@@ -68,6 +70,7 @@ void main() {
     }
   } else {
     col = pal(v);
+    base = col;
     if (uMode == 2) {
       vec2 u = normalize(vec2(z.x * dz.x + z.y * dz.y, z.y * dz.x - z.x * dz.y) / dot(dz, dz));
       vec2 L = normalize(uP - p);
@@ -77,9 +80,11 @@ void main() {
       col = col * (0.28 + 0.95 * r) + vec3(1.0, 0.62, 0.32) * pow(r, 10.0) * 0.35 * near;
     }
     if (uMode == 3) {
-      col += vec3(1.0, 0.42, 0.1) * smoothstep(0.035, 0.0, abs(fract(nu * 0.5) - 0.5)) * 0.07;
+      col += vec3(1.0, 0.42, 0.1) * (1.0 - smoothstep(0.0, 0.035, abs(fract(nu * 0.5) - 0.5))) * 0.07;
       if (uRipple > -1.0)
-        col += vec3(1.0, 0.5, 0.15) * smoothstep(1.2, 0.0, abs(nu - uRipple)) * 0.55 * clamp(uRipple / uMaxF * 3.0, 0.0, 1.0);
+        // the front: a bright contour that runs outward through the field and
+        // only fades in its last few levels, so it reads all the way out
+        col += vec3(1.0, 0.5, 0.15) * (1.0 - smoothstep(0.0, 2.2, abs(nu - uRipple))) * 0.8 * smoothstep(0.0, 6.0, uRipple);
     }
     if (uMode == 4) {
       float ang = atan(z.y, z.x) / 6.2831853;
@@ -92,11 +97,14 @@ void main() {
     float g = exp(-trap * 3.5);
     col = mix(col * 0.55, pal(0.35 + 0.6 * g), 0.75 * g) + vec3(1.0, 0.8, 0.55) * pow(g, 8.0) * 0.4;
   }
-  o = vec4(col, 1.0);
+  // uAmount develops the effect out of the plain set: 0 is the set alone.
+  o = vec4(mix(base, col, uAmount), 1.0);
 }`
 
 export interface EffectState {
   mode: GlMode
+  /** how far the effect has developed out of the plain set, 0..1 (default 1) */
+  amount?: number
   maxIter?: number
   /** the pointer's lamp, trap or field-line focus, in the plane */
   p?: [number, number]
@@ -107,7 +115,15 @@ export interface EffectState {
 }
 
 export interface EffectGl {
-  render: (view: PlaneView, state: EffectState) => void
+  /**
+   * Draws at the canvas's own size times `scale` (a resolution cut for slow
+   * devices), or at an explicit pixel size for an offscreen canvas.
+   */
+  render: (
+    view: PlaneView,
+    state: EffectState,
+    size?: { width: number; height: number } | { scale: number },
+  ) => void
   dispose: () => void
 }
 
@@ -122,14 +138,19 @@ const NAMES = [
   'uMaxF',
   'uT',
   'uRipple',
+  'uAmount',
   'uMode',
   'uCyc',
   'uCycN',
 ] as const
 
-export function createEffectGl(canvas: HTMLCanvasElement): EffectGl | null {
+export function createEffectGl(
+  canvas: HTMLCanvasElement,
+  opts: { preserve?: boolean } = {},
+): EffectGl | null {
   if (!probeGl()) return null
-  const gl = canvas.getContext('webgl2', CTX_OPTS)
+  // An offscreen canvas that is copied from after drawing must keep its pixels.
+  const gl = canvas.getContext('webgl2', { ...CTX_OPTS, preserveDrawingBuffer: !!opts.preserve })
   if (!gl) return null
   const compile = (type: number, src: string) => {
     const sh = gl.createShader(type)
@@ -154,10 +175,17 @@ export function createEffectGl(canvas: HTMLCanvasElement): EffectGl | null {
   const cyc = new Float32Array(16)
 
   return {
-    render(v, s) {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      const w = Math.round(canvas.clientWidth * dpr)
-      const h = Math.round(canvas.clientHeight * dpr)
+    render(v, s, size) {
+      let w: number
+      let h: number
+      if (size && 'width' in size) {
+        w = size.width
+        h = size.height
+      } else {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2) * (size?.scale ?? 1)
+        w = Math.round(canvas.clientWidth * dpr)
+        h = Math.round(canvas.clientHeight * dpr)
+      }
       if (!w || !h) return
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w
@@ -174,6 +202,7 @@ export function createEffectGl(canvas: HTMLCanvasElement): EffectGl | null {
       gl.uniform1f(u.uMaxF, Math.min(400, s.maxIter ?? 170))
       gl.uniform1f(u.uT, s.t ?? 0)
       gl.uniform1f(u.uRipple, s.ripple ?? -2)
+      gl.uniform1f(u.uAmount, s.amount ?? 1)
       gl.uniform1i(u.uMode, GL_MODES[s.mode])
       const n = Math.min(8, s.cycle?.length ?? 0)
       cyc.fill(0)

@@ -80,11 +80,12 @@ describe('paramsFor', () => {
 
 describe('plate effects', () => {
   // A plate effect is part of a project's identity the same way its constant
-  // is. Two released projects sharing one while another sits unused is a
-  // roster that could have told them apart and didn't.
-  it('gives every released project its own effect while any are left', () => {
-    const released = projects.filter((p) => p.status === 'released')
-    const used = released.map(effectFor)
+  // is. Two projects sharing one while another sits unused is a roster that
+  // could have told them apart and didn't.
+  // Every project on the projects page has a card, released or in progress,
+  // and every card shows its effect.
+  it('gives every card its own effect while any are left', () => {
+    const used = projects.map(effectFor)
     const unused = EFFECTS.filter((e) => !used.includes(e))
     const shared = used.filter((e, i) => used.indexOf(e) !== i)
     if (unused.length > 0) expect(shared).toEqual([])

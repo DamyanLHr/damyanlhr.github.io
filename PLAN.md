@@ -528,20 +528,34 @@ different live effect on every project plate.
       travels there along the edge of the Mandelbrot set's main cardioid, where
       every set on the road is a detailed one (~950 ms, interruptible). The first
       arrival condenses out of the plane, 2 → 170 iterations. The home hero canvas
-      and the 404 plate are gone; reading pages dim the set and veil the text
-      column. CPU path and reduced motion: a still pose per page.
-- [x] **Orbit trace.** The path of the point under the mouse, drawn a step and a
-      half per frame, over the home hero and every plate. Mouse only.
-- [x] **Plate effects.** One shader with a mode per effect (relief light, ripple,
-      field lines, orbit traps, heartbeat, scroll dive) and two 2D ones
-      (stardust, ridgelines), in `src/themes/julia/effects/`. Pinned per project
-      with `art.effect`; Don't Break Glass beats, Kill Bunny ripples, 5 More
-      Minutes! is stardust, Digital Twinning Suspension is lit relief, Blood of
-      Hedon is traps, Olympian Onslaught field lines, this site dives, and
-      Extensible Terrain Generation is ridgelines. A new project derives one from
-      its slug; `fractal.test.ts` fails if two released projects share one while
-      another is unused. Effects start when visible, pause off screen and hold
-      still under reduced motion; no WebGL means the plain set.
+      and the 404 plate are gone; the CV dims the set and veils the text column.
+      CPU path and reduced motion: a still pose per page.
+- [x] **The band** (Damyan's second review: the set must not just sit in the
+      background, and no band may ever cut its set short; answers 1A 2C 3A 4B 5B
+      6A 7A 8A 9A). On the projects pages the set moves into a band across the
+      top (40% of the screen on Projects, half on a project) and scrolls away
+      with the page. `fit.ts` measures each set, glow included, and fits it
+      along its long axis as large as the band allows; a test holds every
+      constant inside its band and at least 70% across it. Projects gets a long
+      constant so it fills the wide band, and a soft mask fades anything that
+      reaches past the band before the text. Pointing at a card sends the set to
+      that project's constant.
+- [x] **The set becomes the effect.** Opening a project, the set travels, then
+      develops into the project's effect in place (one shader, `uAmount`), then
+      the text rises: a title rail (name, links, facts) beside the story, using
+      the width. Stardust and ridgelines draw on a layer laid over the band;
+      ridgelines lift out of the flat plane. Back dissolves the effect first.
+- [x] **Effects everywhere, by hand or by finger.** One effect per project,
+      pinned with `art.effect` (Don't Break Glass beats, Kill Bunny ripples, 5
+      More Minutes! is stardust, Digital Twinning Suspension is lit relief, Blood
+      of Hedon traps, Olympian Onslaught field lines, this site dives, Extensible
+      Terrain Generation is ridgelines, Davinci's Black Market Bird Dealer bends
+      under the pointer); in-progress projects now have cards. Cards show a still
+      of their effect, drawn by one shared WebGL context, and come alive under the
+      mouse, or, on a phone, while centred on screen. On touch the band takes a
+      tap or a sideways drag and leaves vertical swipes to the page; the dive is
+      a hold or a pinch. The orbit trace stays only on the home hero and
+      heartbeat.
 - **GATE — "julia motion approved":** live review on Damyan's hardware.
 
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*

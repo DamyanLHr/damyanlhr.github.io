@@ -3,10 +3,12 @@ import '@fontsource/space-grotesk/500.css'
 import '@fontsource/space-grotesk/700.css'
 // metadata only: years, team sizes and tool lists get lining figures that line up
 import '@fontsource/ibm-plex-mono/400.css'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { ThemeProps } from '../../shared/theme-contract'
 import { routePath } from '../../shared/routes'
 import { FEATURES } from '../../content/meta'
 import { Backdrop } from './Backdrop'
+import { createStageBus } from './stage-bus'
 import { ThemeMenu } from './ThemeMenu'
 import { Cv, Home, Interests, InternalLink, NotFound, ProjectPage, ProjectsIndex } from './views'
 import './julia.css'
@@ -24,9 +26,22 @@ const NAV = [
 
 export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
   const path = routePath(route)
+  const [bus] = useState(createStageBus)
+  // Where we came from: a project opened from the projects page waits for the
+  // set to arrive before its text rises.
+  const previous = useRef<string | null>(null)
+  const late = route.kind === 'project' && previous.current === 'projects'
+
+  // Every page opens at its top. The band pages scroll the stage with them,
+  // so a page that opened part way down would open with its set off screen.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+    previous.current = route.kind
+  }, [path, route.kind])
+
   return (
     <div className="julia">
-      <Backdrop route={route} content={content} />
+      <Backdrop route={route} content={content} bus={bus} />
       <header className="j-nav">
         <InternalLink to="/" navigate={navigate} className="j-mark">
           DH
@@ -50,9 +65,11 @@ export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
 
       {route.kind === 'home' && <Home content={content} navigate={navigate} />}
       {route.kind === 'cv' && <Cv content={content} navigate={navigate} />}
-      {route.kind === 'projects' && <ProjectsIndex content={content} navigate={navigate} />}
+      {route.kind === 'projects' && (
+        <ProjectsIndex content={content} navigate={navigate} bus={bus} />
+      )}
       {route.kind === 'project' && (
-        <ProjectPage content={content} slug={route.slug} navigate={navigate} />
+        <ProjectPage content={content} slug={route.slug} navigate={navigate} late={late} />
       )}
       {route.kind === 'interests' && <Interests content={content} />}
       {route.kind === 'notFound' && <NotFound path={route.path} navigate={navigate} />}

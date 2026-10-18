@@ -20,7 +20,7 @@ function offEdge(c: Complex) {
   return best
 }
 
-const far = [ROUTE_C.home, ROUTE_C.projects] as const
+const far = [ROUTE_C.home, ROUTE_C.interests] as const
 
 describe('cardioid road', () => {
   it('finds the edge point nearest a constant', () => {

@@ -35,7 +35,6 @@
 .julia .j-meta,
 .julia .j-chip,
 .julia .j-facts dt,
-.julia .j-upnext-tag,
 .julia .j-eyebrow,
 .julia .j-ticker-tag {
   font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
@@ -60,13 +59,34 @@
 
 /* ---------- the stage ---------- */
 
-/* One set behind every page (Backdrop.tsx). It is fixed, so a long page scrolls
-   over it like copy over a lit wall, and everything readable sits above it. */
+/* One set for every page (Backdrop.tsx). On home and the CV it is fixed, so
+   a long page scrolls over it like copy over a lit wall. On the projects pages
+   it lives in the band at the top and scrolls away with the page, so it is
+   pinned to the top of the document instead of the window. Everything readable
+   sits above it. */
+@property --j-band-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 300vh;
+}
+
 .j-stage {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  /* Where the stage's picture ends. Off the bottom of the page by default; on
+     the projects pages, just under the band, with a soft fade, and it moves
+     there as the set travels in. */
+  --j-band-end: 300vh;
+  mask-image: linear-gradient(to bottom, black calc(var(--j-band-end) - 4rem), transparent var(--j-band-end));
+  transition: --j-band-end 900ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.j-stage[data-band] {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100lvh;
 }
 
 .j-stage-canvas,
@@ -76,6 +96,31 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* Stardust and ridgelines are drawn here, laid exactly over the band. Their
+   edges fade out, so the layer never ends on a line where the render stops. */
+.j-stage-layer {
+  position: absolute;
+  display: block;
+  opacity: 0;
+  transition: opacity 500ms var(--ease-out-strong);
+  mask-image:
+    linear-gradient(to right, transparent, black 6%, black 94%, transparent),
+    linear-gradient(to bottom, transparent, black 8%, black 92%, transparent);
+  mask-composite: intersect;
+}
+
+.j-stage-layer[data-on='true'] {
+  opacity: 1;
+}
+
+.j-stage-canvas {
+  transition: opacity 500ms var(--ease-out-strong);
+}
+
+.j-stage[data-layer='on'] .j-stage-canvas {
+  opacity: 0 !important;
 }
 
 /* On reading pages the set is turned down, and this veil takes the last of it
@@ -96,15 +141,77 @@
 }
 
 .j-stage[data-pose='home']::after,
-.j-stage[data-pose='projects']::after {
+.j-stage[data-pose='projects']::after,
+.j-stage[data-pose='project']::after {
   opacity: 0;
 }
 
 .j-home,
 .j-page,
+.j-project,
+.j-band,
 .j-foot {
   position: relative;
   z-index: 1;
+}
+
+/* ---------- the band ---------- */
+
+/* The band is the room the set lives in on the projects pages: an empty strip
+   at the top of the page that the stage fits the set into, glow and all. It
+   takes the set's input. On touch it only claims taps and sideways drags, so
+   swiping up or down still scrolls the page. */
+.j-band {
+  height: 40svh;
+  min-height: 15rem;
+  touch-action: pan-y;
+}
+
+.j-band-tall {
+  height: 50svh;
+  min-height: 18rem;
+}
+
+.j-band-note {
+  position: absolute;
+  left: clamp(1.2rem, 4vw, 3rem);
+  bottom: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  margin: 0;
+  max-width: calc(100% - 2.4rem);
+  pointer-events: none;
+  font-size: 0.8rem;
+  color: var(--j-muted);
+}
+
+.j-band-name {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--j-accent-soft);
+}
+
+.j-how-touch {
+  display: none;
+}
+
+@media (hover: none) {
+  .j-how-pointer {
+    display: none;
+  }
+  .j-how-touch {
+    display: inline;
+  }
+}
+
+/* With motion reduced the effects hold still, so the band only says what it is. */
+@media (prefers-reduced-motion: reduce) {
+  .j-band-how {
+    display: none;
+  }
 }
 
 /* ---------- navigation ---------- */
@@ -656,49 +763,6 @@
   letter-spacing: -0.025em;
 }
 
-/* The project plate (PlateEffect.tsx): the project's own set with its own
-   effect, fading at the edges into the dimmed stage behind it. */
-.j-plate {
-  margin: 0 0 1.4rem;
-}
-
-.j-plate-art {
-  position: relative;
-  height: clamp(180px, 32vw, 300px);
-  border-radius: var(--j-r);
-  overflow: hidden;
-  mask-image: radial-gradient(85% 130% at 50% 50%, black 50%, transparent 98%);
-}
-
-.j-plate-main,
-.j-plate-trace {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.j-plate-trace {
-  pointer-events: none;
-}
-
-.j-plate-note {
-  max-width: 62ch;
-  margin: 0.4rem 0 0;
-  color: var(--j-muted);
-  font-size: 0.84rem;
-  line-height: 1.55;
-}
-
-/* The how-to is for a pointer. On touch, and with motion reduced, the plate
-   holds still, so the caption only says what it is. */
-@media (hover: none), (prefers-reduced-motion: reduce) {
-  .j-plate-how {
-    display: none;
-  }
-}
-
 /* Every section head used to be an uppercase letterspaced label, which is the
    most templated rhythm a page can have. The page keeps exactly two of those
    (the hero eyebrow and the card chips) and section heads are real headings
@@ -776,47 +840,13 @@
 /* ---------- projects: up-next + mosaic ---------- */
 
 .j-page-wide {
-  max-width: 64rem;
-}
-
-.j-upnext {
-  border: 1px solid var(--j-accent-edge);
-  border-radius: var(--j-r);
-  background: linear-gradient(120deg, var(--j-accent-wash), transparent 62%);
-  padding: 1.1rem 1.3rem 1.2rem;
-  margin-bottom: 1.6rem;
-}
-
-.j-upnext-tag {
-  margin: 0 0 0.7rem;
-  color: var(--j-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.22em;
-  font-size: 0.7rem;
-}
-
-.j-upnext-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 1.1rem;
-}
-
-.j-upnext-items h2 {
-  margin: 0 0 0.25rem;
-  font-size: 1.08rem;
-  font-weight: 500;
-}
-
-.j-upnext-items p {
-  margin: 0;
-  color: var(--j-muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
+  max-width: 88rem;
+  padding-top: clamp(0.6rem, 1.6vw, 1.2rem);
 }
 
 .j-mosaic {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.9rem;
 }
 
@@ -824,7 +854,7 @@
   position: relative;
   display: block;
   overflow: hidden;
-  min-height: 16rem;
+  min-height: 18rem;
   border: 1px solid var(--j-line);
   border-radius: var(--j-r);
   color: var(--j-fg);
@@ -834,10 +864,23 @@
     border-color 200ms var(--ease-out-strong);
 }
 
+.j-span-1 { grid-column: span 1; }
 .j-span-2 { grid-column: span 2; }
-.j-span-3 { grid-column: span 3; }
-.j-span-4 { grid-column: span 4; }
-.j-span-6 { grid-column: span 6; min-height: 13rem; }
+
+/* In progress reads as a state, not a category: no accent, just a quiet fill. */
+.j-chip-soon {
+  color: var(--j-muted);
+  border-color: var(--j-line);
+}
+
+/* Two columns between phone and laptop; dense packing lets a single card fill
+   the gap a wide one leaves. */
+@media (max-width: 1100px) and (min-width: 761px) {
+  .j-mosaic {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: dense;
+  }
+}
 
 .j-card:active {
   transform: scale(0.985);
@@ -1105,6 +1148,78 @@
   position: relative;
 }
 
+/* ---------- a project ---------- */
+
+/* Under the band: a rail with the name, the way in (links) and the facts,
+   beside the story at a reading width. The rail is where the eye lands first
+   after the set, so the play button is never more than a glance away. */
+.j-project {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 2fr);
+  gap: clamp(1.6rem, 4vw, 4rem);
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 2vw, 1.6rem) clamp(1.2rem, 4vw, 3rem) 4rem;
+}
+
+.j-rail {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.j-rail .j-back {
+  margin: 0;
+}
+
+.j-project-title {
+  margin: 0;
+  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.j-rail .j-actions {
+  margin: 0.2rem 0 0;
+}
+
+.j-rail .j-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0.4rem 0 0;
+}
+
+.j-story {
+  display: grid;
+  gap: 1.2rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.j-lead {
+  margin: 0;
+  max-width: 62ch;
+  font-size: clamp(1.08rem, 1.5vw, 1.3rem);
+  line-height: 1.55;
+  color: var(--j-fg);
+}
+
+.j-story .j-body {
+  margin-top: 0.4rem;
+}
+
+/* Opened from the projects page, the text waits for the set to arrive. */
+.j-enter-late {
+  animation-delay: 500ms;
+}
+
+@media (max-width: 900px) {
+  .j-project {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- 404 & footer ---------- */
 
 .j-404 {
@@ -1222,11 +1337,9 @@
   .j-mosaic {
     grid-template-columns: 1fr;
   }
-  .j-span-2,
-  .j-span-3,
-  .j-span-4,
-  .j-span-6 {
+  .j-span-1,
+  .j-span-2 {
     grid-column: auto;
-    min-height: 14rem;
+    min-height: 16rem;
   }
 }

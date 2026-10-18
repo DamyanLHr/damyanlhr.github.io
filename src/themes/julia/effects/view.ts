@@ -1,3 +1,6 @@
+import type { PlateEffect } from '../../../content/types'
+import { cardioidEdge, nearestEdgeTheta, type Complex } from '../travel'
+
 // The plane behind a plate, and the small pieces of maths more than one effect
 // needs. Every julia drawing uses the same mapping (it matches fractal-gl.ts and
 // renderJulia): a screen offset from the set's centre, scaled so `span` covers
@@ -111,4 +114,33 @@ export function diveAim(re: number, im: number, maxIter = 165): [number, number]
     }
   }
   return aim
+}
+
+/**
+ * The same plane, seen through a smaller canvas laid over part of a bigger
+ * one: same scale, same placement on screen. Lets a 2D effect drawn on a
+ * band-sized layer line up exactly with the set the stage draws beneath it.
+ */
+export function subView(
+  v: PlaneView,
+  outer: { width: number; height: number },
+  inner: { left: number; top: number; width: number; height: number },
+): PlaneView {
+  const pxPerUnit = Math.min(outer.width, outer.height) / v.span
+  return {
+    ...v,
+    span: Math.min(inner.width, inner.height) / pxPerUnit,
+    cx: (v.cx * outer.width - inner.left) / inner.width,
+    cy: (v.cy * outer.height - inner.top) / inner.height,
+  }
+}
+
+/**
+ * The constant an effect is shown with. Heartbeat needs an interior with an
+ * attracting cycle to beat in; a project whose own constant has none is moved
+ * just inside the cardioid, beside where it was.
+ */
+export function constantForEffect(c: Complex, effect: PlateEffect): Complex {
+  if (effect !== 'heartbeat' || attractingCycle(c.re, c.im)) return { re: c.re, im: c.im }
+  return cardioidEdge(nearestEdgeTheta(c), 0.92)
 }

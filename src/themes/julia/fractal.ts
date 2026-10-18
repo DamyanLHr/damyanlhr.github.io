@@ -2,6 +2,7 @@
 // Direction A "obsidian gallery": ember palette on near-black (Gate 2a).
 
 import type { PlateEffect, Project } from '../../content/types'
+import { constantForEffect } from './effects/view'
 
 export interface JuliaParams {
   re: number
@@ -90,7 +91,8 @@ export function paramsFor(slug: string, seed?: number): JuliaParams {
 export const ROUTE_C = {
   home: { re: -0.7269, im: 0.1889 },
   cv: { re: -0.8, im: 0.156 },
-  projects: { re: 0.285, im: 0.01, span: 2.6 },
+  // long and spiralled, so it fills the wide band on the projects page
+  projects: { re: -0.8, im: 0.18 },
   interests: { re: -0.4, im: 0.6 },
   notFound: { re: -0.835, im: -0.2321 },
 } satisfies Record<string, JuliaParams>
@@ -120,6 +122,15 @@ export const EFFECTS: readonly PlateEffect[] = [
 /** A project's plate effect: the one its content pins, else one its slug derives. */
 export function effectFor(project: Project): PlateEffect {
   return project.art?.effect ?? EFFECTS[mix(hashString(project.slug) ^ 0x51ed27) % EFFECTS.length]
+}
+
+/**
+ * The constant a project is shown with wherever its effect runs: its band, its
+ * card, and the band's preview when its card is pointed at. The same as
+ * `projectC`, except where the effect needs a different neighbourhood.
+ */
+export function effectConstant(project: Project): { re: number; im: number } {
+  return constantForEffect(projectC(project), effectFor(project))
 }
 
 // Heated ember stops (accent #ff6a00 family)

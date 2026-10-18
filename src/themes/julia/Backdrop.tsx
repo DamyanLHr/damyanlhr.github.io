@@ -1,14 +1,23 @@
 import { useEffect, useRef } from 'react'
 import type { Route } from '../../shared/routes'
 import type { SiteContent } from '../../content/types'
-import { projectC, ROUTE_C } from './fractal'
+import { effectConstant, effectFor, ROUTE_C } from './fractal'
+import { fitToBox } from './fit'
+import { attachEffect } from './effects/controller'
 import { createOrbitTrace, type OrbitTrace } from './effects/orbit-trace'
+import { stageSurface } from './effects/stage-surface'
 import { createStage, type Stage } from './stage'
-import { poseFor, type Complex } from './travel'
+import type { StageBus } from './stage-bus'
+import { poseFor, type Complex, type Pose } from './travel'
 
 // The set behind every julia page. It is mounted once in Root and outlives
 // every route change, so leaving a page never tears the picture down: the
 // constant travels along the edge of the Mandelbrot set to the next page's.
+//
+// Home and the CV keep it as a backdrop. On the projects pages it moves into
+// a band across the top of the page (the page's `.j-band`), fitted so the
+// whole set and its glow sit inside it, as large as the band allows. On a
+// project page it then develops into that project's effect, in place.
 
 const NARROW = '(max-width: 760px)'
 const FALLBACK_VIEW = {
@@ -21,67 +30,160 @@ const FALLBACK_VIEW = {
   off: [0, 0] as [number, number],
 }
 
-function constantFor(route: Route, content: SiteContent): Complex {
-  if (route.kind === 'project') {
-    const project = content.projects.find((p) => p.slug === route.slug)
-    return project ? projectC(project) : ROUTE_C.notFound
-  }
-  return ROUTE_C[route.kind]
-}
-
 function kindFor(route: Route, content: SiteContent) {
   if (route.kind === 'project' && !content.projects.some((p) => p.slug === route.slug))
     return 'notFound'
   return route.kind
 }
 
-export function Backdrop({ route, content }: { route: Route; content: SiteContent }) {
-  const host = useRef<HTMLDivElement>(null)
-  const engine = useRef<Stage | null>(null)
-  const tracer = useRef<OrbitTrace | null>(null)
-  const kind = kindFor(route, content)
-  const c = constantFor(route, content)
-  const { re, im } = c
+/** The pose that fits the set into the page's band, or null when the page has none. */
+function bandPose(c: Complex, canvas: HTMLCanvasElement): Pose | null {
+  const band = document.querySelector<HTMLElement>('.j-band')
+  if (!band) return null
+  const cr = canvas.getBoundingClientRect()
+  const br = band.getBoundingClientRect()
+  const fit = fitToBox(
+    c,
+    { left: br.left - cr.left, top: br.top - cr.top, width: br.width, height: br.height },
+    { width: cr.width, height: cr.height },
+  )
+  return { re: c.re, im: c.im, ...fit, dim: 1 }
+}
 
-  // The canvas is made here rather than rendered, so a remount (StrictMode,
-  // a theme switch and back) always gets a fresh one: a disposed GL context
+export function Backdrop({
+  route,
+  content,
+  bus,
+}: {
+  route: Route
+  content: SiteContent
+  bus: StageBus
+}) {
+  const host = useRef<HTMLDivElement>(null)
+  const parts = useRef<{
+    stage: Stage
+    canvas: HTMLCanvasElement
+    layer: HTMLCanvasElement
+    trace: OrbitTrace | null
+  } | null>(null)
+  const kind = kindFor(route, content)
+  const project =
+    route.kind === 'project' ? content.projects.find((p) => p.slug === route.slug) : undefined
+  const effect = project ? effectFor(project) : null
+  const c: Complex = project
+    ? effectConstant(project)
+    : ROUTE_C[kind === 'project' ? 'notFound' : kind]
+  const { re, im } = c
+  const banded = kind === 'projects' || kind === 'project'
+
+  // The canvases are made here rather than rendered, so a remount (StrictMode,
+  // a theme switch and back) always gets fresh ones: a disposed GL context
   // stays lost on the canvas it was taken from.
   useEffect(() => {
     const canvas = document.createElement('canvas')
     canvas.className = 'j-stage-canvas'
-    canvas.setAttribute('aria-hidden', 'true')
+    const layer = document.createElement('canvas')
+    layer.className = 'j-stage-layer'
     const overlay = document.createElement('canvas')
     overlay.className = 'j-stage-trace'
-    host.current?.append(canvas, overlay)
+    host.current?.append(canvas, layer, overlay)
     const stage = createStage(canvas)
-    engine.current = stage
-    tracer.current = createOrbitTrace(overlay, () => stage.view() ?? FALLBACK_VIEW)
+    const trace = createOrbitTrace(overlay, () => stage.view() ?? FALLBACK_VIEW)
+    parts.current = { stage, canvas, layer, trace }
     return () => {
       stage.dispose()
-      tracer.current?.dispose()
-      engine.current = null
-      tracer.current = null
+      trace?.dispose()
+      parts.current = null
       canvas.remove()
+      layer.remove()
       overlay.remove()
     }
   }, [])
 
+  // The pose, and on a project page the effect once the set has arrived.
   useEffect(() => {
-    const stage = engine.current
-    if (!stage) return
+    const p = parts.current
+    if (!p) return
+    const { stage, canvas, layer, trace } = p
     const mq = window.matchMedia(NARROW)
-    stage.setPose(poseFor(kind, { re, im }, mq.matches))
-    stage.setFollow(kind === 'home')
-    const onChange = () => stage.setPose(poseFor(kind, { re, im }, mq.matches), { travel: false })
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [kind, re, im])
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const pose = () =>
+      (banded ? bandPose({ re, im }, canvas) : null) ?? poseFor(kind, { re, im }, mq.matches)
+
+    stage.setPose(pose())
+    const band = document.querySelector<HTMLElement>('.j-band')
+    // Nothing the stage draws may show below the band: a dive or a field line
+    // that reaches past it fades out just under the band's edge instead.
+    const edge = () => {
+      const el = host.current
+      if (!el) return
+      if (!banded || !band) el.style.removeProperty('--j-band-end')
+      else {
+        const b = band.getBoundingClientRect()
+        el.style.setProperty(
+          '--j-band-end',
+          `${b.bottom - canvas.getBoundingClientRect().top + 48}px`,
+        )
+      }
+    }
+    edge()
+    stage.setFollow(kind === 'home' ? 'window' : kind === 'projects' && band ? band : 'off')
+
+    let detach: (() => void) | null = null
+    let timer = 0
+    const attach = () => {
+      detach?.()
+      detach = null
+      if (kind !== 'project' || !effect || !band) return
+      detach = attachEffect(effect, stageSurface(stage, band, canvas, layer, trace, !reduced), {
+        input: true,
+        autopilot: false,
+        greet: true,
+        wheel: true,
+      })
+    }
+    // Travel first, then develop: the effect starts once the set has arrived.
+    timer = window.setTimeout(attach, stage.eta())
+
+    let resizeTimer = 0
+    const onResize = () => {
+      window.clearTimeout(resizeTimer)
+      resizeTimer = window.setTimeout(() => {
+        stage.setPose(pose(), { travel: false })
+        edge()
+        if (detach) attach()
+      }, 200)
+    }
+    window.addEventListener('resize', onResize)
+    mq.addEventListener('change', onResize)
+
+    // Pointing at a project card sends the band's set to that project's
+    // constant, so the click that follows only has to develop the effect.
+    bus.listen(
+      kind === 'projects'
+        ? (to) => {
+            const target = to ?? ROUTE_C.projects
+            const next = bandPose(target, canvas)
+            if (next) stage.setPose(next)
+          }
+        : null,
+    )
+
+    return () => {
+      window.clearTimeout(timer)
+      window.clearTimeout(resizeTimer)
+      window.removeEventListener('resize', onResize)
+      mq.removeEventListener('change', onResize)
+      bus.listen(null)
+      detach?.()
+    }
+  }, [kind, re, im, banded, effect, bus])
 
   // The hero's orbit trace: the path of the point under the mouse. Only on
   // home, where the set is the subject; on the reading pages it would be a
   // distraction moving behind the text.
   useEffect(() => {
-    const trace = tracer.current
+    const trace = parts.current?.trace
     const box = host.current
     if (!trace || !box || kind !== 'home') return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -98,5 +200,13 @@ export function Backdrop({ route, content }: { route: Route; content: SiteConten
     }
   }, [kind])
 
-  return <div ref={host} className="j-stage" data-pose={kind} aria-hidden="true" />
+  return (
+    <div
+      ref={host}
+      className="j-stage"
+      data-pose={kind}
+      data-band={banded ? 'true' : undefined}
+      aria-hidden="true"
+    />
+  )
 }
