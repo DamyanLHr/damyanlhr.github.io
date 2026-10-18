@@ -101,6 +101,11 @@ development.
 
 Schema per project: `{ year, role, duration, tools/platform, category, team?, links, art }`
 
+`art.effect` names the live effect on the project's plate in the julia theme: `relief`,
+`ripple`, `cursor`, `stardust`, `field-lines`, `orbit-traps`, `ridgelines`,
+`scroll-dive` or `heartbeat`. Leave it out and one is derived from the slug; set it to
+keep a project's effect from moving when the roster changes.
+
 ### Personal
 - **This Portfolio Site** — *released* · **TypeScript, React, Three.js, WebGL 2, Vite** ·
   [repo](https://github.com/DamyanLHr/damyanlhr.github.io) ·

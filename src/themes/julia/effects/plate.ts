@@ -37,7 +37,7 @@ export function mountPlate(host: HTMLElement, effect: PlateEffect, base: PlaneVi
   const view: PlaneView = { ...base, off: [...base.off] }
   // Dust settles onto the whole set, including the outlying grains a plain
   // render loses in the dark, so it needs a wider frame to fit.
-  if (effect === 'stardust') view.span = base.span * 1.15
+  if (effect === 'stardust') view.span = base.span * 1.9
   const cleanups: (() => void)[] = [() => main.remove(), () => overlay.remove()]
   const on = <K extends keyof HTMLElementEventMap>(
     el: HTMLElement | Window,

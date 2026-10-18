@@ -41,6 +41,11 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
    wrapper, `triggerProps` on the button, `panelProps` on the dropdown, `menuProps`
    on the list and `itemProps(i)` on each entry; style `[data-highlight]` (the
    roulette cursor) and `[data-instant]` (opened from the keyboard: no transition).
+   The dropdown is a reel: call `useThemeMenu(themeMenu, { reel: true })`, hand the
+   result to `useReel(m, count)` from `src/shared/useReel.ts`, and render
+   `REEL_REPEAT` copies of the previews in the strip it animates
+   (`src/themes/julia/ThemeMenu.tsx` is the shortest example). Style
+   `[data-rolling]` while it spins and `[data-landed]` once it stops.
    If the theme can fail (no GPU), the bar must stay above the failure screen.
 
 4. **Surface the required content.** Non-negotiable minimums:

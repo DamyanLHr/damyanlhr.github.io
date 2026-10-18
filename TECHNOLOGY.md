@@ -159,6 +159,18 @@ a click on the closed button only opens it (touch, keyboard); a click once it is
 runs a ~1 s roulette and lands on a random theme this device can run, never the current
 one; picking an entry switches to it directly. Previews are small webp screenshots in
 `src/shared/previews/`, regenerated with `npm run previews`.
+Each theme draws the dropdown as a reel: a strip of previews behind a window that runs
+to the entry under the pointer and spins for the random pick. The mechanics are shared
+in `src/shared/useReel.ts` (WAAPI, always animating from the strip's current transform,
+so it can be interrupted at any point); the frame, strip and landing are the theme's.
+
+**julia's stage (2026-10-18).** julia mounts one fixed WebGL canvas in its Root
+(`Backdrop.tsx` → `stage.ts`) for the whole visit. Pages hand it a pose and its
+constant travels along the main cardioid's edge to the next (`travel.ts`, pure and
+tested). Project plates run per-project effects from `src/themes/julia/effects/`, all
+from one fragment shader with a mode uniform or a 2D canvas, each gated on visibility.
+Math themes after julia should keep the pattern: one persistent scene that pages pose,
+rather than a canvas per page.
 
 ### 3.4 Theme roster (concepts locked July 2026)
 

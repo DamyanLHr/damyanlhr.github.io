@@ -494,8 +494,8 @@ other theme comes up to Julia's standard.
       visible em dashes and colon reveals, and stopped describing interest isles
       that are switched off; an ungated hover and two missing focus rings fixed.
 - [x] **Dropdown, second pass** (Damyan: "more visually appealing, use the
-      skills"; `frontend-design`, `impeccable` polish, `emil-design-eng`). Each
-      panel is now mostly picture: a large lens shows the theme under the pointer
+      skills"; `frontend-design`, `impeccable` polish, `emil-design-eng`;
+      superseded by the reel below). Each panel was mostly picture: a large lens shows the theme under the pointer
       (or the roulette's cursor) beside a compact list, framed in each theme's own
       way: julia an obsidian plate with an ember rule on the shown entry, landfall
       a postcard labelled with a town marker, atlas an engraved double-ruled plate
@@ -505,7 +505,44 @@ other theme comes up to Julia's standard.
       themes, opacity only over the GPU scenes); the roulette cuts between
       previews without fading and settles once on the winner; previews went
       from 560 to 720 px wide for the larger lens.
+- [x] **The reel** (Damyan picked it from three menu concepts, "every theme, own
+      style"). The lens became a vertical strip of previews behind a window:
+      pointing at a name runs the strip to it (240 ms, strong ease-out, picked up
+      from wherever it is), and the random pick is a slot-machine spin, three
+      laps with a light blur that clears as it slows into the winner (~1.4 s),
+      then the window takes its landed treatment. Shared mechanics in
+      `src/shared/useReel.ts`; julia's strip is obsidian film with ember
+      sprockets, landfall's postcards drop past a marked slot, atlas turns plates
+      in a folio, singularity's strip is backlit, debug keeps its stepping cursor.
 - **GATE — "theme menu approved":** live review on Damyan's hardware.
+
+### Phase 5f — julia in motion *(2026-10-18)*
+Damyan: Julia should be "even more interactive with the animations of the julia set",
+tastefully, and the same goes for every math theme after it. From three demos he
+picked one set for the whole visit, the orbit trace on the hero and the plates, and a
+different live effect on every project plate.
+
+- [x] **One set, many poses.** `Backdrop.tsx` mounts one stage (`stage.ts`) in
+      Root that outlives every route. Each page gives it a pose (place, size,
+      angle, brightness, constant; `poseFor` in `travel.ts`), and the constant
+      travels there along the edge of the Mandelbrot set's main cardioid, where
+      every set on the road is a detailed one (~950 ms, interruptible). The first
+      arrival condenses out of the plane, 2 → 170 iterations. The home hero canvas
+      and the 404 plate are gone; reading pages dim the set and veil the text
+      column. CPU path and reduced motion: a still pose per page.
+- [x] **Orbit trace.** The path of the point under the mouse, drawn a step and a
+      half per frame, over the home hero and every plate. Mouse only.
+- [x] **Plate effects.** One shader with a mode per effect (relief light, ripple,
+      field lines, orbit traps, heartbeat, scroll dive) and two 2D ones
+      (stardust, ridgelines), in `src/themes/julia/effects/`. Pinned per project
+      with `art.effect`; Don't Break Glass beats, Kill Bunny ripples, 5 More
+      Minutes! is stardust, Digital Twinning Suspension is lit relief, Blood of
+      Hedon is traps, Olympian Onslaught field lines, this site dives, and
+      Extensible Terrain Generation is ridgelines. A new project derives one from
+      its slug; `fractal.test.ts` fails if two released projects share one while
+      another is unused. Effects start when visible, pause off screen and hold
+      still under reduced motion; no WebGL means the plain set.
+- **GATE — "julia motion approved":** live review on Damyan's hardware.
 
 ### Phase 6 — `blueprint` theme *(industrial, ~2–3 sessions)*
 - [ ] Style tile: 2–3 industrial treatments (teenage.engineering register: spec grids,
