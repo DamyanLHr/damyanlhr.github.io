@@ -157,7 +157,7 @@ CV changes.
 ### University (each a ~2-month course project)
 - **Barca D'Oro** (formerly Davinci's Black Market Bird Dealer) — *in production* ·
   **Game Design 1**, TU/e · 2026 · programming team lead and co-scrum master · team of 5 ·
-  [itch.io](https://damyanhr.itch.io/barca-doro) · the repo is private · Unity, C#
+  [itch.io](https://damyanhr.itch.io/barca-doro) · the repo is private · Unity, C#, HLSL
 - **Digital Twinning Suspension** (a.k.a. Twinning Project 2) — **2026** ·
   [repo](https://github.com/DamyanLHr/Digital-Twinning-Suspension) (Unity 6000.4.6f1,
   C# + Python analysis) · Multidisciplinary CBL project: a digital twin of an **active
