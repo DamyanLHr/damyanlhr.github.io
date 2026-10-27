@@ -59,9 +59,9 @@
     "description": "A terrain generator in C++ and Vulkan, built so new generation algorithms can be added without rewriting the pipeline around them. The first personal graphics project on the road to Delft.",
     "image": "/og/extensible-terrain-generation.jpg"
   },
-  "/projects/davincis-black-market-bird-dealer": {
-    "title": "Davinci's Black Market Bird Dealer · Damyan Hristov",
-    "description": "A Game Design 1 course project at TU/e, in production now.",
-    "image": "/og/davincis-black-market-bird-dealer.jpg"
+  "/projects/barca-doro": {
+    "title": "Barca D'Oro · Damyan Hristov",
+    "description": "Skim the skies of different planets and discover all species of space birds. Use your knowledge and high-speed space boat to capture them and control the trade market of a space-set Florence.",
+    "image": "/og/barca-doro.jpg"
   }
 }

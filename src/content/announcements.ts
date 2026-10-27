@@ -9,8 +9,8 @@ export const announcements: Announcement[] = [
     body: 'A C++ and Vulkan terrain pipeline designed to take new generators without being rebuilt around each one. First personal graphics project on the road to Delft.',
   },
   {
-    id: 'davincis-black-market-bird-dealer',
-    title: "Davinci's Black Market Bird Dealer",
-    body: 'The next university project, in production now for Game Design 1 at TU/e.',
+    id: 'barca-doro',
+    title: "Barca D'Oro",
+    body: 'The Game Design 1 project at TU/e, now on itch.io and still in production.',
   },
 ]

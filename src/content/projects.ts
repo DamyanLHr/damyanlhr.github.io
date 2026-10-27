@@ -199,15 +199,24 @@ Vulkan are the current case and are being learned directly.
     ],
   },
   {
-    slug: 'davincis-black-market-bird-dealer',
-    art: { effect: 'murmuration' },
-    title: "Davinci's Black Market Bird Dealer",
+    slug: 'barca-doro',
+    // pinned to the constant it had as davincis-black-market-bird-dealer, so the
+    // rename keeps its picture
+    art: {
+      effect: 'murmuration',
+      fractal: { type: 'julia', params: { re: -0.7399, im: -0.3447 } },
+    },
+    title: "Barca D'Oro",
     category: 'university',
     status: 'coming-soon',
+    year: 2026,
     event: 'Game Design 1, TU/e',
+    role: 'Programming Team Lead & Co-Scrum Master',
+    team: { size: 5 },
     tools: [],
-    summary: 'A Game Design 1 course project at TU/e, in production now.',
-    links: [],
+    summary:
+      'Skim the skies of different planets and discover all species of space birds. Use your knowledge and high-speed space boat to capture them and control the trade market of a space-set Florence. Buckle up with upgrades from a familiar face from the past, architetto DaStingy, and set forth on your space expedition.',
+    links: [{ label: 'View on itch.io', url: 'https://damyanhr.itch.io/barca-doro' }],
   },
   {
     slug: 'digital-twinning-suspension',

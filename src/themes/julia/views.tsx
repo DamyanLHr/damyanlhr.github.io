@@ -191,7 +191,7 @@ const CARD_SPAN: Record<string, number> = {
   'olympian-onslaught': 1,
   // the flyover needs room to read as a landscape
   'extensible-terrain-generation': 2,
-  'davincis-black-market-bird-dealer': 1,
+  'barca-doro': 1,
 }
 
 const CHIP: Record<Project['category'], string> = {
