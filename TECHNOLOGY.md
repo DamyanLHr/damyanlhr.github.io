@@ -178,6 +178,13 @@ a layer (`effects/layers/`) drawn on a canvas over the band. The simulations pin
 float textures in the cards' shared context (`layers/sims.ts`) and fall back to a small
 CPU grid. The gallery at `/projects/gallery` is julia's own page.
 
+**Embeds (2026-11).** A project's `embeds` (itch.io widget, playable itch.io game, any
+iframe) render through `src/shared/embeds.tsx`, styled by each theme through classes on its
+prefix (`j-game`, `a-widget`, …) and a widget palette it passes (`itchWidgetSrc` in
+`src/shared/itch.ts` maps it to itch's colour parameters). Iframes are lazy; the game sits
+behind a *Play here* button, so nothing downloads or plays sound until asked, and once
+loaded it runs at its own resolution, scaled to fit the column.
+
 **Share tags and the CV PDF (2026-10-18).** `npm run og` renders each page at
 1200×630 into `public/og/` and records its title and description in
 `public/og/meta.json`; `scripts/postbuild.mjs` writes a copy of `index.html` per page

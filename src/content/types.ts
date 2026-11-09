@@ -131,10 +131,31 @@ export interface Project {
   /** Markdown body for the project subpage (rendered by each theme's own renderer). */
   body?: string
   links: LinkRef[]
-  /** itch.io HTML5 embed for browser-playable builds. */
-  playableEmbedUrl?: string
+  /**
+   * Embedded on the project's own page, below its summary: the game itself,
+   * itch.io's store widget, or anything else that comes as an iframe. See
+   * docs/ADDING-CONTENT.md for where each one is copied from.
+   */
+  embeds?: Embed[]
   art?: ArtDNA
 }
+
+/**
+ * Something a project page shows inline.
+ *
+ * - `itch-widget`: itch.io's store card for a game, by the number in its
+ *   `https://itch.io/embed/<id>` snippet. itch draws it live, so a new cover,
+ *   title or price shows without touching the site; each theme tints it.
+ * - `itch-game`: the playable build, from the game's itch.io dashboard (Edit
+ *   game, Distribute, Embed game): the snippet's `src` and its width and height.
+ *   It loads only when the visitor presses play.
+ * - `iframe`: any other embed (a trailer, a 3D viewer), with a title for
+ *   screen readers and its width over height.
+ */
+export type Embed =
+  | { kind: 'itch-widget'; id: number }
+  | { kind: 'itch-game'; url: string; width: number; height: number }
+  | { kind: 'iframe'; url: string; title: string; aspect: number }
 
 export interface InterestSection {
   id: string

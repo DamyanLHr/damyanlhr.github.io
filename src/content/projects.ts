@@ -152,6 +152,7 @@ Vulkan are the current case and are being learned directly.
     links: [
       { label: 'Play in browser on itch.io', url: 'https://damyanhr.itch.io/dont-break-glass' },
     ],
+    embeds: [{ kind: 'itch-widget', id: 3783216 }],
   },
   {
     slug: 'kill-bunny',
@@ -174,6 +175,7 @@ Vulkan are the current case and are being learned directly.
       { label: 'Play in browser on itch.io', url: 'https://damyanhr.itch.io/kill-bunny' },
       { label: 'Repository', url: 'https://github.com/DamyanLHr/TGJ2026_Kartof' },
     ],
+    embeds: [{ kind: 'itch-widget', id: 4427662 }],
   },
   {
     slug: 'five-more-minutes',
@@ -197,6 +199,7 @@ Vulkan are the current case and are being learned directly.
       { label: 'Play in browser on itch.io', url: 'https://damyanhr.itch.io/5-more-minutes' },
       { label: 'Repository', url: 'https://github.com/DamyanLHr/GMTK2026_Kartof' },
     ],
+    embeds: [{ kind: 'itch-widget', id: 4819949 }],
   },
   {
     slug: 'barca-doro',
@@ -217,6 +220,7 @@ Vulkan are the current case and are being learned directly.
     summary:
       'Skim the skies of different planets and discover all species of space birds. Use your knowledge and high-speed space boat to capture them and control the trade market of a space-set Florence. Buckle up with upgrades from a familiar face from the past, architetto DaStingy, and set forth on your space expedition.',
     links: [{ label: 'View on itch.io', url: 'https://damyanhr.itch.io/barca-doro' }],
+    embeds: [{ kind: 'itch-widget', id: 5237148 }],
   },
   {
     slug: 'digital-twinning-suspension',

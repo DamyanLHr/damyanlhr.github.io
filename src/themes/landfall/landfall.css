@@ -1215,3 +1215,144 @@
   margin: -0.3rem;
   text-decoration: none;
 }
+
+/* ---------- embeds: the game, itch.io's widget, other frames ---------- */
+
+/* On the paper panel: the panel's inner radius, a sea-blue wash behind the
+   game until it is loaded. The widget is tinted from index.tsx. */
+.lf-embeds {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1rem 0 1.2rem;
+}
+
+.lf-widget,
+.lf-embed {
+  border-radius: var(--lf-r-in);
+  overflow: hidden;
+  background: var(--lf-paper);
+}
+
+.lf-game {
+  border: 1px solid var(--lf-accent-rule);
+  border-radius: var(--lf-r-in);
+  background:
+    radial-gradient(
+      120% 90% at 50% 100%,
+      color-mix(in srgb, var(--lf-accent) 16%, transparent),
+      transparent 70%
+    ),
+    var(--lf-paper);
+}
+
+/* Until pressed the game is a compact strip, not an empty screen; it opens
+   to the game's own shape once loading starts. */
+.lf-game[data-state='idle'] {
+  min-height: 9.5rem;
+}
+
+@media (pointer: coarse) {
+  .lf-game[data-state='idle'] {
+    min-height: 6rem;
+  }
+}
+
+.lf-game[data-state='loading'],
+.lf-game[data-state='on'] {
+  background: #000;
+}
+
+.lf-game-status {
+  position: absolute;
+  inset: auto 0 0;
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  background: rgba(244, 242, 236, 0.92);
+  color: var(--lf-muted);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.lf-game-status:empty {
+  display: none;
+}
+
+.lf-game-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  font-size: 0.82rem;
+}
+
+.lf-game-bar button,
+.lf-game-bar a {
+  font: inherit;
+  color: var(--lf-muted);
+  background: none;
+  border: 0;
+  padding: 0.2rem 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 160ms var(--lf-ease);
+}
+
+.lf-game-bar a {
+  color: var(--lf-accent);
+}
+
+.lf-game-bar :focus-visible {
+  outline: 2px solid var(--lf-accent);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lf-game-bar button:hover {
+    color: var(--lf-ink);
+  }
+}
+
+.lf-game-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  border: 0;
+  background: none;
+  color: var(--lf-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.lf-game-play span {
+  padding: 0.6rem 1.3rem;
+  border-radius: 999px;
+  background: var(--lf-accent);
+  color: var(--lf-paper);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 140ms var(--lf-ease);
+}
+
+.lf-game-play:active span {
+  transform: scale(0.97);
+}
+
+.lf-game-play:focus-visible {
+  outline: 2px solid var(--lf-accent);
+  outline-offset: -4px;
+}
+
+.lf-game-note {
+  font-size: 0.74rem;
+  color: var(--lf-muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lf-game-play:hover span {
+    background: color-mix(in srgb, var(--lf-accent) 85%, var(--lf-ink));
+  }
+}

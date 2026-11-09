@@ -13,6 +13,7 @@ import { useMapView } from './useMapView'
 import './atlas.css'
 import { ThemeMenu } from './ThemeMenu'
 import { SocialLink } from '../../shared/social-icons'
+import { ProjectEmbeds } from '../../shared/embeds'
 
 // atlas — the résumé as territory (PLAN Phase 5, direction B "Iron Gall").
 //
@@ -25,6 +26,13 @@ import { SocialLink } from '../../shared/social-icons'
 // to traverse it.
 
 const VIEW = { w: 1600, h: 1000 }
+
+/**
+ * itch.io's widget in this theme's colours: the paper and iron-gall ink. Its
+ * button is inked too, since the rubric is the one colour and the page's own
+ * call to play already carries it.
+ */
+const WIDGET = { bg: '#ece3d0', fg: '#2c2218', link: '#2c2218', border: '#a0968a' }
 
 function Link({
   to,
@@ -693,6 +701,13 @@ function ProjectSheet({
         ))}
       </dl>
       <p className="a-prose">{project.summary}</p>
+      <ProjectEmbeds
+        embeds={project.embeds}
+        title={project.title}
+        links={project.links}
+        prefix="a"
+        palette={WIDGET}
+      />
       {project.body && (
         <div className="a-body">
           <Markdown>{project.body}</Markdown>

@@ -45,6 +45,20 @@ fields:
   belong on GitHub Releases, games on itch.io.
 - `art` — optional fractal identity; leave it out and the theme derives one from the
   slug automatically.
+- `embeds` — optional, shown on the project's own page under the summary, in every
+  theme. Any of:
+  - **itch.io widget:** `{ kind: 'itch-widget', id: 4427662 }`. From the game's itch.io
+    page: *Embed* (or the dashboard's *Distribute → Widget*), copy the snippet and keep
+    only the number in `https://itch.io/embed/<number>`. itch draws it live, so a new
+    cover, title or price shows without touching the site; each theme tints it.
+    Every project with an itch.io link should have one (a test checks).
+  - **Playable game:** `{ kind: 'itch-game', url, width, height }`. From the game's
+    itch.io dashboard: *Edit game → Distribute → Embed game*, pick a size, copy the
+    snippet, and take its `src` (`https://itch.io/embed-upload/…`), `width` and
+    `height`. It shows as a *Play here* panel and loads only when pressed.
+  - **Anything else in an iframe** (a trailer, a 3D viewer):
+    `{ kind: 'iframe', url, title, aspect }`, where `title` names it for screen readers
+    and `aspect` is width over height (`16 / 9`).
 
 In the julia theme, card sizes live in `CARD_SPAN` in
 `src/themes/julia/views.tsx` — add your slug there if you want a specific size

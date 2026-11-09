@@ -12,6 +12,7 @@ import { createBulb, type Bulb, type BulbPalette, type BulbPose } from './bulb'
 import './singularity.css'
 import { ThemeMenu } from './ThemeMenu'
 import { SocialLink } from '../../shared/social-icons'
+import { ProjectEmbeds } from '../../shared/embeds'
 
 // singularity — the flagship theme (PLAN Phase 4). The site is one raymarched
 // BoxFoldBulbPow2 world; navigation flies the camera between authored poses and
@@ -56,6 +57,9 @@ const PROJECT_PALETTES: BulbPalette[] = [
   { a: [0.02, 0.08, 0.05], b: [0.1, 0.75, 0.45], c: [1.0, 0.85, 0.4] },
   { a: [0.12, 0.03, 0.05], b: [1.0, 0.18, 0.35], c: [1.0, 0.85, 0.75] },
 ]
+
+/** itch.io's widget in this theme's colours: the panel's dark glass, ember for links. */
+const WIDGET = { bg: '#0e1013', fg: '#ece9e4', link: '#ff6a00', border: '#2a2b2d' }
 
 function hashString(s: string): number {
   let h = 0
@@ -420,6 +424,13 @@ function ProjectPage({
         ))}
       </dl>
       <p className="s-prose">{project.summary}</p>
+      <ProjectEmbeds
+        embeds={project.embeds}
+        title={project.title}
+        links={project.links}
+        prefix="s"
+        palette={WIDGET}
+      />
       {project.body && (
         <div className="s-body">
           <Markdown>{project.body}</Markdown>

@@ -231,3 +231,28 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* embeds: unstyled on purpose, only enough to be usable */
+.debug-embeds {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.debug-game {
+  border: 1px dashed #999;
+}
+
+.debug-game[data-state='idle'] {
+  min-height: 6rem;
+}
+
+.debug-game-play {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+}
+
+.debug-game-status:empty {
+  display: none;
+}

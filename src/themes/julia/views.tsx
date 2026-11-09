@@ -10,6 +10,7 @@ import { EFFECT_INFO } from './effects/registry'
 import { GALLERY_SLUG } from './gallery-slug'
 import { effectConstant, effectFor, paramsFor } from './fractal'
 import { SocialLink } from '../../shared/social-icons'
+import { ProjectEmbeds } from '../../shared/embeds'
 
 type Nav = ThemeProps['navigate']
 
@@ -365,6 +366,9 @@ export function WorkTabs({ current, navigate }: { current: 'work' | 'gallery'; n
   )
 }
 
+/** itch.io's widget in julia's colours: the raised surface, ember for links. */
+const WIDGET = { bg: '#101216', fg: '#ece9e4', link: '#ff6a00', border: '#25262a' }
+
 export function ProjectPage({
   content,
   slug,
@@ -426,6 +430,13 @@ export function ProjectPage({
         <div className="j-story">
           {project.builtWithAI && <p className="j-ai-flag">Built with AI</p>}
           <p className="j-lead">{project.summary}</p>
+          <ProjectEmbeds
+            embeds={project.embeds}
+            title={project.title}
+            links={project.links}
+            prefix="j"
+            palette={WIDGET}
+          />
           {project.body && (
             <div className="j-body">
               <Markdown>{project.body}</Markdown>

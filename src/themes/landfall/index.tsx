@@ -25,6 +25,7 @@ import { drawRelief, reliefPoint } from './relief2d'
 import './landfall.css'
 import { ThemeMenu } from './ThemeMenu'
 import { SocialLink } from '../../shared/social-icons'
+import { ProjectEmbeds } from '../../shared/embeds'
 
 // landfall — the eroded island, settled.
 //
@@ -65,6 +66,9 @@ interface Region {
   gy: number
   h: number
 }
+
+/** itch.io's widget in this theme's colours: the paper panel, the sea blue for links. */
+const WIDGET = { bg: '#f4f2ec', fg: '#10161c', link: '#1d6a8f', border: '#d3d6d8' }
 
 function Link({
   to,
@@ -1067,6 +1071,13 @@ function ProjectSheet({
         ))}
       </dl>
       <p className="lf-prose">{project.summary}</p>
+      <ProjectEmbeds
+        embeds={project.embeds}
+        title={project.title}
+        links={project.links}
+        prefix="lf"
+        palette={WIDGET}
+      />
       {project.body && (
         <div className="lf-body">
           <Markdown>{project.body}</Markdown>

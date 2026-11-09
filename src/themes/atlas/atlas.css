@@ -1136,3 +1136,138 @@
   margin: -0.3rem;
   text-decoration: none;
 }
+
+/* ---------- embeds: the game, itch.io's widget, other frames ---------- */
+
+/* Pasted into the folio like a plate: a ruled frame, square corners, the
+   rubric for the one call to action. The widget is tinted from index.tsx. */
+.a-embeds {
+  display: grid;
+  gap: 1rem;
+  margin: 1.2rem 0 1.4rem;
+}
+
+.a-widget,
+.a-embed {
+  border: 1px solid var(--a-rule);
+  background: var(--a-paper);
+}
+
+.a-game {
+  border: 1px solid var(--a-rule);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 9px, rgba(44, 34, 24, 0.05) 9px 10px),
+    var(--a-paper);
+}
+
+/* Until pressed the game is a compact strip, not an empty screen; it opens
+   to the game's own shape once loading starts. */
+.a-game[data-state='idle'] {
+  min-height: 9.5rem;
+}
+
+@media (pointer: coarse) {
+  .a-game[data-state='idle'] {
+    min-height: 6rem;
+  }
+}
+
+.a-game[data-state='loading'],
+.a-game[data-state='on'] {
+  background: #000;
+}
+
+.a-game-status {
+  position: absolute;
+  inset: auto 0 0;
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  background: rgba(236, 227, 208, 0.92);
+  color: var(--a-ink-soft);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.a-game-status:empty {
+  display: none;
+}
+
+.a-game-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  font-size: 0.82rem;
+}
+
+.a-game-bar button,
+.a-game-bar a {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  color: var(--a-ink);
+  background: none;
+  border: 0;
+  padding: 0 0 0.1rem;
+  border-bottom: 1px solid var(--a-rule);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 220ms var(--a-ease);
+}
+
+.a-game-bar a {
+  border-bottom-color: var(--a-rubric);
+}
+
+.a-game-bar :focus-visible {
+  outline: 1.5px solid var(--a-rubric);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .a-game-bar button:hover,
+  .a-game-bar a:hover {
+    color: var(--a-rubric);
+  }
+}
+
+.a-game-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: 0;
+  background: none;
+  color: var(--a-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.a-game-play span {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 1rem;
+  letter-spacing: 0.16em;
+  padding-bottom: 0.15rem;
+  border-bottom: 1.5px solid var(--a-rubric);
+  transition: color 220ms var(--a-ease);
+}
+
+.a-game-note {
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--a-ink-soft);
+}
+
+.a-game-play:focus-visible {
+  outline: 1.5px solid var(--a-rubric);
+  outline-offset: -6px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .a-game-play:hover span {
+    color: var(--a-rubric);
+  }
+}
