@@ -12,7 +12,8 @@ import { createBulb, type Bulb, type BulbPalette, type BulbPose } from './bulb'
 import './singularity.css'
 import { ThemeMenu } from './ThemeMenu'
 import { SocialLink } from '../../shared/social-icons'
-import { ProjectEmbeds } from '../../shared/embeds'
+import { ItchCard, ProjectEmbeds } from '../../shared/embeds'
+import { splitLinks } from '../../shared/itch'
 
 // singularity — the flagship theme (PLAN Phase 4). The site is one raymarched
 // BoxFoldBulbPow2 world; navigation flies the camera between authored poses and
@@ -57,9 +58,6 @@ const PROJECT_PALETTES: BulbPalette[] = [
   { a: [0.02, 0.08, 0.05], b: [0.1, 0.75, 0.45], c: [1.0, 0.85, 0.4] },
   { a: [0.12, 0.03, 0.05], b: [1.0, 0.18, 0.35], c: [1.0, 0.85, 0.75] },
 ]
-
-/** itch.io's widget in this theme's colours: the panel's dark glass, ember for links. */
-const WIDGET = { bg: '#0e1013', fg: '#ece9e4', link: '#ff6a00', border: '#2a2b2d' }
 
 function hashString(s: string): number {
   let h = 0
@@ -408,6 +406,7 @@ function ProjectPage({
   if (project.duration) facts.push(['Duration', project.duration])
   if (project.team?.size) facts.push(['Team', `${project.team.size} people`])
   if (project.tools.length > 0) facts.push(['Tools', project.tools.join(', ')])
+  const { card, rest } = splitLinks(project, content.itch)
   return (
     <Panel>
       <InternalLink to="/projects" navigate={navigate} className="s-back">
@@ -429,7 +428,6 @@ function ProjectPage({
         title={project.title}
         links={project.links}
         prefix="s"
-        palette={WIDGET}
       />
       {project.body && (
         <div className="s-body">
@@ -438,8 +436,13 @@ function ProjectPage({
       )}
       {project.team?.members && <p className="s-meta">with {project.team.members.join(', ')}</p>}
       <div className="s-actions">
-        {project.links.map((l, i) => (
-          <a key={l.url} href={l.url} className={i === 0 ? 's-btn s-btn-primary' : 's-btn'}>
+        {card && <ItchCard data={card.data} label={card.label} prefix="s" />}
+        {rest.map((l, i) => (
+          <a
+            key={l.url}
+            href={l.url}
+            className={i === 0 && !card ? 's-btn s-btn-primary' : 's-btn'}
+          >
             {l.label}
           </a>
         ))}

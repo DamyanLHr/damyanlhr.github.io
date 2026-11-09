@@ -1219,14 +1219,13 @@
 /* ---------- embeds: the game, itch.io's widget, other frames ---------- */
 
 /* On the paper panel: the panel's inner radius, a sea-blue wash behind the
-   game until it is loaded. The widget is tinted from index.tsx. */
+   game until it is loaded.  */
 .lf-embeds {
   display: grid;
   gap: 0.9rem;
   margin: 1rem 0 1.2rem;
 }
 
-.lf-widget,
 .lf-embed {
   border-radius: var(--lf-r-in);
   overflow: hidden;
@@ -1354,5 +1353,96 @@
 @media (hover: hover) and (pointer: fine) {
   .lf-game-play:hover span {
     background: color-mix(in srgb, var(--lf-accent) 85%, var(--lf-ink));
+  }
+}
+
+/* ---------- the itch.io card, in the project's links ---------- */
+
+/* In place of the itch.io button, on the paper panel: no box of its own (the
+   panel is the box), the cover beside the game's own tagline, and the sea-blue
+   pill the button was. */
+.lf-actions {
+  container-type: inline-size;
+}
+
+.lf-actions .lf-itch {
+  flex: 1 1 100%;
+}
+
+.lf-itch {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 0.95rem;
+  align-items: center;
+  color: var(--lf-ink);
+  text-decoration: none;
+  border-radius: var(--lf-r-in);
+}
+
+.lf-itch-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 360 / 286;
+  object-fit: cover;
+  border-radius: var(--lf-r-in);
+  box-shadow: 0 6px 16px -10px rgba(16, 22, 28, 0.55);
+}
+
+.lf-itch-text {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: start;
+  min-width: 0;
+}
+
+.lf-itch-tagline {
+  font-size: 0.92rem;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.lf-itch-meta {
+  font-size: 0.76rem;
+  color: var(--lf-muted);
+}
+
+.lf-itch-cta {
+  margin-top: 0.35rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: var(--lf-accent);
+  color: var(--lf-paper);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition:
+    background-color 160ms var(--lf-ease),
+    transform 140ms var(--lf-ease);
+}
+
+.lf-itch:active .lf-itch-cta {
+  transform: scale(0.97);
+}
+
+.lf-itch:focus-visible {
+  outline: 2px solid var(--lf-accent);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lf-itch:hover .lf-itch-cta {
+    background: color-mix(in srgb, var(--lf-accent) 85%, var(--lf-ink));
+  }
+}
+
+/* a narrow column gives the words the room, so the call to action stays on
+   one line (after the card's own rules, which it overrides) */
+@container (max-width: 24rem) {
+  .lf-itch {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .lf-itch-cta {
+    white-space: nowrap;
   }
 }

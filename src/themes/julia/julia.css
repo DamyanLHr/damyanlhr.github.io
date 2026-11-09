@@ -1694,13 +1694,12 @@
 /* ---------- embeds: the game, itch.io's widget, other frames ---------- */
 
 /* Under the summary, before the long read: the game is the best thing on the
-   page when it has one. The widget is tinted in julia's colours from views.tsx. */
+   page when it has one.  */
 .j-embeds {
   display: grid;
   gap: 0.9rem;
 }
 
-.j-widget,
 .j-embed {
   border-radius: var(--j-r);
   overflow: hidden;
@@ -1825,5 +1824,103 @@
 @media (hover: hover) and (pointer: fine) {
   .j-game-play:hover span {
     background: var(--j-accent-soft);
+  }
+}
+
+/* ---------- the itch.io card, in the project's links ---------- */
+
+/* It takes the place of the plain itch.io button: the cover, the game's own
+   tagline, and the call to action the button carried. One raised surface on
+   the open rail, the ember pill as the one loud thing in it. */
+.j-actions {
+  container-type: inline-size;
+}
+
+.j-actions .j-itch {
+  flex: 1 1 100%;
+}
+
+.j-itch {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.95rem;
+  align-items: center;
+  padding: 0.7rem;
+  border: 1px solid var(--j-line);
+  border-radius: var(--j-r);
+  background: var(--j-raise);
+  color: var(--j-fg);
+  text-decoration: none;
+  transition:
+    border-color 200ms var(--ease-out-strong),
+    transform 140ms var(--ease-out-strong);
+}
+
+.j-itch-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 360 / 286;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.j-itch-text {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: start;
+  min-width: 0;
+}
+
+.j-itch-tagline {
+  font-size: 0.92rem;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.j-itch-meta {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: var(--j-muted);
+}
+
+.j-itch-cta {
+  margin-top: 0.35rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: var(--j-accent);
+  color: #1c0e02;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background-color 160ms var(--ease-out-strong);
+}
+
+.j-itch:active {
+  transform: scale(0.99);
+}
+
+.j-itch:focus-visible {
+  outline: 2px solid var(--j-accent);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .j-itch:hover {
+    border-color: var(--j-accent-rule);
+  }
+  .j-itch:hover .j-itch-cta {
+    background: var(--j-accent-soft);
+  }
+}
+
+/* a narrow column gives the words the room, so the call to action stays on
+   one line (after the card's own rules, which it overrides) */
+@container (max-width: 24rem) {
+  .j-itch {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .j-itch-cta {
+    white-space: nowrap;
   }
 }

@@ -47,11 +47,16 @@ fields:
   slug automatically.
 - `embeds` — optional, shown on the project's own page under the summary, in every
   theme. Any of:
-  - **itch.io widget:** `{ kind: 'itch-widget', id: 4427662 }`. From the game's itch.io
-    page: *Embed* (or the dashboard's *Distribute → Widget*), copy the snippet and keep
-    only the number in `https://itch.io/embed/<number>`. itch draws it live, so a new
-    cover, title or price shows without touching the site; each theme tints it.
-    Every project with an itch.io link should have one (a test checks).
+  - **itch.io card:** `{ kind: 'itch', id: 4427662 }`. From the game's itch.io page:
+    *Embed* (or the dashboard's *Distribute → Widget*), copy the snippet and keep only
+    the number in `https://itch.io/embed/<number>`. Then run `npm run itch` and commit
+    what it writes (`src/content/itch.json` and the cover in `public/itch/`). The card
+    takes the place of the project's itch.io link, worded like that link, with the
+    cover, tagline and price. Every project with an itch.io link should have one (a
+    test checks).
+    The cards are saved copies, not live: a GitHub Action refreshes them every Monday
+    and deploys if anything changed. To refresh now, open the repo's *Actions* tab →
+    *Refresh itch.io cards* → *Run workflow*, or run `npm run itch` locally and push.
   - **Playable game:** `{ kind: 'itch-game', url, width, height }`. From the game's
     itch.io dashboard: *Edit game → Distribute → Embed game*, pick a size, copy the
     snippet, and take its `src` (`https://itch.io/embed-upload/…`), `width` and

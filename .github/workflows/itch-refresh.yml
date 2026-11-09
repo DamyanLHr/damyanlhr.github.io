@@ -1,0 +1,48 @@
+# Refreshes the itch.io cards on the project pages (src/content/itch.json and
+# public/itch/*.png) from each game's itch.io page: every Monday, and whenever
+# someone presses "Run workflow" on this workflow in the Actions tab. If
+# anything changed it commits to main and starts the Deploy workflow (a push
+# made with this workflow's own token does not start other workflows by
+# itself, so it asks for the deploy directly).
+name: Refresh itch.io cards
+
+on:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: itch-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run itch
+      - name: Commit and deploy if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain -- src/content/itch.json public/itch)" ]; then
+            echo "The itch.io cards are up to date."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/content/itch.json public/itch
+          git commit -m 'Refresh itch.io cards'
+          git push origin HEAD:main
+          gh workflow run deploy.yml --ref main

@@ -954,14 +954,13 @@
 /* ---------- embeds: the game, itch.io's widget, other frames ---------- */
 
 /* Inside the glass panel: rounded to the panel's inner radius, the game's
-   frame lit from below like the hero. The widget is tinted from index.tsx. */
+   frame lit from below like the hero.  */
 .s-embeds {
   display: grid;
   gap: 0.9rem;
   margin: 1rem 0 1.2rem;
 }
 
-.s-widget,
 .s-embed {
   border-radius: var(--s-r-in);
   overflow: hidden;
@@ -1085,5 +1084,96 @@
 @media (hover: hover) and (pointer: fine) {
   .s-game-play:hover span {
     background: var(--s-accent-soft);
+  }
+}
+
+/* ---------- the itch.io card, in the project's links ---------- */
+
+/* In place of the itch.io button, inside the glass panel: no box of its own
+   (the panel is the box), just the cover beside the game's own tagline and
+   the ember pill the button was. */
+.s-actions {
+  container-type: inline-size;
+}
+
+.s-actions .s-itch {
+  flex: 1 1 100%;
+}
+
+.s-itch {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 0.95rem;
+  align-items: center;
+  color: var(--s-fg);
+  text-decoration: none;
+  border-radius: var(--s-r-in);
+}
+
+.s-itch-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 360 / 286;
+  object-fit: cover;
+  border-radius: var(--s-r-in);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.7);
+}
+
+.s-itch-text {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: start;
+  min-width: 0;
+}
+
+.s-itch-tagline {
+  font-size: 0.92rem;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.s-itch-meta {
+  font-size: 0.74rem;
+  color: var(--s-muted);
+}
+
+.s-itch-cta {
+  margin-top: 0.35rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: var(--s-accent);
+  color: #1c0e02;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition:
+    background-color 160ms var(--ease-out-strong),
+    transform 140ms var(--ease-out-strong);
+}
+
+.s-itch:active .s-itch-cta {
+  transform: scale(0.97);
+}
+
+.s-itch:focus-visible {
+  outline: 2px solid var(--s-accent);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .s-itch:hover .s-itch-cta {
+    background: var(--s-accent-soft);
+  }
+}
+
+/* a narrow column gives the words the room, so the call to action stays on
+   one line (after the card's own rules, which it overrides) */
+@container (max-width: 24rem) {
+  .s-itch {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .s-itch-cta {
+    white-space: nowrap;
   }
 }

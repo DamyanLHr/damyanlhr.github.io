@@ -13,7 +13,8 @@ import { useMapView } from './useMapView'
 import './atlas.css'
 import { ThemeMenu } from './ThemeMenu'
 import { SocialLink } from '../../shared/social-icons'
-import { ProjectEmbeds } from '../../shared/embeds'
+import { ItchCard, ProjectEmbeds } from '../../shared/embeds'
+import { splitLinks } from '../../shared/itch'
 
 // atlas — the résumé as territory (PLAN Phase 5, direction B "Iron Gall").
 //
@@ -26,13 +27,6 @@ import { ProjectEmbeds } from '../../shared/embeds'
 // to traverse it.
 
 const VIEW = { w: 1600, h: 1000 }
-
-/**
- * itch.io's widget in this theme's colours: the paper and iron-gall ink. Its
- * button is inked too, since the rubric is the one colour and the page's own
- * call to play already carries it.
- */
-const WIDGET = { bg: '#ece3d0', fg: '#2c2218', link: '#2c2218', border: '#a0968a' }
 
 function Link({
   to,
@@ -682,6 +676,7 @@ function ProjectSheet({
   if (project.duration) facts.push(['Duration', project.duration])
   if (project.team?.size) facts.push(['Team', `${project.team.size} people`])
   if (project.tools.length > 0) facts.push(['Tools', project.tools.join(', ')])
+  const { card, rest } = splitLinks(project, content.itch)
   return (
     <>
       <Link to="/projects" navigate={navigate} className="a-back">
@@ -706,7 +701,6 @@ function ProjectSheet({
         title={project.title}
         links={project.links}
         prefix="a"
-        palette={WIDGET}
       />
       {project.body && (
         <div className="a-body">
@@ -715,7 +709,8 @@ function ProjectSheet({
       )}
       {project.team?.members && <p className="a-meta">with {project.team.members.join(', ')}</p>}
       <div className="a-actions">
-        {project.links.map((l) => (
+        {card && <ItchCard data={card.data} label={card.label} prefix="a" />}
+        {rest.map((l) => (
           <a key={l.url} href={l.url} className="a-btn">
             {l.label}
           </a>

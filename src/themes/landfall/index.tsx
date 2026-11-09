@@ -25,7 +25,8 @@ import { drawRelief, reliefPoint } from './relief2d'
 import './landfall.css'
 import { ThemeMenu } from './ThemeMenu'
 import { SocialLink } from '../../shared/social-icons'
-import { ProjectEmbeds } from '../../shared/embeds'
+import { ItchCard, ProjectEmbeds } from '../../shared/embeds'
+import { splitLinks } from '../../shared/itch'
 
 // landfall — the eroded island, settled.
 //
@@ -66,9 +67,6 @@ interface Region {
   gy: number
   h: number
 }
-
-/** itch.io's widget in this theme's colours: the paper panel, the sea blue for links. */
-const WIDGET = { bg: '#f4f2ec', fg: '#10161c', link: '#1d6a8f', border: '#d3d6d8' }
 
 function Link({
   to,
@@ -1055,6 +1053,7 @@ function ProjectSheet({
   if (project.duration) facts.push(['Duration', project.duration])
   if (project.team?.size) facts.push(['Team', `${project.team.size} people`])
   if (project.tools.length > 0) facts.push(['Tools', project.tools.join(', ')])
+  const { card, rest } = splitLinks(project, content.itch)
   return (
     <>
       <Link to="/projects" navigate={navigate} className="lf-back">
@@ -1076,7 +1075,6 @@ function ProjectSheet({
         title={project.title}
         links={project.links}
         prefix="lf"
-        palette={WIDGET}
       />
       {project.body && (
         <div className="lf-body">
@@ -1085,8 +1083,13 @@ function ProjectSheet({
       )}
       {project.team?.members && <p className="lf-meta">with {project.team.members.join(', ')}</p>}
       <div className="lf-actions">
-        {project.links.map((l, i) => (
-          <a key={l.url} href={l.url} className={i === 0 ? 'lf-btn lf-btn-primary' : 'lf-btn'}>
+        {card && <ItchCard data={card.data} label={card.label} prefix="lf" />}
+        {rest.map((l, i) => (
+          <a
+            key={l.url}
+            href={l.url}
+            className={i === 0 && !card ? 'lf-btn lf-btn-primary' : 'lf-btn'}
+          >
             {l.label}
           </a>
         ))}

@@ -141,11 +141,13 @@ export interface Project {
 }
 
 /**
- * Something a project page shows inline.
+ * Something a project page shows.
  *
- * - `itch-widget`: itch.io's store card for a game, by the number in its
- *   `https://itch.io/embed/<id>` snippet. itch draws it live, so a new cover,
- *   title or price shows without touching the site; each theme tints it.
+ * - `itch`: the game's itch.io page, as a card in the project's links (it
+ *   takes the place of the plain itch.io button), by the number in its
+ *   `https://itch.io/embed/<id>` widget snippet. What the card says comes from
+ *   src/content/itch.json, which `npm run itch` (and a weekly workflow) reads
+ *   off itch.io, so the site never asks itch.io when someone visits.
  * - `itch-game`: the playable build, from the game's itch.io dashboard (Edit
  *   game, Distribute, Embed game): the snippet's `src` and its width and height.
  *   It loads only when the visitor presses play.
@@ -153,7 +155,7 @@ export interface Project {
  *   screen readers and its width over height.
  */
 export type Embed =
-  | { kind: 'itch-widget'; id: number }
+  | { kind: 'itch'; id: number }
   | { kind: 'itch-game'; url: string; width: number; height: number }
   | { kind: 'iframe'; url: string; title: string; aspect: number }
 
@@ -188,4 +190,21 @@ export interface SiteContent {
   interests: InterestSection[]
   announcements: Announcement[]
   routeArt: RouteArt
+  /** itch.io cards by game id (src/content/itch.json, written by `npm run itch`) */
+  itch: Record<string, ItchCard>
+}
+
+/** What a game's itch.io page says about itself, saved by `npm run itch`. */
+export interface ItchCard {
+  title: string
+  /** the game's itch.io page */
+  url: string
+  tagline: string
+  author: string
+  /** in dollars; 0 is free */
+  price: number
+  /** whether it plays in the browser on itch.io */
+  browser: boolean
+  /** the cover, served from public/itch/, or null when the game has none */
+  cover: string | null
 }

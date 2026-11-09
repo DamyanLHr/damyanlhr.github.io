@@ -4,7 +4,8 @@ import type { Project } from '../../content/types'
 import { routePath, TOP_LEVEL_ROUTES } from '../../shared/routes'
 import './debug.css'
 import { ThemeMenu } from './ThemeMenu'
-import { ProjectEmbeds } from '../../shared/embeds'
+import { ItchCard, ProjectEmbeds } from '../../shared/embeds'
+import { splitLinks } from '../../shared/itch'
 
 // `debug` — the content & route inspector (PLAN Phase 1). Not a design statement:
 // a QA surface proving every theme receives the full content model and that routing
@@ -144,12 +145,15 @@ export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
           return project ? (
             <Section title={`project: ${project.title}`}>
               <Dump value={project} />
+              {(() => {
+                const { card } = splitLinks(project, content.itch)
+                return card && <ItchCard data={card.data} label={card.label} prefix="debug" />
+              })()}
               <ProjectEmbeds
                 embeds={project.embeds}
                 title={project.title}
                 links={project.links}
                 prefix="debug"
-                palette={{ bg: '#ffffff', fg: '#111111', link: '#0645ad', border: '#cccccc' }}
               />
             </Section>
           ) : (

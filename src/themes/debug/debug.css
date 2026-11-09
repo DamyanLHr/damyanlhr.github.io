@@ -256,3 +256,23 @@
 .debug-game-status:empty {
   display: none;
 }
+
+.debug-itch {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  max-width: 32rem;
+  margin: 0.8rem 0;
+  border: 1px solid #999;
+  padding: 0.5rem;
+}
+
+.debug-itch-cover {
+  width: 7rem;
+  height: auto;
+}
+
+.debug-itch-text {
+  display: grid;
+  gap: 0.2rem;
+}

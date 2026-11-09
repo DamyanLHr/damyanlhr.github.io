@@ -4,6 +4,7 @@ import { cv } from './cv'
 import { projects } from './projects'
 import { interests } from './interests'
 import { announcements } from './announcements'
+import itch from './itch.json'
 
 export type * from './types'
 export { FEATURES } from './meta'
@@ -33,4 +34,5 @@ export const content: SiteContent = {
   announcements,
   // Art DNA gets authored at design time (Phase 4); facets are optional until then.
   routeArt: {},
+  itch,
 }

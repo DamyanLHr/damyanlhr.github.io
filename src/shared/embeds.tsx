@@ -1,33 +1,71 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import type { Embed, LinkRef } from '../content/types'
-import { itchWidgetSrc, type WidgetPalette } from './itch'
+import type { Embed, ItchCard as ItchData, LinkRef } from '../content/types'
+import { itchMeta } from './itch'
 
-// A project's embeds, for every theme: the playable game, itch.io's store
-// widget, and any other iframe. The markup and behaviour are shared; the look
-// is the theme's, through class names built from its prefix (`j`, `a`, `s`,
-// `lf`, `debug`) and the colours it hands the widget.
+// A project's embeds and its itch.io card, for every theme. The markup and
+// behaviour are shared; the look is the theme's, through class names built
+// from its prefix (`j`, `a`, `s`, `lf`, `debug`).
 //
-//   <prefix>-embeds        the stack
+//   <prefix>-itch          the itch.io card, in the project's links
+//   <prefix>-itch-cover    its cover
+//   <prefix>-itch-text     tagline and small print
+//   <prefix>-itch-meta     the small print: price, browser or download
+//   <prefix>-itch-cta      the call to action, worded like the link it replaces
+//   <prefix>-embeds        the stack under the summary
 //   <prefix>-game          the game's frame; data-state idle | loading | on
 //   <prefix>-game-play     the button that loads it
 //   <prefix>-game-note     the small print under the button
 //   <prefix>-game-status   "Loading…", over the frame while the game starts
 //   <prefix>-game-bar      Fullscreen, Stop, and a way out if it never loads
-//   <prefix>-widget        itch.io's store widget
 //   <prefix>-embed         any other iframe
-
-/** The game first, then the store widget, then anything else. */
-const ORDER: Record<Embed['kind'], number> = { 'itch-game': 0, 'itch-widget': 1, iframe: 2 }
 
 /** How long a game may take before the page offers itch.io instead. */
 const SLOW_MS = 12000
 
+/**
+ * The game's itch.io page as a card: its cover, its tagline, what it costs and
+ * how it plays, and the call to action of the link it replaces. One link, one
+ * stop in the tab order. Everything in it was saved by `npm run itch`, so it
+ * never waits on itch.io (whose live widget is rate limited per visitor).
+ */
+export function ItchCard({
+  data,
+  label,
+  prefix,
+}: {
+  data: ItchData
+  label: string
+  prefix: string
+}) {
+  return (
+    <a className={`${prefix}-itch`} href={data.url}>
+      {data.cover && (
+        // decorative: the page's own title already names the game
+        <img
+          className={`${prefix}-itch-cover`}
+          src={data.cover}
+          alt=""
+          width={360}
+          height={286}
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+      <span className={`${prefix}-itch-text`}>
+        {data.tagline && <span className={`${prefix}-itch-tagline`}>{data.tagline}</span>}
+        <span className={`${prefix}-itch-meta`}>{itchMeta(data)}</span>
+        <span className={`${prefix}-itch-cta`}>{label}</span>
+      </span>
+    </a>
+  )
+}
+
+/** The playable game first, then anything else. The itch.io card lives in the links. */
 export function ProjectEmbeds({
   embeds,
   title,
   links,
   prefix,
-  palette,
 }: {
   embeds: Embed[] | undefined
   /** the project's title, to name the frames for screen readers */
@@ -35,27 +73,19 @@ export function ProjectEmbeds({
   /** the project's links: its itch.io page is the way out if a game won't load */
   links: LinkRef[]
   prefix: string
-  palette: WidgetPalette
 }) {
-  if (!embeds?.length) return null
-  const sorted = [...embeds].sort((a, b) => ORDER[a.kind] - ORDER[b.kind])
+  const shown = (embeds ?? []).filter((e) => e.kind !== 'itch')
+  if (!shown.length) return null
+  const sorted = [...shown].sort(
+    (a, b) => Number(b.kind === 'itch-game') - Number(a.kind === 'itch-game'),
+  )
   const page = links.find((l) => /^https:\/\/[^/]*itch\.io\//.test(l.url))?.url
   return (
     <div className={`${prefix}-embeds`}>
       {sorted.map((e) =>
         e.kind === 'itch-game' ? (
           <PlayableGame key={e.url} embed={e} title={title} page={page} prefix={prefix} />
-        ) : e.kind === 'itch-widget' ? (
-          <iframe
-            key={e.id}
-            className={`${prefix}-widget`}
-            src={itchWidgetSrc(e.id, palette)}
-            title={`${title} on itch.io`}
-            height={167}
-            loading="lazy"
-            style={{ display: 'block', width: '100%', maxWidth: 552, border: 0 }}
-          />
-        ) : (
+        ) : e.kind === 'iframe' ? (
           <div key={e.url} className={`${prefix}-embed`} style={{ aspectRatio: e.aspect }}>
             <iframe
               src={e.url}
@@ -65,7 +95,7 @@ export function ProjectEmbeds({
               style={{ display: 'block', width: '100%', height: '100%', border: 0 }}
             />
           </div>
-        ),
+        ) : null,
       )}
     </div>
   )

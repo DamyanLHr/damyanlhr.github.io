@@ -11,7 +11,8 @@ export const cv: CV = {
       details: ['Currently in the 3rd year, class finishing in 2027.'],
     },
     {
-      school: 'National Gymnasium of Natural Sciences and Mathematics "Academician Lyubomir Chakalov"',
+      school:
+        'National Gymnasium of Natural Sciences and Mathematics "Academician Lyubomir Chakalov"',
       program: 'Secondary education: Mathematics & Informatics major with German',
       location: 'Sofia, Bulgaria',
       start: '2019-09',
@@ -40,7 +41,9 @@ export const cv: CV = {
         'The 2D player controller: a kinematic collision handler, the movement controller built on top of it, and camera follow.',
         'The 3D player controller: movement and the interact action.',
       ],
-      links: [{ label: 'Totem on LinkedIn', url: 'https://nl.linkedin.com/company/totem-game-dev' }],
+      links: [
+        { label: 'Totem on LinkedIn', url: 'https://nl.linkedin.com/company/totem-game-dev' },
+      ],
     },
     {
       company: 'INDEAVR (Data Strategy Services department)',

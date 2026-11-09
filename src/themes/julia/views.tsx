@@ -10,7 +10,8 @@ import { EFFECT_INFO } from './effects/registry'
 import { GALLERY_SLUG } from './gallery-slug'
 import { effectConstant, effectFor, paramsFor } from './fractal'
 import { SocialLink } from '../../shared/social-icons'
-import { ProjectEmbeds } from '../../shared/embeds'
+import { ItchCard, ProjectEmbeds } from '../../shared/embeds'
+import { splitLinks } from '../../shared/itch'
 
 type Nav = ThemeProps['navigate']
 
@@ -366,9 +367,6 @@ export function WorkTabs({ current, navigate }: { current: 'work' | 'gallery'; n
   )
 }
 
-/** itch.io's widget in julia's colours: the raised surface, ember for links. */
-const WIDGET = { bg: '#101216', fg: '#ece9e4', link: '#ff6a00', border: '#25262a' }
-
 export function ProjectPage({
   content,
   slug,
@@ -387,6 +385,7 @@ export function ProjectPage({
   if (project.duration) facts.push(['Duration', project.duration])
   if (project.team?.size) facts.push(['Team', `${project.team.size} people`])
   if (project.tools.length > 0) facts.push(['Tools', project.tools.join(', ')])
+  const { card, rest } = splitLinks(project, content.itch)
   const note = EFFECT_INFO[effectFor(project)]
   return (
     <>
@@ -411,8 +410,13 @@ export function ProjectPage({
             {project.builtWithAI && <span className="j-chip j-chip-ai">built with AI</span>}
           </span>
           <div className="j-actions">
-            {project.links.map((l, i) => (
-              <a key={l.url} href={l.url} className={i === 0 ? 'j-btn j-btn-primary' : 'j-btn'}>
+            {card && <ItchCard data={card.data} label={card.label} prefix="j" />}
+            {rest.map((l, i) => (
+              <a
+                key={l.url}
+                href={l.url}
+                className={i === 0 && !card ? 'j-btn j-btn-primary' : 'j-btn'}
+              >
                 {l.label}
               </a>
             ))}
@@ -435,7 +439,6 @@ export function ProjectPage({
             title={project.title}
             links={project.links}
             prefix="j"
-            palette={WIDGET}
           />
           {project.body && (
             <div className="j-body">

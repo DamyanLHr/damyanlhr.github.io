@@ -178,12 +178,21 @@ a layer (`effects/layers/`) drawn on a canvas over the band. The simulations pin
 float textures in the cards' shared context (`layers/sims.ts`) and fall back to a small
 CPU grid. The gallery at `/projects/gallery` is julia's own page.
 
-**Embeds (2026-11).** A project's `embeds` (itch.io widget, playable itch.io game, any
-iframe) render through `src/shared/embeds.tsx`, styled by each theme through classes on its
-prefix (`j-game`, `a-widget`, …) and a widget palette it passes (`itchWidgetSrc` in
-`src/shared/itch.ts` maps it to itch's colour parameters). Iframes are lazy; the game sits
-behind a *Play here* button, so nothing downloads or plays sound until asked, and once
-loaded it runs at its own resolution, scaled to fit the column.
+**Embeds (2026-11).** A project's `embeds` (its itch.io card, a playable itch.io game,
+any iframe) render through `src/shared/embeds.tsx`, styled by each theme through classes on
+its prefix (`j-itch`, `a-game`, …). Iframes are lazy; the game sits behind a *Play here*
+button, so nothing downloads or plays sound until asked, and once loaded it runs at its own
+resolution, scaled to fit the column.
+
+**itch.io cards, not itch's widget (2026-11).** itch.io serves its widget pages
+(`itch.io/embed/<id>`) uncached and limits each visitor's address after about eight quick
+requests, so the live widget showed visitors "429 Too Many Requests" after a few project
+pages. The site now never asks itch.io at view time: `npm run itch` (`scripts/itch.mjs`)
+reads each game's widget page once and saves its title, tagline, price, browser-playable
+flag and cover to `src/content/itch.json` and `public/itch/`. `splitLinks` in
+`src/shared/itch.ts` gives the project's itch.io link's place to the card. The
+*Refresh itch.io cards* workflow (`.github/workflows/itch-refresh.yml`) reruns the script
+every Monday and on demand, commits any change to main and starts Deploy.
 
 **Share tags and the CV PDF (2026-10-18).** `npm run og` renders each page at
 1200×630 into `public/og/` and records its title and description in

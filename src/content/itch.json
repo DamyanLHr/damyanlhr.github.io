@@ -1,0 +1,38 @@
+{
+  "3783216": {
+    "title": "Don't Break Glass",
+    "url": "https://damyanhr.itch.io/dont-break-glass",
+    "tagline": "Don't Break Glass is a puzzle game inspired by old flash point-and-click games and escape rooms.",
+    "author": "damyanhr",
+    "price": 0,
+    "browser": true,
+    "cover": "/itch/3783216.png"
+  },
+  "4427662": {
+    "title": "Kill Bunny",
+    "url": "https://damyanhr.itch.io/kill-bunny",
+    "tagline": "Isometric hack-n-slash with RAGE elements.",
+    "author": "damyanhr",
+    "price": 0,
+    "browser": true,
+    "cover": "/itch/4427662.png"
+  },
+  "4819949": {
+    "title": "5 More Minutes!",
+    "url": "https://damyanhr.itch.io/5-more-minutes",
+    "tagline": "Suffer the consequences of procrastination",
+    "author": "damyanhr",
+    "price": 0,
+    "browser": true,
+    "cover": "/itch/4819949.png"
+  },
+  "5237148": {
+    "title": "Barca D'Oro",
+    "url": "https://damyanhr.itch.io/barca-doro",
+    "tagline": "Catch Birds in Space",
+    "author": "damyanhr",
+    "price": 0,
+    "browser": false,
+    "cover": "/itch/5237148.png"
+  }
+}

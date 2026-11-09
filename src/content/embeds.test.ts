@@ -6,9 +6,13 @@ import { content } from './index'
 describe('project embeds', () => {
   const all = content.projects.flatMap((p) => (p.embeds ?? []).map((e) => ({ p, e })))
 
-  it('names each itch.io widget by its number', () => {
-    for (const { p, e } of all)
-      if (e.kind === 'itch-widget') expect(Number.isInteger(e.id) && e.id > 0, p.slug).toBe(true)
+  it('has a saved itch.io card for every game it names (run `npm run itch`)', () => {
+    for (const { p, e } of all) {
+      if (e.kind !== 'itch') continue
+      const card = content.itch[String(e.id)]
+      expect(card, `${p.slug}: no card for ${e.id}; run npm run itch`).toBeDefined()
+      expect(card.url, p.slug).toMatch(/^https:\/\/[a-z0-9-]+\.itch\.io\//)
+    }
   })
 
   it('takes playable games from itch.io’s embed page, with their size', () => {
@@ -29,11 +33,11 @@ describe('project embeds', () => {
     }
   })
 
-  it('gives every game on itch.io its widget', () => {
+  it('gives every game on itch.io its card', () => {
     for (const p of content.projects) {
       const onItch = p.links.some((l) => /^https:\/\/[^/]+\.itch\.io\//.test(l.url))
-      const widget = p.embeds?.some((e) => e.kind === 'itch-widget')
-      expect(!onItch || widget, p.slug).toBe(true)
+      const card = p.embeds?.some((e) => e.kind === 'itch')
+      expect(!onItch || card, p.slug).toBe(true)
     }
   })
 })

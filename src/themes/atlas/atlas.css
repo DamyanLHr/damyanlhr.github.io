@@ -1140,14 +1140,13 @@
 /* ---------- embeds: the game, itch.io's widget, other frames ---------- */
 
 /* Pasted into the folio like a plate: a ruled frame, square corners, the
-   rubric for the one call to action. The widget is tinted from index.tsx. */
+   rubric for the one call to action.  */
 .a-embeds {
   display: grid;
   gap: 1rem;
   margin: 1.2rem 0 1.4rem;
 }
 
-.a-widget,
 .a-embed {
   border: 1px solid var(--a-rule);
   background: var(--a-paper);
@@ -1269,5 +1268,105 @@
 @media (hover: hover) and (pointer: fine) {
   .a-game-play:hover span {
     color: var(--a-rubric);
+  }
+}
+
+/* ---------- the itch.io card, in the project's links ---------- */
+
+/* A plate pasted into the folio in place of the itch.io link: the cover
+   printed in the page's ink until it is looked at, the game's own words in
+   the italic, the call to action in the rubric like every other link here. */
+.a-actions {
+  container-type: inline-size;
+}
+
+.a-actions .a-itch {
+  flex: 1 1 100%;
+}
+
+.a-itch {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  max-width: 34rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--a-rule);
+  background: var(--a-paper);
+  color: var(--a-ink);
+  text-decoration: none;
+}
+
+.a-itch-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 360 / 286;
+  object-fit: cover;
+  outline: 1px solid var(--a-rule);
+  outline-offset: 2px;
+  filter: sepia(0.55) saturate(0.75) contrast(0.95);
+  mix-blend-mode: multiply;
+  transition: filter 320ms var(--a-ease);
+}
+
+.a-itch-text {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: start;
+  min-width: 0;
+}
+
+.a-itch-tagline {
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.a-itch-meta {
+  font-size: 0.82rem;
+  color: var(--a-ink-soft);
+}
+
+.a-itch-cta {
+  margin-top: 0.3rem;
+  font-family: 'IM Fell English SC', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  padding-bottom: 0.15rem;
+  border-bottom: 1.5px solid var(--a-rubric);
+  transition: color 220ms var(--a-ease);
+}
+
+.a-itch:focus-visible {
+  outline: 1.5px solid var(--a-rubric);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .a-itch:hover .a-itch-cover {
+    filter: none;
+  }
+  .a-itch:hover .a-itch-cta {
+    color: var(--a-rubric);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a-itch-cover {
+    transition: none;
+  }
+}
+
+/* a narrow column gives the words the room, so the call to action stays on
+   one line (after the card's own rules, which it overrides) */
+@container (max-width: 24rem) {
+  .a-itch {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .a-itch-cta {
+    white-space: nowrap;
   }
 }
