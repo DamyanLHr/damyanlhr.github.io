@@ -1409,11 +1409,11 @@
 
 .lf-itch-cta {
   margin-top: 0.35rem;
-  padding: 0.45rem 1rem;
+  padding: 0.5rem 1.1rem;
   border-radius: 999px;
   background: var(--lf-accent);
   color: var(--lf-paper);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   transition:
     background-color 160ms var(--lf-ease),
@@ -1424,14 +1424,20 @@
   transform: scale(0.97);
 }
 
-.lf-itch:focus-visible {
+/* past the theme's own link focus rule, which is the warm accent */
+.lf .lf-itch:focus-visible {
   outline: 2px solid var(--lf-accent);
   outline-offset: 4px;
+  border-radius: var(--lf-r-in);
+}
+
+.lf-itch:focus-visible .lf-itch-cta {
+  background: color-mix(in srgb, var(--lf-accent) 82%, white);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .lf-itch:hover .lf-itch-cta {
-    background: color-mix(in srgb, var(--lf-accent) 85%, var(--lf-ink));
+    background: color-mix(in srgb, var(--lf-accent) 82%, white);
   }
 }
 
@@ -1439,10 +1445,12 @@
    one line (after the card's own rules, which it overrides) */
 @container (max-width: 24rem) {
   .lf-itch {
-    grid-template-columns: 5rem minmax(0, 1fr);
+    grid-template-columns: 6rem minmax(0, 1fr);
     gap: 0.75rem;
   }
   .lf-itch-cta {
     white-space: nowrap;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
   }
 }

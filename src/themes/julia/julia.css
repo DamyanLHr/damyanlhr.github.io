@@ -1880,17 +1880,17 @@
 
 .j-itch-meta {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   color: var(--j-muted);
 }
 
 .j-itch-cta {
   margin-top: 0.35rem;
-  padding: 0.45rem 1rem;
+  padding: 0.6rem 1.25rem;
   border-radius: 999px;
   background: var(--j-accent);
   color: #1c0e02;
-  font-size: 0.85rem;
+  font-size: 0.92rem;
   font-weight: 600;
   transition: background-color 160ms var(--ease-out-strong);
 }
@@ -1899,9 +1899,15 @@
   transform: scale(0.99);
 }
 
-.j-itch:focus-visible {
+/* past the theme's own link focus rule, which would square the corners */
+.julia .j-itch:focus-visible {
   outline: 2px solid var(--j-accent);
   outline-offset: 3px;
+  border-radius: var(--j-r);
+}
+
+.j-itch:focus-visible .j-itch-cta {
+  background: var(--j-accent-soft);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1922,5 +1928,7 @@
   }
   .j-itch-cta {
     white-space: nowrap;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
   }
 }

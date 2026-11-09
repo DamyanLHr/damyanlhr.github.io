@@ -1134,17 +1134,17 @@
 }
 
 .s-itch-meta {
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   color: var(--s-muted);
 }
 
 .s-itch-cta {
   margin-top: 0.35rem;
-  padding: 0.45rem 1rem;
+  padding: 0.55rem 1.2rem;
   border-radius: 999px;
   background: var(--s-accent);
   color: #1c0e02;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   transition:
     background-color 160ms var(--ease-out-strong),
@@ -1155,9 +1155,15 @@
   transform: scale(0.97);
 }
 
-.s-itch:focus-visible {
+/* past the theme's own link focus rule */
+.sing .s-itch:focus-visible {
   outline: 2px solid var(--s-accent);
   outline-offset: 4px;
+  border-radius: var(--s-r-in);
+}
+
+.s-itch:focus-visible .s-itch-cta {
+  background: var(--s-accent-soft);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1170,10 +1176,12 @@
    one line (after the card's own rules, which it overrides) */
 @container (max-width: 24rem) {
   .s-itch {
-    grid-template-columns: 5rem minmax(0, 1fr);
+    grid-template-columns: 6rem minmax(0, 1fr);
     gap: 0.75rem;
   }
   .s-itch-cta {
     white-space: nowrap;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
   }
 }
