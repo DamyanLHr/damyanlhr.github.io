@@ -1103,7 +1103,7 @@
 .s-itch {
   display: grid;
   grid-template-columns: 7rem minmax(0, 1fr);
-  gap: 0.95rem;
+  gap: 1.25rem;
   align-items: center;
   color: var(--s-fg);
   text-decoration: none;
@@ -1177,7 +1177,7 @@
 @container (max-width: 24rem) {
   .s-itch {
     grid-template-columns: 6rem minmax(0, 1fr);
-    gap: 0.75rem;
+    gap: 1rem;
   }
   .s-itch-cta {
     white-space: nowrap;

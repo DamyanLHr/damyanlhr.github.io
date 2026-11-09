@@ -6,7 +6,6 @@ import type { ThemeProps } from '../../shared/theme-contract'
 import { FractalCanvas } from './FractalCanvas'
 import { EffectCard } from './EffectCard'
 import type { StageBus } from './stage-bus'
-import { EFFECT_INFO } from './effects/registry'
 import { GALLERY_SLUG } from './gallery-slug'
 import { effectConstant, effectFor, paramsFor } from './fractal'
 import { SocialLink } from '../../shared/social-icons'
@@ -386,16 +385,11 @@ export function ProjectPage({
   if (project.team?.size) facts.push(['Team', `${project.team.size} people`])
   if (project.tools.length > 0) facts.push(['Tools', project.tools.join(', ')])
   const { card, rest } = splitLinks(project, content.itch)
-  const note = EFFECT_INFO[effectFor(project)]
   return (
     <>
-      <div className="j-band j-band-tall">
-        <p className="j-band-note">
-          <span className="j-band-name">{note.name}</span>
-          <span className="j-band-how j-how-pointer">{note.pointer}</span>
-          <span className="j-band-how j-how-touch">{note.touch}</span>
-        </p>
-      </div>
+      {/* the effect plays here unlabelled: its name and how to play with it
+          are the gallery's business, not the project's */}
+      <div className="j-band j-band-tall" />
       <section className="j-project j-enter">
         <div className="j-rail">
           <InternalLink to="/projects" navigate={navigate} className="j-back">

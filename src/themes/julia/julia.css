@@ -1843,9 +1843,9 @@
 .j-itch {
   display: grid;
   grid-template-columns: 7.5rem minmax(0, 1fr);
-  gap: 0.95rem;
+  gap: 1.35rem;
   align-items: center;
-  padding: 0.7rem;
+  padding: 0.85rem 1.1rem 0.85rem 0.85rem;
   border: 1px solid var(--j-line);
   border-radius: var(--j-r);
   background: var(--j-raise);
@@ -1924,7 +1924,7 @@
 @container (max-width: 24rem) {
   .j-itch {
     grid-template-columns: 5rem minmax(0, 1fr);
-    gap: 0.75rem;
+    gap: 1rem;
   }
   .j-itch-cta {
     white-space: nowrap;
