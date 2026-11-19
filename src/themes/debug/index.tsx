@@ -131,6 +131,12 @@ export function Root({ content, route, navigate, themeMenu }: ThemeProps) {
       )}
 
       {route.kind === 'projects' && (
+        <Section title="announcements (up next)">
+          <Dump value={content.announcements} />
+        </Section>
+      )}
+
+      {route.kind === 'projects' && (
         <Section title={`projects (${content.projects.length})`}>
           <ul>
             {content.projects.map((p) => (

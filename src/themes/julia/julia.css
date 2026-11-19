@@ -36,7 +36,8 @@
 .julia .j-chip,
 .julia .j-facts dt,
 .julia .j-eyebrow,
-.julia .j-ticker-tag {
+.julia .j-ticker-tag,
+.julia .j-upnext-tag {
   font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-variant-numeric: tabular-nums;
 }
@@ -682,6 +683,45 @@
   .j-ticker:hover .j-ticker-items {
     color: var(--j-fg);
   }
+}
+
+/* The projects page's "Up next": what is coming, above the work that is here.
+   Quiet text on the page, no box, so the mosaic stays the thing to look at. */
+.j-upnext {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0 0 2.2rem;
+}
+
+.j-upnext-tag {
+  margin: 0;
+  color: var(--j-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.68rem;
+  font-weight: 400;
+}
+
+.j-upnext-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1.1rem 2.4rem;
+}
+
+.j-upnext h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--j-fg);
+}
+
+.j-upnext p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--j-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  text-wrap: pretty;
 }
 
 .j-home-copy {

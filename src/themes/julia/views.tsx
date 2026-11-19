@@ -271,6 +271,22 @@ export function ProjectsIndex({
           <WorkTabs current="work" navigate={navigate} />
         </header>
 
+        {content.announcements.length > 0 && (
+          <section className="j-upnext" aria-labelledby="j-upnext-tag">
+            <h2 id="j-upnext-tag" className="j-upnext-tag">
+              Up next
+            </h2>
+            <div className="j-upnext-items">
+              {content.announcements.map((a) => (
+                <article key={a.id}>
+                  <h3>{a.title}</h3>
+                  <p>{a.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="j-mosaic" ref={mosaic}>
           {projects.map((p) => {
             const coming = p.status !== 'released'
