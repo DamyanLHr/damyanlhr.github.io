@@ -32,9 +32,12 @@ File: `src/content/projects.ts`. Copy an existing entry and edit. The important
 fields:
 
 - `slug` — unique, lowercase-with-dashes; becomes the URL `/projects/<slug>`.
-- `title`, `category` (`'personal' | 'jam' | 'university'`), `status`
-  (`'released'` or `'coming-soon'` — coming-soon entries show via announcements, not
-  as cards).
+- `title`, `category` (`'personal' | 'jam' | 'university' | 'package'`; `package`
+  is a reusable Unity package rather than a finished game or app), `status`
+  (`'released'` or `'coming-soon'`; coming-soon entries show as cards marked in
+  progress, after the released ones, in every theme).
+- `expected` — for a coming-soon project, when it is due, as you would say it
+  (`'Q2 2027'`). Shown on its card and page.
 - `year`, `event` (jam or course name), `duration`, `role` — role is required for
   released projects.
 - `team` — `{ name, size, members }`, any subset.

@@ -106,13 +106,16 @@ export interface CV {
   proficiencies: Proficiencies
 }
 
-export type ProjectCategory = 'personal' | 'jam' | 'university'
+/** What a project is: `package` is a reusable Unity package rather than a finished game or app. */
+export type ProjectCategory = 'personal' | 'jam' | 'university' | 'package'
 
 export interface Project {
   slug: string
   title: string
   category: ProjectCategory
   status: 'released' | 'coming-soon'
+  /** When a project that is still in progress is due, as you would say it: 'Q2 2027'. */
+  expected?: string
   year?: number
   /** Jam or course the project belongs to. */
   event?: string

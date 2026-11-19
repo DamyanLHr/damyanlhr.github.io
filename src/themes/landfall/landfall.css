@@ -949,8 +949,19 @@
   gap: 0.3rem;
 }
 
+/* In progress reads as a state, not a category: no accent, just a quiet line. */
+.lf-chip.lf-chip-soon {
+  color: var(--lf-muted);
+  border-color: color-mix(in srgb, var(--lf-ink) 22%, transparent);
+}
+
+/* the project's own chips, under its title */
+.lf-page-chips {
+  margin: 0 0 0.6rem;
+}
+
 /* Reads as a statement of fact beside the category, not as a warning over it. */
-.lf-chip-ai {
+.lf-chip.lf-chip-ai {
   color: var(--lf-ink);
   border-color: color-mix(in srgb, var(--lf-ink) 26%, transparent);
   background: color-mix(in srgb, var(--lf-ink) 8%, transparent);

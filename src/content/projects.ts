@@ -1,5 +1,12 @@
 import type { Project } from './types'
 
+// The Unity packages share their tools and when they are due. The note on how
+// they were built goes on the sky and upscaler pages and nowhere else.
+const PACKAGE_TOOLS = ['Unity', 'C#', 'HLSL']
+const PACKAGE_DUE = 'Q2 2027'
+const PACKAGE_NOTE =
+  'Built with heavy use of AI coding agents; every design and architecture decision is mine.'
+
 export const projects: Project[] = [
   {
     slug: 'extensible-terrain-generation',
@@ -279,5 +286,67 @@ Vulkan are the current case and are being learned directly.
     summary:
       'A top-down roguelite set in Greek myth. You play Achilles, holding out for five minutes against waves of monsters with auto-firing weapons, and a maxed weapon paired with a maxed ability fuses into something new, like the Exploding Bow or the Lightning Axe. Built on a Java and Swing engine written from scratch.',
     links: [{ label: 'Repository', url: 'https://github.com/DamyanLHr/Olympian-Onslaught' }],
+  },
+  {
+    slug: 'sky-package',
+    art: { effect: 'attractor' },
+    title: 'Volumetric Sky',
+    category: 'package',
+    status: 'coming-soon',
+    expected: PACKAGE_DUE,
+    tools: PACKAGE_TOOLS,
+    summary:
+      'My Unity volumetric sky, split out into a package of its own, com.damyanlhr.sky. It holds the atmosphere, the volumetric clouds, the weather, the quality tiers and the diagnostics. It runs on URP today, and HDRP is planned. It will get its own repository and a place on a packages site later.',
+    body: PACKAGE_NOTE,
+    links: [],
+  },
+  {
+    slug: 'upscalers-package',
+    art: { effect: 'mandel-julia' },
+    title: 'Upscalers',
+    category: 'package',
+    status: 'coming-soon',
+    expected: PACKAGE_DUE,
+    tools: PACKAGE_TOOLS,
+    summary:
+      "DLSS and FSR 2 for Unity in one package, com.damyanlhr.upscalers, through Unity's own NVIDIA and AMD engine modules. It comes with a reactive-mask hook, and my sky package fills it. Like the sky, it will get its own repository later.",
+    body: PACKAGE_NOTE,
+    links: [],
+  },
+  {
+    slug: 'terrain-rendering',
+    art: { effect: 'newton' },
+    title: 'Terrain Rendering',
+    category: 'package',
+    status: 'coming-soon',
+    expected: PACKAGE_DUE,
+    tools: PACKAGE_TOOLS,
+    summary:
+      'A Unity package for rendering terrain, for URP and HDRP. It is planned as part of the same family as my sky and upscaler packages. It is separate from Extensible Terrain Generation, my C++ and Vulkan project.',
+    links: [],
+  },
+  {
+    slug: 'terrain-dressing',
+    art: { effect: 'coral' },
+    title: 'Terrain Dressing',
+    category: 'package',
+    status: 'coming-soon',
+    expected: PACKAGE_DUE,
+    tools: PACKAGE_TOOLS,
+    summary:
+      'A Unity package that dresses a terrain with vegetation, rocks and ground detail placed over it, for URP and HDRP. It is planned as part of the same family as my sky and upscaler packages. Like Terrain Rendering, it is separate from Extensible Terrain Generation, my C++ and Vulkan project.',
+    links: [],
+  },
+  {
+    slug: 'water-package',
+    art: { effect: 'phoenix' },
+    title: 'Water',
+    category: 'package',
+    status: 'coming-soon',
+    expected: PACKAGE_DUE,
+    tools: PACKAGE_TOOLS,
+    summary:
+      'A Unity package for water. It is planned as part of the same family as my sky, upscaler and terrain packages.',
+    links: [],
   },
 ]

@@ -644,6 +644,17 @@
 
 /* The AI disclosure is a statement of fact, not a warning: muted ink, beside
    the category chip as a peer. */
+/* In progress reads as a state, not a category: no accent, just a quiet line. */
+.s-chip-soon {
+  color: var(--s-muted);
+  border-color: var(--s-line);
+}
+
+/* the project's own chips, under its title */
+.s-page-chips {
+  margin: -0.4rem 0 1rem;
+}
+
 .s-chip-ai {
   color: var(--s-fg);
   border-color: var(--s-line);

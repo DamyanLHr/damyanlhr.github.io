@@ -180,7 +180,7 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
 }
 
 // Mosaic weights for the four-column grid, in roster order, so every row fills
-// exactly: (2+1+1)(1+2+1)(1+2+1). A slug missing here falls back to 1, which
+// exactly: (2+1+1)(1+2+1)(1+2+1)(2+1+1)(2+2). A slug missing here falls back to 1, which
 // can leave a ragged row, so this map moves whenever a project is added.
 const CARD_SPAN: Record<string, number> = {
   'this-site': 2,
@@ -193,12 +193,18 @@ const CARD_SPAN: Record<string, number> = {
   // the flyover needs room to read as a landscape
   'extensible-terrain-generation': 2,
   'barca-doro': 1,
+  'sky-package': 2,
+  'upscalers-package': 1,
+  'terrain-rendering': 1,
+  'terrain-dressing': 2,
+  'water-package': 2,
 }
 
 const CHIP: Record<Project['category'], string> = {
   personal: 'personal',
   jam: 'game jam',
   university: 'university',
+  package: 'unity package',
 }
 
 /** Released work first, in roster order, then what is in progress. */
@@ -295,7 +301,9 @@ export function ProjectsIndex({
                   </span>
                   <span className="j-card-title">{p.title}</span>
                   <span className="j-meta">
-                    {[p.year, p.event, p.role].filter(Boolean).join(' · ')}
+                    {[p.year, p.expected && `expected ${p.expected}`, p.event, p.role]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </span>
                   <span className="j-card-summary">{p.summary}</span>
                 </span>
@@ -379,6 +387,7 @@ export function ProjectPage({
   if (!project) return <NotFound path={`/projects/${slug}`} navigate={navigate} />
   const facts: [string, string][] = []
   if (project.year) facts.push(['Year', String(project.year)])
+  if (project.expected) facts.push(['Expected', project.expected])
   if (project.event) facts.push(['Where', project.event])
   if (project.role) facts.push(['Role', project.role])
   if (project.duration) facts.push(['Duration', project.duration])

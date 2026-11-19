@@ -613,6 +613,7 @@ const CHIP: Record<Project['category'], string> = {
   personal: 'PERSONAL',
   jam: 'GAME JAM',
   university: 'UNIVERSITY',
+  package: 'UNITY PACKAGE',
 }
 
 function Projects({
@@ -623,6 +624,8 @@ function Projects({
   navigate: ThemeProps['navigate']
 }) {
   const released = content.projects.filter((p) => p.status === 'released')
+  // work still in progress: towns on the way, not yet on the map
+  const unsurveyed = content.projects.filter((p) => p.status !== 'released')
   return (
     <>
       <h1>The Towns</h1>
@@ -654,6 +657,25 @@ function Projects({
           </Link>
         ))}
       </div>
+
+      {unsurveyed.length > 0 && (
+        <>
+          <h2 className="a-h2">NOT YET SURVEYED</h2>
+          <div className="a-roll">
+            {unsurveyed.map((p) => (
+              <Link key={p.slug} to={`/projects/${p.slug}`} navigate={navigate}>
+                <span className="a-roll-no">
+                  IN PROGRESS · {CHIP[p.category]}
+                  {p.expected && ` · EXPECTED ${p.expected.toUpperCase()}`}
+                  {p.builtWithAI && <span className="a-ai-mark"> · MADE WITH AI</span>}
+                </span>
+                <span className="a-roll-title">{p.title}</span>
+                <span className="a-roll-sum">{p.summary}</span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
     </>
   )
 }
@@ -671,6 +693,7 @@ function ProjectSheet({
   if (!project) return <NotFound path={`/projects/${slug}`} navigate={navigate} />
   const facts: [string, string][] = []
   if (project.year) facts.push(['Year', String(project.year)])
+  if (project.expected) facts.push(['Expected', project.expected])
   if (project.event) facts.push(['Where', project.event])
   if (project.role) facts.push(['Role', project.role])
   if (project.duration) facts.push(['Duration', project.duration])
@@ -683,7 +706,10 @@ function ProjectSheet({
         ← back to the towns
       </Link>
       <h1>{project.title}</h1>
-      <p className="a-folio-sub">{CHIP[project.category].toLowerCase()}</p>
+      <p className="a-folio-sub">
+        {CHIP[project.category].toLowerCase()}
+        {project.status !== 'released' && ' · not yet surveyed'}
+      </p>
       {project.builtWithAI && (
         <p className="a-ai-flag">This work was made with the help of an AI, and says so below.</p>
       )}

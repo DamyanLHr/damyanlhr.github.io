@@ -50,7 +50,10 @@ a template, it is not done.** Consult the design skills in `.claude/skills/`
    If the theme can fail (no GPU), the bar must stay above the failure screen.
 
 4. **Surface the required content.** Non-negotiable minimums:
-   - All projects (with their links) and the CV data.
+   - All projects (with their links) and the CV data. That includes coming-soon
+     projects, marked as in progress with their `expected` date, and every
+     project's category (a `Record<Project['category'], string>` label map makes
+     the compiler point at your theme when a category is added).
    - **`content.announcements` ("Up next") on the landing AND projects pages** — this
      site is a blog; the pulse must show in every world.
    - Socials on the landing, drawn with `SocialLink` from `src/shared/social-icons.tsx`

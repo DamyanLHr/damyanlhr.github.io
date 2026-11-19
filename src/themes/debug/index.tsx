@@ -66,7 +66,8 @@ function ProjectCard({
         {project.title}
       </a>{' '}
       <span className="debug-dim">
-        [{project.category}] {project.year ?? ''} {project.status === 'coming-soon' ? '(soon)' : ''}
+        [{project.category}] {project.year ?? ''} {project.status === 'coming-soon' ? '(soon)' : ''}{' '}
+        {project.expected ? `expected ${project.expected}` : ''}
       </span>
     </li>
   )

@@ -341,6 +341,7 @@ const CHIP: Record<Project['category'], string> = {
   personal: 'personal',
   jam: 'game jam',
   university: 'university',
+  package: 'unity package',
 }
 
 function ProjectsIndex({
@@ -350,7 +351,11 @@ function ProjectsIndex({
   content: SiteContent
   navigate: ThemeProps['navigate']
 }) {
-  const released = content.projects.filter((p) => p.status === 'released')
+  // released work first, then what is still in progress
+  const roster = [
+    ...content.projects.filter((p) => p.status === 'released'),
+    ...content.projects.filter((p) => p.status !== 'released'),
+  ]
   return (
     <Panel>
       <h1>Projects</h1>
@@ -366,7 +371,7 @@ function ProjectsIndex({
         </div>
       )}
       <div className="s-project-list">
-        {released.map((p) => (
+        {roster.map((p) => (
           <InternalLink
             key={p.slug}
             to={`/projects/${p.slug}`}
@@ -374,12 +379,17 @@ function ProjectsIndex({
             className="s-project-card"
           >
             <span className="s-chips">
+              {p.status !== 'released' && <span className="s-chip s-chip-soon">in progress</span>}
               <span className="s-chip">{CHIP[p.category]}</span>
               {/* the disclosure travels with the card, not only the page */}
               {p.builtWithAI && <span className="s-chip s-chip-ai">built with AI</span>}
             </span>
             <span className="s-card-title">{p.title}</span>
-            <span className="s-meta">{[p.year, p.event, p.role].filter(Boolean).join(' · ')}</span>
+            <span className="s-meta">
+              {[p.year, p.expected && `expected ${p.expected}`, p.event, p.role]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
             <span className="s-card-summary">{p.summary}</span>
           </InternalLink>
         ))}
@@ -401,6 +411,7 @@ function ProjectPage({
   if (!project) return <NotFound path={`/projects/${slug}`} navigate={navigate} />
   const facts: [string, string][] = []
   if (project.year) facts.push(['Year', String(project.year)])
+  if (project.expected) facts.push(['Expected', project.expected])
   if (project.event) facts.push(['Where', project.event])
   if (project.role) facts.push(['Role', project.role])
   if (project.duration) facts.push(['Duration', project.duration])
@@ -413,6 +424,10 @@ function ProjectPage({
         &larr; all projects
       </InternalLink>
       <h1>{project.title}</h1>
+      <p className="s-chips s-page-chips">
+        {project.status !== 'released' && <span className="s-chip s-chip-soon">in progress</span>}
+        <span className="s-chip">{CHIP[project.category]}</span>
+      </p>
       {project.builtWithAI && <p className="s-ai-flag">Built with AI</p>}
       <dl className="s-facts">
         {facts.map(([k, v]) => (

@@ -4,6 +4,11 @@ import type { Announcement } from './types'
 // landing and projects pages (see docs/ADDING-CONTENT.md).
 export const announcements: Announcement[] = [
   {
+    id: 'unity-sky-packages',
+    title: 'Sky and upscaler packages for Unity',
+    body: "I am splitting my Unity volumetric sky into packages. The sky package holds the atmosphere, clouds, weather, quality tiers and diagnostics, and the upscaler package brings DLSS and FSR 2 through Unity's own engine modules. Each one gets its own repository, and both are slated for Q2 2027.",
+  },
+  {
     id: 'extensible-terrain-generation',
     title: 'Extensible Terrain Generation',
     body: 'A C++ and Vulkan terrain pipeline designed to take new generators without being rebuilt around each one. First personal graphics project on the road to Delft.',

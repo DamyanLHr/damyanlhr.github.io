@@ -994,6 +994,7 @@ const CHIP: Record<Project['category'], string> = {
   personal: 'personal',
   jam: 'game jam',
   university: 'university',
+  package: 'unity package',
 }
 
 function Projects({
@@ -1003,7 +1004,12 @@ function Projects({
   content: SiteContent
   navigate: ThemeProps['navigate']
 }) {
-  const released = content.projects.filter((p) => p.status === 'released')
+  // released work first, then what is still in progress (only released work
+  // has a place on the island)
+  const roster = [
+    ...content.projects.filter((p) => p.status === 'released'),
+    ...content.projects.filter((p) => p.status !== 'released'),
+  ]
   return (
     <>
       <h1>Projects</h1>
@@ -1019,14 +1025,19 @@ function Projects({
         </div>
       )}
       <div className="lf-list">
-        {released.map((p) => (
+        {roster.map((p) => (
           <Link key={p.slug} to={`/projects/${p.slug}`} navigate={navigate} className="lf-card">
             <span className="lf-chips">
+              {p.status !== 'released' && <span className="lf-chip lf-chip-soon">in progress</span>}
               <span className="lf-chip">{CHIP[p.category]}</span>
               {p.builtWithAI && <span className="lf-chip lf-chip-ai">built with AI</span>}
             </span>
             <span className="lf-card-title">{p.title}</span>
-            <span className="lf-meta">{[p.year, p.event, p.role].filter(Boolean).join(' · ')}</span>
+            <span className="lf-meta">
+              {[p.year, p.expected && `expected ${p.expected}`, p.event, p.role]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
             <span className="lf-card-sum">{p.summary}</span>
           </Link>
         ))}
@@ -1048,6 +1059,7 @@ function ProjectSheet({
   if (!project) return <NotFound path={`/projects/${slug}`} navigate={navigate} />
   const facts: [string, string][] = []
   if (project.year) facts.push(['Year', String(project.year)])
+  if (project.expected) facts.push(['Expected', project.expected])
   if (project.event) facts.push(['Where', project.event])
   if (project.role) facts.push(['Role', project.role])
   if (project.duration) facts.push(['Duration', project.duration])
@@ -1060,6 +1072,10 @@ function ProjectSheet({
         ← all projects
       </Link>
       <h1>{project.title}</h1>
+      <p className="lf-chips lf-page-chips">
+        {project.status !== 'released' && <span className="lf-chip lf-chip-soon">in progress</span>}
+        <span className="lf-chip">{CHIP[project.category]}</span>
+      </p>
       {project.builtWithAI && <p className="lf-ai-flag">Built with AI</p>}
       <dl className="lf-facts">
         {facts.map(([k, v]) => (
