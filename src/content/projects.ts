@@ -225,7 +225,7 @@ Vulkan are the current case and are being learned directly.
     team: { size: 5 },
     tools: ['Unity', 'C#', 'HLSL'],
     summary:
-      'Skim the skies of different planets and discover all species of space birds. Use your knowledge and high-speed space boat to capture them and control the trade market of a space-set Florence. Buckle up with upgrades from a familiar face from the past, architetto DaStingy, and set forth on your space expedition.',
+      'Skim the skies of different planets and discover all species of space birds. Use your knowledge and high-speed space boat to capture them and control the trade market of a space-set Florence. Buckle up with upgrades from a familiar face from the past, architetto DaStingy, and set forth on your space expedition. We won an honorable mention for it in the Game Design 1 course at TU/e.',
     links: [{ label: 'View on itch.io', url: 'https://damyanhr.itch.io/barca-doro' }],
     embeds: [{ kind: 'itch', id: 5237148 }],
   },
