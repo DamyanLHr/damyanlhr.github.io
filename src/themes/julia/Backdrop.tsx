@@ -179,10 +179,24 @@ export function Backdrop({
     // Travel first, then develop: the effect starts once the set has arrived.
     timer = window.setTimeout(attach, stage.eta())
 
+    // What the picture is fitted to. A phone fires `resize` every time its
+    // address bar slides in or out, which changes none of this (the stage is
+    // sized in lvh, the band in svh), so those are ignored: re-posing then
+    // would restart a project's effect in the middle of a scroll.
+    const measure = () => {
+      const b = band?.getBoundingClientRect()
+      return [canvas.clientWidth, canvas.clientHeight, b?.width ?? 0, b?.height ?? 0, mq.matches]
+        .map(String)
+        .join()
+    }
+    let fitted = measure()
     let resizeTimer = 0
     const onResize = () => {
       window.clearTimeout(resizeTimer)
       resizeTimer = window.setTimeout(() => {
+        const now = measure()
+        if (now === fitted) return
+        fitted = now
         stage.setPose(pose(), { travel: false })
         edge(false)
         if (detach) attach()

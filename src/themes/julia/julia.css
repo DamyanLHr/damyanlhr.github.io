@@ -68,9 +68,14 @@
    pinned to the top of the document instead of the window. Everything readable
    sits above it. */
 
+/* The stage is as tall as the screen with the browser's bars hidden (lvh),
+   not as tall as the window is right now. On a phone the address bar slides
+   away during a scroll, and a stage that followed it was stretched, picture
+   and all, until the next redraw. */
 .j-stage {
   position: fixed;
-  inset: 0;
+  inset: 0 0 auto;
+  height: 100lvh;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
@@ -629,7 +634,8 @@
   position: relative;
   display: grid;
   align-content: center;
-  min-height: calc(100dvh - 64px);
+  /* svh, not dvh: the hero must not grow while the address bar slides away */
+  min-height: calc(100svh - 64px);
   overflow: hidden;
 }
 
@@ -1413,7 +1419,7 @@
 
 .j-404 {
   /* the stage holds the set up top; the words sit under it */
-  padding-top: max(16rem, 50dvh);
+  padding-top: max(16rem, 50lvh);
   text-align: center;
 }
 
@@ -1695,7 +1701,8 @@
       radial-gradient(140% 110% at 50% 22%, transparent 56%, var(--j-bg) 100%);
   }
   .j-home-copy {
-    padding-top: 42dvh;
+    /* the same measure as the stage, so the copy keeps its place under the set */
+    padding-top: 42lvh;
     padding-bottom: 0.6rem;
   }
   .j-ticker {
