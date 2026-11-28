@@ -69,24 +69,19 @@
     "description": "My Unity volumetric sky, split out into a package of its own, com.damyanlhr.sky. It holds the atmosphere, the volumetric clouds, the weather, the quality tiers and the diagnostics.",
     "image": "/og/sky-package.jpg"
   },
-  "/projects/upscalers-package": {
-    "title": "Upscalers · Damyan Hristov",
-    "description": "DLSS and FSR 2 for Unity in one package, com.damyanlhr.upscalers, through Unity's own NVIDIA and AMD engine modules. It comes with a reactive-mask hook, and my sky package fills it.",
-    "image": "/og/upscalers-package.jpg"
-  },
   "/projects/terrain-rendering": {
     "title": "Terrain Rendering · Damyan Hristov",
-    "description": "A Unity package for rendering terrain, for URP and HDRP. It is planned as part of the same family as my sky and upscaler packages.",
+    "description": "A Unity package for rendering terrain, for URP and HDRP. It is planned as part of the same family as my sky package. It is separate from Extensible Terrain Generation, my C++ and Vulkan project.",
     "image": "/og/terrain-rendering.jpg"
   },
   "/projects/terrain-dressing": {
     "title": "Terrain Dressing · Damyan Hristov",
-    "description": "A Unity package that dresses a terrain with vegetation, rocks and ground detail placed over it, for URP and HDRP. It is planned as part of the same family as my sky and upscaler packages.",
+    "description": "A Unity package that dresses a terrain with vegetation, rocks and ground detail placed over it, for URP and HDRP. It is planned as part of the same family as my sky package.",
     "image": "/og/terrain-dressing.jpg"
   },
   "/projects/water-package": {
     "title": "Water · Damyan Hristov",
-    "description": "A Unity package for water. It is planned as part of the same family as my sky, upscaler and terrain packages.",
+    "description": "A Unity package for water. It is planned as part of the same family as my sky and terrain packages.",
     "image": "/og/water-package.jpg"
   }
 }

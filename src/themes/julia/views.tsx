@@ -180,7 +180,7 @@ export function Cv({ content, navigate }: { content: SiteContent; navigate: Nav 
 }
 
 // Mosaic weights for the four-column grid, in roster order, so every row fills
-// exactly: (2+1+1)(1+2+1)(1+2+1)(2+1+1)(2+2). A slug missing here falls back to 1, which
+// exactly: (2+1+1)(1+2+1)(1+2+1)(2+2)(2+2). A slug missing here falls back to 1, which
 // can leave a ragged row, so this map moves whenever a project is added.
 const CARD_SPAN: Record<string, number> = {
   'this-site': 2,
@@ -194,8 +194,7 @@ const CARD_SPAN: Record<string, number> = {
   'extensible-terrain-generation': 2,
   'barca-doro': 1,
   'sky-package': 2,
-  'upscalers-package': 1,
-  'terrain-rendering': 1,
+  'terrain-rendering': 2,
   'terrain-dressing': 2,
   'water-package': 2,
 }

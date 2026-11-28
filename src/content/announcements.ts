@@ -5,8 +5,8 @@ import type { Announcement } from './types'
 export const announcements: Announcement[] = [
   {
     id: 'unity-sky-packages',
-    title: 'Sky and upscaler packages for Unity',
-    body: "I am splitting my Unity volumetric sky into packages. The sky package holds the atmosphere, clouds, weather, quality tiers and diagnostics, and the upscaler package brings DLSS and FSR 2 through Unity's own engine modules. Each one gets its own repository, and both are slated for Q2 2027.",
+    title: 'Volumetric sky package for Unity',
+    body: 'I am turning my Unity volumetric sky into a package of its own. It holds the atmosphere, clouds, weather, quality tiers and diagnostics, and it is slated for Q2 2027.',
   },
   {
     id: 'extensible-terrain-generation',

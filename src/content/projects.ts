@@ -1,7 +1,7 @@
 import type { Project } from './types'
 
 // The Unity packages share their tools and when they are due. The note on how
-// they were built goes on the sky and upscaler pages and nowhere else.
+// they were built goes on the sky page and nowhere else.
 const PACKAGE_TOOLS = ['Unity', 'C#', 'HLSL']
 const PACKAGE_DUE = 'Q2 2027'
 const PACKAGE_NOTE =
@@ -301,19 +301,6 @@ Vulkan are the current case and are being learned directly.
     links: [{ label: 'Guide and docs', url: 'https://damyanlhr.github.io/packages/sky/' }],
   },
   {
-    slug: 'upscalers-package',
-    art: { effect: 'mandel-julia' },
-    title: 'Upscalers',
-    category: 'package',
-    status: 'coming-soon',
-    expected: PACKAGE_DUE,
-    tools: PACKAGE_TOOLS,
-    summary:
-      "DLSS and FSR 2 for Unity in one package, com.damyanlhr.upscalers, through Unity's own NVIDIA and AMD engine modules. It comes with a reactive-mask hook, and my sky package fills it. Like the sky, it will get its own repository later.",
-    body: PACKAGE_NOTE,
-    links: [{ label: 'Guide and docs', url: 'https://damyanlhr.github.io/packages/upscalers/' }],
-  },
-  {
     slug: 'terrain-rendering',
     art: { effect: 'newton' },
     title: 'Terrain Rendering',
@@ -322,7 +309,7 @@ Vulkan are the current case and are being learned directly.
     expected: PACKAGE_DUE,
     tools: PACKAGE_TOOLS,
     summary:
-      'A Unity package for rendering terrain, for URP and HDRP. It is planned as part of the same family as my sky and upscaler packages. It is separate from Extensible Terrain Generation, my C++ and Vulkan project.',
+      'A Unity package for rendering terrain, for URP and HDRP. It is planned as part of the same family as my sky package. It is separate from Extensible Terrain Generation, my C++ and Vulkan project.',
     links: [
       { label: 'Guide and docs', url: 'https://damyanlhr.github.io/packages/terrain-rendering/' },
     ],
@@ -336,7 +323,7 @@ Vulkan are the current case and are being learned directly.
     expected: PACKAGE_DUE,
     tools: PACKAGE_TOOLS,
     summary:
-      'A Unity package that dresses a terrain with vegetation, rocks and ground detail placed over it, for URP and HDRP. It is planned as part of the same family as my sky and upscaler packages. Like Terrain Rendering, it is separate from Extensible Terrain Generation, my C++ and Vulkan project.',
+      'A Unity package that dresses a terrain with vegetation, rocks and ground detail placed over it, for URP and HDRP. It is planned as part of the same family as my sky package. Like Terrain Rendering, it is separate from Extensible Terrain Generation, my C++ and Vulkan project.',
     links: [
       { label: 'Guide and docs', url: 'https://damyanlhr.github.io/packages/terrain-dressing/' },
     ],
@@ -350,7 +337,7 @@ Vulkan are the current case and are being learned directly.
     expected: PACKAGE_DUE,
     tools: PACKAGE_TOOLS,
     summary:
-      'A Unity package for water. It is planned as part of the same family as my sky, upscaler and terrain packages.',
+      'A Unity package for water. It is planned as part of the same family as my sky and terrain packages.',
     links: [{ label: 'Guide and docs', url: 'https://damyanlhr.github.io/packages/water/' }],
   },
 ]
